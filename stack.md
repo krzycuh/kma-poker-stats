@@ -1,93 +1,93 @@
-# Stos technologiczny – Poker Stats Web App
+# Technology Stack – Poker Stats Web App
 
-Dokument opracowany na podstawie wymagań i projektu z plików `FUNCTIONALITY_DESIGN.md` oraz `UI_WIREFRAMES.md`. Aplikacja: mobilno‑pierwszy serwis do logowania domowych rozgrywek pokerowych, prezentacji statystyk i leaderboardów dla graczy z rolami: casual player oraz admin.
+This document is based on `FUNCTIONALITY_DESIGN.md` and `UI_WIREFRAMES.md`. The app is a mobile‑first platform for logging home poker sessions, tracking personal/group performance, and showing leaderboards for two roles: casual player and admin.
 
-## Założenia domenowe istotne dla wyboru technologii
-- Kluczowe encje: `User`, `Player`, `GameSession`, `SessionResult` oraz pochodne statystyki (wyliczane, nieprzechowywane).
-- Wymagania integralności: spójność sum (buy‑in = cash‑out), brak wartości ujemnych, edycje sesji (bez limitu czasu), eksport danych.
-- Dostępności/UX: mobilność, szybkie wprowadzanie wyników, wykresy i rankingi, caching wyświetlanych danych.
+## Domain Assumptions Relevant to Technology Choices
+- Core entities: `User`, `Player`, `GameSession`, `SessionResult`, plus derived statistics (calculated, not stored).
+- Integrity needs: balanced totals (buy‑in equals cash‑out across a session), non‑negative amounts, session edits allowed (no time limit), data export.
+- UX priorities: mobile-first, fast data entry, charts and leaderboards, cached views.
 
 ## Frontend (React)
-- Język: TypeScript, React 18.
-- Narzędzie startowe: Vite (szybki dev server, prosta konfiguracja SPA).
+- Language: TypeScript; React 18.
+- Dev/build: Vite (fast dev server, simple SPA setup).
 - Routing: React Router.
-- UI/Styling: Tailwind CSS + Headless UI (łatwe odwzorowanie design tokens, mobile‑first). Alternatywa: Material UI.
-- Tabele/wykresy: TanStack Table, Recharts (lub Chart.js) do linii/słupków/kołowych.
-- Formularze/walidacje: React Hook Form + Zod.
-- Stan serwera: TanStack Query (cache, retry, synchronizacja, „offline‑capable: view cached data”).
-- I18n i formatowanie: Intl API (waluty, daty); `dayjs`/`date-fns`.
-- Testy: Vitest + React Testing Library; E2E: Playwright.
-- Budowanie/jakość: ESLint, Prettier.
+- UI/Styling: Tailwind CSS + Headless UI for design tokens and mobile-first patterns. Alternative: Material UI.
+- Tables/charts: TanStack Table; Recharts (or Chart.js) for line/bar/pie.
+- Forms/validation: React Hook Form + Zod.
+- Server state: TanStack Query (caching, retries, sync, “offline-capable: view cached data”).
+- I18n/formatting: Intl APIs (currency, dates) with `dayjs`/`date-fns`.
+- Testing: Vitest + React Testing Library; E2E: Playwright.
+- Lint/format: ESLint, Prettier.
 
 ## Backend (Kotlin/Java)
-- Język/Runtime: Kotlin (JDK 21).
+- Language/Runtime: Kotlin on JDK 21.
 - Framework: Spring Boot 3.x.
-  - Web: Spring MVC (REST, JSON via Jackson Kotlin Module).
-  - Walidacja: Jakarta Bean Validation (np. @NotNull, @Positive).
-  - Bezpieczeństwo: Spring Security, JWT (role: `casual_player`, `admin`), hashowanie haseł (Argon2/BCrypt).
-  - Dokumentacja API: OpenAPI 3 (springdoc-openapi) + generowanie klienta TS dla frontendu.
-  - Cache: Spring Cache + Redis (cache’owanie statystyk i leaderboardów, invalidacja po zapisach/edycjach sesji).
-  - Observability: Spring Actuator, Micrometer → Prometheus/Grafana; logi w formacie JSON (ELK/Opentelemetry).
-  - Testy: JUnit 5, MockK, Testcontainers (baza/Redis).
-- Budowanie: Gradle Kotlin DSL.
+  - Web: Spring MVC (REST, JSON via Jackson Kotlin module).
+  - Validation: Jakarta Bean Validation (e.g., @NotNull, @Positive).
+  - Security: Spring Security, JWT (roles: `casual_player`, `admin`), password hashing (Argon2/BCrypt).
+  - API docs: OpenAPI 3 (springdoc-openapi) + TypeScript client generation for the frontend.
+  - Caching: Spring Cache + Redis (cache player stats and leaderboards; invalidate on session create/edit).
+  - Observability: Spring Actuator, Micrometer → Prometheus/Grafana; JSON logs (ELK/OpenTelemetry).
+  - Testing: JUnit 5, MockK, Testcontainers (database/Redis).
+- Build: Gradle with Kotlin DSL.
 
-## Baza danych – rekomendacja i alternatywy
-- Rekomendacja główna: PostgreSQL (ACID, silne ograniczenia integralności, złożone agregacje do statystyk/leaderboardów).
+## Database – Recommendation and Alternatives
+- Primary recommendation: PostgreSQL (ACID, strong integrity constraints, ergonomic aggregations for stats/leaderboards).
   - ORM: Spring Data JPA + Hibernate.
-  - Migracje: Flyway (SQL) lub Liquibase.
-  - Model (skrót):
-    - `users` (unikalny email, hasło hash, rola).
-    - `players` (nazwa, avatar_url, opcjonalne powiązanie z `users`).
-    - `game_sessions` (data/godzina, lokalizacja, min_buy_in, typ gry, timestamps, notatki).
-    - `session_results` (FK: session_id, player_id, buy_in, cash_out, profit_loss jako pole wyliczane po stronie aplikacji lub widok/materialized view).
-  - Kluczowe indeksy: `session_results(player_id)`, `session_results(session_id)`, `game_sessions(start_time)`, `users(email UNIQUE)`.
-  - Pieniądze: `NUMERIC(12,2)` lub integer w groszach (preferowane dla dokładności; w kodzie `BigDecimal`/`Long`).
-  - Spójność: constraints (CHECK dla wartości nieujemnych), transakcje na zapis sesji + wyników.
+  - Migrations: Flyway (SQL) or Liquibase.
+  - Model (summary):
+    - `users` (unique email, password hash, role).
+    - `players` (name, avatar_url, optional link to `users`).
+    - `game_sessions` (start datetime, location, min_buy_in, game type, timestamps, notes).
+    - `session_results` (FK: session_id, player_id, buy_in, cash_out; profit_loss computed in app or via a view/materialized view).
+  - Key indexes: `session_results(player_id)`, `session_results(session_id)`, `game_sessions(start_time)`, `users(email UNIQUE)`.
+  - Money types: `NUMERIC(12,2)` or integer in cents (preferred for accuracy; `BigDecimal`/`Long` in code).
+  - Consistency: constraints (CHECK non-negative), transactions covering session + result inserts/edits.
 
-### Czy MongoDB sprawdzi się w tym zastosowaniu?
-- Odpowiedź krótka: Tak, da się zrealizować appkę na MongoDB, ale do tego konkretnego problemu (silne relacje, walidacje kwot, liczne agregacje i rankingi) lepszym wyborem startowym jest PostgreSQL.
-- Kiedy MongoDB ma sens:
-  - Chcemy większej elastyczności schematu i łatwego osadzania danych (np. wyniki graczy w obrębie dokumentu sesji).
-  - Wolumen danych jest umiarkowany, a zapisy grupowe odbywają się per sesję (co pozwala na atomowe operacje w obrębie jednego dokumentu).
-  - Akceptujemy, że część integralności przeniesiemy do logiki aplikacyjnej i/lub walidatorów schematu.
-- Wzorzec modelu dla MongoDB (przykładowo):
-  - Kolekcja `sessions`: dokument zawiera metadane sesji + tablicę `results` z wpisami `{ playerId, buyIn, cashOut, notes }` (atomowość jednej sesji).
-  - Kolekcje `players`, `users` – referencje po `id`.
-  - Agregacje do statystyk: `$unwind` po `results`, `$group` po `playerId` dla sum/ROI/win rate; indeksy po `results.playerId`, `date`, `location`.
-  - Edycje sesji: pojedyncza aktualizacja dokumentu; kontrola spójności sum w logice.
-- Kompromisy MongoDB:
-  - Trudniejsza egzekucja reguł integralności (brak FK, CHECK), co jest istotne przy obrocie pieniędzmi.
-  - Złożone agregacje są możliwe, ale mogą być mniej ergonomiczne niż SQL i materialized views.
-  - Transakcje wielodokumentowe są dostępne, ale bardziej kosztowne i rzadziej potrzebne przy modelu „wszystko w sesji”.
+### Will MongoDB work for this use case?
+- Short answer: Yes, it can work; however, for this specific problem (strong relationships, money validations, many aggregations and leaderboards), PostgreSQL is a better default.
+- When MongoDB makes sense:
+  - You want flexible schema and embedded data (e.g., session document embedding player results).
+  - Data volume is moderate and writes are grouped by session (enabling single‑document atomicity).
+  - You accept shifting some integrity rules to application logic and/or schema validators.
+- Example modeling in MongoDB:
+  - `sessions` collection: one document per session with metadata and an embedded `results` array items like `{ playerId, buyIn, cashOut, notes }` (single‑document atomic updates).
+  - `players`, `users` collections: referenced by `id`.
+  - Aggregations for stats: `$unwind` results, `$group` by `playerId` for totals/ROI/win rate; indexes on `results.playerId`, `date`, `location`.
+  - Session edits: single document update; consistency checks in code.
+- Trade‑offs with MongoDB:
+  - Harder to enforce integrity rules (no FKs or CHECKs natively), which matters for money.
+  - Complex aggregations are possible but often less ergonomic than SQL/materialized views.
+  - Multi‑document transactions exist but are costlier; the single‑document model reduces the need but not always.
 
-➡ Rekomendacja: zacząć z PostgreSQL. MongoDB można rozważyć jako alternatywę lub do specyficznych funkcji (np. feed aktywności), gdy priorytetem jest elastyczność schematu, a nie ścisła integralność relacyjna.
+➡ Recommendation: start with PostgreSQL. Consider MongoDB as an alternative (or for specific features like an activity feed) if schema flexibility outweighs strict relational integrity.
 
-## Warstwa statystyk i wydajność
-- Agregacje „na żądanie” dla małych wolumenów; dla rosnącej skali: materialized views (PostgreSQL) lub pre‑agregowane snapshoty w Redis.
-- Cache’owanie per użytkownik/zakres dat; invalidacja na: utworzenie/edycja/usunięcie wyniku w sesji.
-- Potencjalne joby asynchroniczne: przeliczenia leaderboardów (Spring Scheduling) – niekoniecznie w pierwszej iteracji.
+## Stats Layer and Performance
+- On‑demand aggregations for small volume; at scale, use materialized views (PostgreSQL) or pre‑aggregated snapshots in Redis.
+- Cache per user/date range; invalidate on create/edit/delete of session results.
+- Optional async jobs: scheduled leaderboard recomputations (Spring Scheduling) — not required for MVP.
 
-## Integracje dodatkowe
-- Przechowywanie avatarów: S3‑compatible (np. MinIO w dev, S3 w prod). W modelu trzymamy tylko URL.
-- Eksport danych: CSV/JSON endpointy; generacja strumieniowa.
+## Additional Integrations
+- Avatars: S3‑compatible storage (e.g., MinIO in dev, S3 in prod); keep only URLs in the model.
+- Data export: CSV/JSON endpoints; stream large downloads.
 
-## CI/CD i infrastruktura
-- Konteneryzacja: Docker; środowisko dev: Docker Compose (backend, frontend, Postgres, Redis). Alternatywnie: Compose z MongoDB, jeśli wybierzesz Mongo.
-- CI: GitHub Actions (build + test backend/frontend, skany, obraz Dockera).
-- Monitoring: Prometheus + Grafana; logi do ELK/Loki; tracing: OpenTelemetry.
-- Konfiguracja: Spring Boot profiles + `.env` dla Compose; secrets w CI.
+## CI/CD and Infrastructure
+- Containerization: Docker; dev environment via Docker Compose (backend, frontend, Postgres, Redis). Alternative Compose profile with MongoDB if chosen.
+- CI: GitHub Actions (build + test backend/frontend, scans, Docker image).
+- Monitoring: Prometheus + Grafana; logs to ELK/Loki; tracing via OpenTelemetry.
+- Configuration: Spring profiles + `.env` for Compose; CI secrets for production.
 
-## Testowanie
-- Backend: testy jednostkowe i integracyjne (Testcontainers dla Postgres/Redis lub Mongo). Testy walidacji integralności (sumy, wartości >= 0), uprawnień ról.
-- Frontend: testy jednostkowe komponentów, krytyczne ścieżki E2E (dodawanie sesji, przegląd statystyk, leaderboardy).
+## Testing Strategy
+- Backend: unit and integration tests (Testcontainers for Postgres/Redis or Mongo). Validate money integrity (balanced totals, amounts ≥ 0) and role permissions.
+- Frontend: unit tests for components; E2E for critical flows (add session, view stats, leaderboards).
 
-## Minimalny MVP – decyzje startowe (proponowane)
+## Minimal MVP – Proposed Decisions
 - Frontend: React + Vite + Tailwind + TanStack Query + Recharts.
 - Backend: Kotlin + Spring Boot (Web, Security, Validation, Data JPA, Cache, Actuator, OpenAPI).
-- Baza: PostgreSQL + Flyway; Redis do cache.
-- Autoryzacja: JWT (httpOnly), role `admin`/`casual_player`.
-- Hosting: obrazy Dockera; monitoring podstawowy (Actuator + Prometheus).
+- Database: PostgreSQL + Flyway; Redis for caching.
+- Auth: JWT (httpOnly), roles `admin`/`casual_player`.
+- Hosting: Docker images; basic monitoring (Actuator + Prometheus).
 
-## Podsumowanie odpowiedzi o MongoDB
-- **Tak – MongoDB jest możliwe.**
-- **Rekomendacja: PostgreSQL** ze względu na integralność finansów, relacje i bogate agregacje pod statystyki/leaderboardy. MongoDB można zastosować, jeżeli priorytetem jest elastyczny schemat i prosta atomowość w obrębie pojedynczych sesji.
+## MongoDB Summary
+- **Yes — MongoDB is feasible.**
+- **Recommendation: PostgreSQL** for financial integrity, relationships, and rich aggregations for stats/leaderboards. Use MongoDB when flexible schema and single‑document atomicity are higher priorities.
