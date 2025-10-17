@@ -31,7 +31,7 @@ This document is based on `FUNCTIONALITY_DESIGN.md` and `UI_WIREFRAMES.md`. The 
   - Testing: JUnit 5, MockK, Testcontainers (database/Redis).
 - Build: Gradle with Kotlin DSL.
 
-## Database – Recommendation and Alternatives
+## Database
 - Primary recommendation: PostgreSQL (ACID, strong integrity constraints, ergonomic aggregations for stats/leaderboards).
   - ORM: Spring Data JPA + Hibernate.
   - Migrations: Flyway (SQL) or Liquibase.
@@ -44,24 +44,6 @@ This document is based on `FUNCTIONALITY_DESIGN.md` and `UI_WIREFRAMES.md`. The 
   - Money types: `NUMERIC(12,2)` or integer in cents (preferred for accuracy; `BigDecimal`/`Long` in code).
   - Consistency: constraints (CHECK non-negative), transactions covering session + result inserts/edits.
 
-### Will MongoDB work for this use case?
-- Short answer: Yes, it can work; however, for this specific problem (strong relationships, money validations, many aggregations and leaderboards), PostgreSQL is a better default.
-- When MongoDB makes sense:
-  - You want flexible schema and embedded data (e.g., session document embedding player results).
-  - Data volume is moderate and writes are grouped by session (enabling single‑document atomicity).
-  - You accept shifting some integrity rules to application logic and/or schema validators.
-- Example modeling in MongoDB:
-  - `sessions` collection: one document per session with metadata and an embedded `results` array items like `{ playerId, buyIn, cashOut, notes }` (single‑document atomic updates).
-  - `players`, `users` collections: referenced by `id`.
-  - Aggregations for stats: `$unwind` results, `$group` by `playerId` for totals/ROI/win rate; indexes on `results.playerId`, `date`, `location`.
-  - Session edits: single document update; consistency checks in code.
-- Trade‑offs with MongoDB:
-  - Harder to enforce integrity rules (no FKs or CHECKs natively), which matters for money.
-  - Complex aggregations are possible but often less ergonomic than SQL/materialized views.
-  - Multi‑document transactions exist but are costlier; the single‑document model reduces the need but not always.
-
-➡ Recommendation: start with PostgreSQL. Consider MongoDB as an alternative (or for specific features like an activity feed) if schema flexibility outweighs strict relational integrity.
-
 ## Stats Layer and Performance
 - On‑demand aggregations for small volume; at scale, use materialized views (PostgreSQL) or pre‑aggregated snapshots in Redis.
 - Cache per user/date range; invalidate on create/edit/delete of session results.
@@ -72,13 +54,13 @@ This document is based on `FUNCTIONALITY_DESIGN.md` and `UI_WIREFRAMES.md`. The 
 - Data export: CSV/JSON endpoints; stream large downloads.
 
 ## CI/CD and Infrastructure
-- Containerization: Docker; dev environment via Docker Compose (backend, frontend, Postgres, Redis). Alternative Compose profile with MongoDB if chosen.
+- Containerization: Docker; dev environment via Docker Compose (backend, frontend, Postgres, Redis).
 - CI: GitHub Actions (build + test backend/frontend, scans, Docker image).
 - Monitoring: Prometheus + Grafana; logs to ELK/Loki; tracing via OpenTelemetry.
 - Configuration: Spring profiles + `.env` for Compose; CI secrets for production.
 
 ## Testing Strategy
-- Backend: unit and integration tests (Testcontainers for Postgres/Redis or Mongo). Validate money integrity (balanced totals, amounts ≥ 0) and role permissions.
+- Backend: unit and integration tests (Testcontainers for Postgres/Redis). Validate money integrity (balanced totals, amounts ≥ 0) and role permissions.
 - Frontend: unit tests for components; E2E for critical flows (add session, view stats, leaderboards).
 
 ## Minimal MVP – Proposed Decisions
@@ -87,7 +69,3 @@ This document is based on `FUNCTIONALITY_DESIGN.md` and `UI_WIREFRAMES.md`. The 
 - Database: PostgreSQL + Flyway; Redis for caching.
 - Auth: JWT (httpOnly), roles `admin`/`casual_player`.
 - Hosting: Docker images; basic monitoring (Actuator + Prometheus).
-
-## MongoDB Summary
-- **Yes — MongoDB is feasible.**
-- **Recommendation: PostgreSQL** for financial integrity, relationships, and rich aggregations for stats/leaderboards. Use MongoDB when flexible schema and single‑document atomicity are higher priorities.
