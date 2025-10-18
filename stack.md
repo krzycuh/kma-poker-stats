@@ -30,6 +30,11 @@ This document is based on `FUNCTIONALITY_DESIGN.md` and `UI_WIREFRAMES.md`. The 
   - Observability: Spring Actuator, Micrometer → Prometheus/Grafana; JSON logs (ELK/OpenTelemetry).
   - Testing: JUnit 5, MockK, Testcontainers (database/Redis).
 - Build: Gradle with Kotlin DSL.
+  
+  - File storage abstraction: introduce a `StorageService` with two implementations:
+    - `LocalStorageService` (default on Raspberry Pi prod): stores files on the Pi’s external SSD and serves them as static resources via Spring Boot.
+    - `S3StorageService` (optional): integrates with an external S3 provider (e.g., AWS S3, Backblaze B2, Cloudflare R2) if you later decide to offload storage.
+    - Persist only file URLs/paths in the database; keep binaries out of the DB.
 
 ## Database
 - Primary recommendation: PostgreSQL (ACID, strong integrity constraints, ergonomic aggregations for stats/leaderboards).
@@ -50,7 +55,10 @@ This document is based on `FUNCTIONALITY_DESIGN.md` and `UI_WIREFRAMES.md`. The 
 - Optional async jobs: scheduled leaderboard recomputations (Spring Scheduling) — not required for MVP.
 
 ## Additional Integrations
-- Avatars: S3‑compatible storage (e.g., MinIO in dev, S3 in prod); keep only URLs in the model.
+- Avatars and file storage (Raspberry Pi as prod):
+  - Default: use local filesystem on the Pi’s external SSD. Store uploads under a dedicated directory and serve them as static files from Spring Boot.
+  - Avoid deploying MinIO on the Pi (adds RAM/CPU without redundancy). If you need cloud durability or presigned URLs later, switch the `StorageService` to an external S3 provider.
+  - Keep only URLs/paths in the model.
 - Data export: CSV/JSON endpoints; stream large downloads.
 
 ## CI/CD and Infrastructure
@@ -58,6 +66,18 @@ This document is based on `FUNCTIONALITY_DESIGN.md` and `UI_WIREFRAMES.md`. The 
 - CI: GitHub Actions (build + test backend/frontend, scans, Docker image).
 - Monitoring: Prometheus + Grafana; logs to ELK/Loki; tracing via OpenTelemetry.
 - Configuration: Spring profiles + `.env` for Compose; CI secrets for production.
+  
+  - Storage on Pi: mount an external SSD for uploads and database data to avoid SD‑card wear. Example (Compose):
+    ```yaml
+    services:
+      backend:
+        volumes:
+          - /mnt/ssd/poker-uploads:/app/uploads
+        environment:
+          APP_STORAGE_PROVIDER: local
+          APP_STORAGE_DIR: /app/uploads
+    ```
+    If using an external S3 provider later, set `APP_STORAGE_PROVIDER=s3` and provide S3 credentials/bucket via environment variables; no MinIO deployment is required on the Pi.
 
 ## Testing Strategy
 - Backend: unit and integration tests (Testcontainers for Postgres/Redis). Validate money integrity (balanced totals, amounts ≥ 0) and role permissions.
