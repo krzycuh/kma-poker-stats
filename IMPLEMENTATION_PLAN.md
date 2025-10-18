@@ -18,32 +18,25 @@ This implementation plan breaks down the development of a home game poker statis
 
 This implementation plan is guided by industry-leading software development practices:
 
-### 🎯 Lean Startup Methodology
+### 🎯 MVP-First Approach
 
-**Build-Measure-Learn Cycles:**
-- Each phase ends with working software that can be demonstrated
-- User feedback collected at phase boundaries (especially Phase 4, 7, 8)
-- Pivot opportunities identified after Phase 4 (dashboard) and Phase 7 (UAT)
-- Focus on validated learning over feature completion
-
-**Minimum Viable Product (MVP) First:**
+**Minimum Viable Product (MVP) Strategy:**
 - **Core MVP:** Phases 1-5 (Auth + Game Logging + Basic Stats)
 - **Enhanced MVP:** Phases 6-7 (Polish + Testing) 
 - **Launch:** Phase 8 (Deployment)
 - **Future:** Phase 9+ (Deferred features based on user feedback)
-- Every feature must answer: "Does this validate a core hypothesis?"
 
-**Early User Validation:**
-- Phase 4: Show dashboard to 2-3 users, gather feedback
-- Phase 5: Demo stats/leaderboards, validate usefulness
-- Phase 7: Formal UAT with real poker group
-- Post-launch: Weekly metrics review and user interviews
+**User Feedback & Validation:**
+- Phase 4: Demo dashboard to 2-3 users, gather feedback
+- Phase 5: Demo stats/leaderboards
+- Phase 7: Formal UAT with real poker group (1-2 weeks)
+- Post-launch: Monitor usage patterns and gather user feedback
 
-**Hypotheses to Validate:**
-- H1: Players want to track their poker performance digitally
-- H2: Visual leaderboards increase engagement
-- H3: Admins will log games within 24 hours of playing
-- H4: Mobile-first design is critical for adoption
+**Feature Prioritization:**
+- Focus on core features first (authentication, game logging, stats)
+- Defer advanced features (achievements, social) until post-MVP
+- Each feature should directly support core user workflows
+- Apply YAGNI principle: "You Aren't Gonna Need It"
 
 ### 🏗️ Domain-Driven Design (DDD)
 
@@ -514,7 +507,7 @@ poker-stats/
 
 **Monday:**
 - Sprint planning (if using sprints)
-- Review last week's metrics
+- Review last week's progress
 - Prioritize tasks for the week
 
 **Wednesday:**
@@ -528,35 +521,20 @@ poker-stats/
 - Deploy to staging
 - Plan next week
 
-### Lean Validation Checkpoints
+### User Feedback Checkpoints
 
-**After Phase 1:** ✋ VALIDATE
-- Demo auth flow to 1-2 potential users
-- Is the login process smooth?
-- Adjust UX if needed before building more
+**After Phase 4 (Dashboard):**
+- Demo to 2-3 users, gather initial feedback
+- Ensure dashboard is intuitive and useful
 
-**After Phase 3:** ✋ VALIDATE  
-- Demo game logging to admin users
-- Can they log a game in < 5 minutes?
-- Is the multi-step flow intuitive?
-- Gather feedback, iterate if needed
-
-**After Phase 4:** ✋ VALIDATE  
-- Demo dashboard to casual players
-- Do they understand their stats?
-- Is the information useful?
-- **PIVOT DECISION POINT:** Are we building the right thing?
-
-**After Phase 5:** ✋ VALIDATE  
+**After Phase 5 (Stats & Leaderboards):**
 - Demo leaderboards and charts
-- Does this increase engagement?
-- What metrics matter most to users?
+- Validate that metrics are meaningful to users
 
-**After Phase 7:** ✋ VALIDATE  
-- Full UAT with real poker group
+**After Phase 7 (UAT):**
+- Full user acceptance testing with real poker group
 - Observe real usage for 1-2 weeks
-- Measure: adoption rate, errors, time to log game
-- Decide: Launch vs iterate more
+- Collect feedback and prioritize improvements
 
 ### Definition of Done (DoD)
 
@@ -582,14 +560,11 @@ poker-stats/
 
 ## Phase 1: Authentication & User Management (Week 2-3)
 
-> **Lean Hypothesis:** Users need secure login and profile management.  
-> **Validation Method:** Demo to 2-3 users, measure time to complete registration.  
-> **Success Criteria:** Registration takes < 2 minutes, no confusion.
-
 ### Development Approach
 - **TDD:** Write tests first for all auth logic
 - **DDD:** User is an Aggregate Root in Identity & Access bounded context
 - **Clean Code:** Separate domain (User entity) from infrastructure (JWT, password hashing)
+- **Target:** Registration and login flow takes < 2 minutes
 
 ### 1.1 Backend: Authentication Infrastructure
 
@@ -661,10 +636,6 @@ poker-stats/
 
 ## Phase 2: Core Data Models & Player Management (Week 3-4)
 
-> **Lean Hypothesis:** Admins need to manage players separately from user accounts.  
-> **Validation Method:** Show player management to admin, observe workflow.  
-> **Success Criteria:** Can add/edit player in < 30 seconds.
-
 ### Development Approach
 - **DDD Focus:** 
   - Player is Aggregate Root
@@ -672,6 +643,7 @@ poker-stats/
   - Money is Value Object (immutable, business logic for currency)
 - **TDD:** Write domain tests first (e.g., profit calculation)
 - **Clean Architecture:** Domain models have zero Spring dependencies
+- **Target:** Add/edit player in < 30 seconds
 
 ### 2.1 Backend: Player Entity & Management
 
@@ -754,10 +726,6 @@ poker-stats/
 
 ## Phase 3: Game Logging (Admin Feature) (Week 5-6)
 
-> **Lean Hypothesis:** Admins will log games immediately after playing if the process is < 5 minutes.  
-> **Validation Method:** Time admin users logging real game data.  
-> **Success Criteria:** Complete game logging in < 5 minutes, < 2 errors.
-
 ### Development Approach
 - **DDD Focus:**
   - GameSession is Aggregate Root
@@ -766,6 +734,7 @@ poker-stats/
   - Publish domain event: SessionCreated
 - **TDD:** Test aggregate invariants, test use case orchestration
 - **Clean Code:** Multi-step form components < 200 lines each
+- **Target:** Complete game logging in < 5 minutes, minimal errors
 
 ### Key Domain Logic (TDD Example)
 
@@ -885,17 +854,16 @@ class GameSession {
 
 ## Phase 4: Dashboard & Session Views (Week 7-8)
 
-> **Lean Hypothesis:** Players want to see their performance at a glance on the dashboard.  
-> **Validation Method:** Show dashboard to 3-5 casual players, ask "what does this tell you?"  
-> **Success Criteria:** 80%+ understand their stats without explanation.  
-> **🚨 PIVOT DECISION POINT:** If users don't find dashboard useful, reconsider what stats to show.
-
 ### Development Approach
 - **DDD Focus:**
   - StatsCalculator is Domain Service (complex calculation logic)
   - PlayerStats is computed, not stored (derived from SessionResults)
 - **TDD:** Test stats calculations with various scenarios (winning streak, losing streak, breakeven)
 - **Performance:** Cache calculated stats in Redis, invalidate on new session
+- **Target:** Users understand their stats without explanation
+
+### User Feedback Checkpoint
+After completing this phase, demo the dashboard to 2-3 users to ensure it's intuitive and informative.
 
 ### 4.1 Dashboard for Casual Players
 
@@ -977,10 +945,6 @@ class GameSession {
 
 ## Phase 5: Statistics & Analytics (Week 9-10)
 
-> **Lean Hypothesis:** Leaderboards and charts will increase user engagement and friendly competition.  
-> **Validation Method:** Track dashboard views before/after, survey users about competitiveness.  
-> **Success Criteria:** 70%+ users check leaderboard at least once per week.
-
 ### Development Approach
 - **DDD Focus:**
   - LeaderboardGenerator is Domain Service
@@ -989,6 +953,9 @@ class GameSession {
 - **TDD:** Test leaderboard ranking logic with edge cases (ties, new players)
 - **Performance:** Pre-calculate and cache leaderboards, recalculate on session create/update
 - **YAGNI:** Defer achievement system to Phase 9 unless users explicitly ask for it
+
+### User Feedback Checkpoint
+After completing this phase, demo leaderboards and charts to validate usefulness and gather feedback.
 
 ### Refactoring Checkpoint
 
@@ -1391,32 +1358,27 @@ class GameSession {
 
 ---
 
-## Success Metrics (MVP) - Lean Startup KPIs
+## Success Metrics (MVP)
 
-### Validated Learning Metrics (Most Important!)
+### User Metrics
 
-**Activation:**
+**Adoption:**
 - [ ] 80%+ of invited users complete registration
 - [ ] Average time to first login: < 3 minutes
+- [ ] 10+ active users within first month
 
-**Engagement:**
-- [ ] 70%+ of admins log a game within 24 hours of playing
+**Usage:**
+- [ ] 50+ game sessions logged in first month
 - [ ] Average game logging time: < 5 minutes
 - [ ] 60%+ of casual players check dashboard weekly
-- [ ] 50%+ of users check leaderboard weekly
-
-**Retention:**
-- [ ] Week 2 retention: 70%+ users return
-- [ ] Week 4 retention: 50%+ users return
-- [ ] Monthly active users (MAU) growing
-
-**Value Delivered:**
-- [ ] 80%+ users understand their stats without help
-- [ ] 70%+ users report friendly competition increased
 - [ ] < 5% error rate in data entry
-- [ ] 80%+ user satisfaction score (NPS)
 
-### Technical Health Metrics
+**Satisfaction:**
+- [ ] 80%+ users understand their stats without help
+- [ ] 80%+ user satisfaction in post-launch survey
+- [ ] Positive feedback from UAT participants
+
+### Technical Metrics
 
 **Performance:**
 - [ ] API response time p95 < 500ms
@@ -1436,22 +1398,21 @@ class GameSession {
 
 ### Feature Completeness (MVP Scope)
 - [ ] User authentication working
-- [ ] Game logging flow complete (admin) - validated with real users
-- [ ] Personal stats and dashboard functional - users understand without help
+- [ ] Game logging flow complete (admin)
+- [ ] Personal stats and dashboard functional
 - [ ] Leaderboards accurate and up-to-date
 - [ ] Session history browsing smooth
-- [ ] Mobile experience optimized - tested on real devices
+- [ ] Mobile experience optimized
 
-### Build-Measure-Learn Tracking
+### Monitoring & Analytics
 
-**Implement Tracking for:**
+**Key Metrics to Track:**
 ```typescript
 // Frontend Analytics Events
 analytics.track('user_registered', { method: 'email' })
 analytics.track('game_logged', { players: 6, duration_seconds: 180 })
 analytics.track('dashboard_viewed', { user_type: 'casual_player' })
 analytics.track('leaderboard_viewed', { metric: 'profit' })
-analytics.track('stats_viewed', { period: 'all_time' })
 
 // Backend Metrics (Micrometer)
 meterRegistry.counter("sessions.created").increment()
@@ -1459,10 +1420,10 @@ meterRegistry.timer("session.log.duration").record(duration)
 ```
 
 **Weekly Review:**
-- Are users engaging with key features?
-- Which features are unused? (Consider removing)
-- Where do users get stuck? (UX improvements)
-- What's the next hypothesis to test?
+- Monitor user engagement with key features
+- Identify and address pain points
+- Track performance and error rates
+- Prioritize improvements based on feedback
 
 ---
 
@@ -1572,11 +1533,11 @@ meterRegistry.timer("session.log.duration").record(duration)
 - ❌ **Commented-Out Code:** Delete it, Git remembers
 - ❌ **Deep Nesting:** More than 3 levels of if/for nesting
 
-### Lean Startup Anti-Patterns
-- ❌ **Building Without Validation:** Don't build Phase 9 before validating Phase 1-8
-- ❌ **Analysis Paralysis:** Don't over-design before user feedback
-- ❌ **Vanity Metrics:** Tracking totals instead of actionable metrics
-- ❌ **Ignoring Feedback:** Users tell you something doesn't work, but you keep building
+### Development Anti-Patterns
+- ❌ **Building Unused Features:** Don't build Phase 9 before users need it
+- ❌ **Analysis Paralysis:** Don't over-design before implementation
+- ❌ **Premature Optimization:** Optimize based on actual bottlenecks, not guesses
+- ❌ **Ignoring Feedback:** Users report issues but they're not addressed
 
 ### Testing Anti-Patterns
 - ❌ **No Tests:** "We'll add tests later" = never
@@ -1591,24 +1552,23 @@ meterRegistry.timer("session.log.duration").record(duration)
 This implementation plan provides a comprehensive roadmap for building the Poker Stats Web App MVP following **industry-leading best practices**:
 
 ✅ **Domain-Driven Design (DDD):** Clean separation of domain, application, and infrastructure layers  
-✅ **Lean Startup:** Build-Measure-Learn cycles with validation checkpoints  
 ✅ **MVP First:** Core features (Phases 1-5) before polish and enhancements  
 ✅ **Clean Code:** SOLID principles, meaningful names, small functions  
 ✅ **TDD:** Test-first development with comprehensive coverage  
 ✅ **Continuous Practices:** Integration, refactoring, delivery  
 
 **Key Success Factors:**
-1. **Start small:** MVP features only, defer everything else
-2. **Test first:** TDD for all business logic
-3. **Validate early:** Get user feedback after Phases 3, 4, 5, 7
+1. **Start small:** MVP features only, defer everything else (YAGNI)
+2. **Test first:** TDD for all business logic (Red-Green-Refactor)
+3. **Validate early:** Get user feedback after Phases 4, 5, and 7
 4. **Refactor continuously:** Boy Scout Rule - leave code better than you found it
-5. **Measure everything:** Track metrics to validate hypotheses
-6. **Pivot if needed:** Be ready to change direction based on data
+5. **Maintain quality:** Code reviews, automated tests, linting
+6. **Focus on domain:** Keep business logic pure and framework-independent
 
 **Next Steps:**
-1. ✅ Review this plan - validate DDD structure and lean hypotheses
+1. ✅ Review this plan - validate DDD structure and architecture
 2. 📋 Set up project board with all tasks and DoD checklist
-3. 🎯 Document key hypotheses and success metrics
+3. 🎯 Document success metrics and monitoring approach
 4. 🏗️ Begin Phase 0: Project setup with DDD structure
 5. 📅 Schedule weekly demos and retrospectives
 6. 🚀 Kick off development with TDD!
@@ -1616,7 +1576,7 @@ This implementation plan provides a comprehensive roadmap for building the Poker
 **Remember:** 
 > "Make it work, make it right, make it fast" - Kent Beck  
 > "The best architecture emerges from self-organizing teams" - Agile Manifesto  
-> "If you can't measure it, you can't improve it" - Peter Drucker
+> "Any fool can write code that a computer can understand. Good programmers write code that humans can understand." - Martin Fowler
 
 ---
 
@@ -2313,7 +2273,8 @@ class JpaGameSessionRepository : GameSessionRepository {  // Implementation
 
 ### Further Reading
 - **DDD:** "Domain-Driven Design" by Eric Evans (Blue Book)
+- **DDD Practical:** "Implementing Domain-Driven Design" by Vaughn Vernon (Red Book)
 - **Clean Code:** "Clean Code" by Robert C. Martin
-- **Lean Startup:** "The Lean Startup" by Eric Ries
 - **TDD:** "Test Driven Development: By Example" by Kent Beck
 - **Architecture:** "Clean Architecture" by Robert C. Martin
+- **Refactoring:** "Refactoring" by Martin Fowler
