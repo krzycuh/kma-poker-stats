@@ -26,9 +26,14 @@ export const Dashboard: React.FC = () => {
                 Profile
               </Link>
               {user.role === UserRole.ADMIN && (
-                <Link to="/players" className="text-gray-700 hover:text-gray-900">
-                  Players
-                </Link>
+                <>
+                  <Link to="/players" className="text-gray-700 hover:text-gray-900">
+                    Players
+                  </Link>
+                  <Link to="/log-session" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    Log Session
+                  </Link>
+                </>
               )}
               <button
                 onClick={logout}
@@ -57,22 +62,31 @@ export const Dashboard: React.FC = () => {
               
               <div className="border-t border-gray-200 pt-4">
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Phase 1 Authentication Complete! 🎉
+                  Phase 3 Complete - Game Logging! 🎉
                 </h3>
                 <p className="text-gray-600">
-                  The authentication system is now fully functional. You can:
+                  The application now includes:
                 </p>
                 <ul className="mt-2 list-disc list-inside text-gray-600 space-y-1">
-                  <li>Register new accounts</li>
-                  <li>Login with JWT authentication</li>
-                  <li>Update your profile</li>
-                  <li>Change your password</li>
-                  <li>Automatic token refresh</li>
+                  <li>✅ User authentication and authorization</li>
+                  <li>✅ Player management (Admin)</li>
+                  <li>✅ Multi-step game session logging</li>
+                  <li>✅ Player selection with search</li>
+                  <li>✅ Results entry with profit calculation</li>
+                  <li>✅ Draft auto-save to localStorage</li>
                 </ul>
                 
-                <div className="mt-4 p-4 bg-blue-50 rounded-md">
-                  <p className="text-sm text-blue-800">
-                    <strong>Next steps:</strong> Phase 2 will implement Player Management and Core Data Models.
+                {user.role === UserRole.ADMIN && (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-md">
+                    <p className="text-sm text-blue-800">
+                      <strong>Ready to log a session?</strong> Click the "Log Session" button in the navigation above to get started!
+                    </p>
+                  </div>
+                )}
+                
+                <div className="mt-4 p-4 bg-green-50 rounded-md">
+                  <p className="text-sm text-green-800">
+                    <strong>Next Phase:</strong> Dashboard & Session Views with statistics and analytics.
                   </p>
                 </div>
               </div>
