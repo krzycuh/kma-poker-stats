@@ -54,9 +54,9 @@ logging:
     org.hibernate.SQL: DEBUG
 
 jwt:
-  secret: changeme-this-is-a-development-secret-key-only
-  expiration: 86400000  # 24 hours
-  refresh-expiration: 604800000  # 7 days
+  secret: changeme-this-is-a-development-secret-key-only-must-be-at-least-256-bits-long
+  expiration-hours: 24  # hours
+  refresh-expiration-days: 7  # days
 
 ---
 spring:
