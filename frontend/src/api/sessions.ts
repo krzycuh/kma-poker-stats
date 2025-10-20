@@ -18,7 +18,18 @@ export const sessionApi = {
     return response.data
   },
 
+  getAll: async (): Promise<GameSession[]> => {
+    const response = await apiClient.get<GameSession[]>('/sessions')
+    return response.data
+  },
+
   get: async (id: string): Promise<GameSessionWithResults> => {
+    const response =
+      await apiClient.get<GameSessionWithResults>(`/sessions/${id}`)
+    return response.data
+  },
+
+  getById: async (id: string): Promise<GameSessionWithResults> => {
     const response =
       await apiClient.get<GameSessionWithResults>(`/sessions/${id}`)
     return response.data
