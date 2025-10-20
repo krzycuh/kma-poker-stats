@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class OpenApiConfig {
-
     @Bean
     fun openAPI(): OpenAPI {
         val securitySchemeName = "bearerAuth"
@@ -20,7 +19,7 @@ class OpenApiConfig {
                     .title("Poker Stats API")
                     .description("API for home game poker statistics tracking")
                     .version("v0.1.0")
-                    .license(License().name("MIT").url("https://opensource.org/licenses/MIT"))
+                    .license(License().name("MIT").url("https://opensource.org/licenses/MIT")),
             )
             .addSecurityItem(SecurityRequirement().addList(securitySchemeName))
             .components(
@@ -31,8 +30,8 @@ class OpenApiConfig {
                             .name(securitySchemeName)
                             .type(SecurityScheme.Type.HTTP)
                             .scheme("bearer")
-                            .bearerFormat("JWT")
-                    )
+                            .bearerFormat("JWT"),
+                    ),
             )
     }
 }

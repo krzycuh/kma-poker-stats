@@ -31,29 +31,28 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    
+
     // Arrow-kt for functional programming
     implementation("io.arrow-kt:arrow-core:1.2.3")
-    
+
     // Database
     implementation("org.postgresql:postgresql")
-    implementation("org.flywaydb:flyway-core")
-    implementation("org.flywaydb:flyway-database-postgresql")
-    
+    implementation("org.flywaydb:flyway-core:10.20.1")
+
     // Redis
     implementation("redis.clients:jedis")
-    
+
     // JWT
     implementation("io.jsonwebtoken:jjwt-api:0.12.5")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
-    
+
     // OpenAPI Documentation
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
-    
+
     // Development
     developmentOnly("org.springframework.boot:spring-boot-devtools")
-    
+
     // Testing
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
