@@ -9,6 +9,8 @@ import { Profile } from './pages/Profile';
 import Players from './pages/Players';
 import LogSession from './pages/LogSession';
 import EditSession from './pages/EditSession';
+import { Sessions } from './pages/Sessions';
+import { SessionDetail } from './pages/SessionDetail';
 import { UserRole } from './types/auth';
 import './App.css';
 
@@ -58,6 +60,22 @@ function App() {
               element={
                 <ProtectedRoute requireRole={UserRole.ADMIN}>
                   <LogSession />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/sessions"
+              element={
+                <ProtectedRoute requireRole={UserRole.ADMIN}>
+                  <Sessions />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/sessions/:id"
+              element={
+                <ProtectedRoute requireRole={UserRole.ADMIN}>
+                  <SessionDetail />
                 </ProtectedRoute>
               }
             />
