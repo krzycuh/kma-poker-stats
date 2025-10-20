@@ -78,7 +78,7 @@ value class Money private constructor(val amountInCents: Long) {
 
 **DDD Structure:**
 ```
-com.pokerstats/
+pl.kmazurek/
 ├── domain/           # Pure business logic (NO Spring!)
 ├── application/      # Use cases & orchestration
 ├── infrastructure/   # JPA, REST, Security, Cache
