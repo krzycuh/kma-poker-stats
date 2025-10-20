@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Link } from 'react-router-dom';
+import { UserRole } from '../types/auth';
 
 /**
  * Dashboard page component
@@ -24,6 +25,11 @@ export const Dashboard: React.FC = () => {
               <Link to="/profile" className="text-gray-700 hover:text-gray-900">
                 Profile
               </Link>
+              {user.role === UserRole.ADMIN && (
+                <Link to="/players" className="text-gray-700 hover:text-gray-900">
+                  Players
+                </Link>
+              )}
               <button
                 onClick={logout}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
