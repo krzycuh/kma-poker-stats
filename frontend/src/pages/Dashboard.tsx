@@ -24,6 +24,11 @@ export const Dashboard: React.FC = () => {
               <Link to="/profile" className="text-gray-700 hover:text-gray-900">
                 Profile
               </Link>
+              {user.role === 'ADMIN' && (
+                <Link to="/players" className="text-gray-700 hover:text-gray-900">
+                  Players
+                </Link>
+              )}
               <button
                 onClick={logout}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"

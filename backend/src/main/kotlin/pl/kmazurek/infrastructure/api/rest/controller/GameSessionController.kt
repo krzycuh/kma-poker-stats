@@ -1,0 +1,147 @@
+package pl.kmazurek.infrastructure.api.rest.controller
+
+import jakarta.validation.Valid
+import org.springframework.format.annotation.DateTimeFormat
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
+import pl.kmazurek.application.dto.CreateGameSessionRequest
+import pl.kmazurek.application.dto.GameSessionDto
+import pl.kmazurek.application.dto.GameSessionWithResultsDto
+import pl.kmazurek.application.dto.SessionResultDto
+import pl.kmazurek.application.dto.UpdateGameSessionRequest
+import pl.kmazurek.application.usecase.gamesession.CreateGameSession
+import pl.kmazurek.application.usecase.gamesession.CreateGameSessionCommand
+import pl.kmazurek.application.usecase.gamesession.CreateSessionResultCommand
+import pl.kmazurek.application.usecase.gamesession.DeleteGameSession
+import pl.kmazurek.application.usecase.gamesession.GetGameSession
+import pl.kmazurek.application.usecase.gamesession.ListGameSessions
+import pl.kmazurek.application.usecase.gamesession.ListGameSessionsQuery
+import pl.kmazurek.application.usecase.gamesession.UpdateGameSession
+import pl.kmazurek.application.usecase.gamesession.UpdateGameSessionCommand
+import pl.kmazurek.domain.model.gamesession.GameSessionId
+import java.time.LocalDateTime
+
+/**
+ * REST Controller for game session endpoints
+ */
+@RestController
+@RequestMapping("/api/sessions")
+class GameSessionController(
+    private val createGameSession: CreateGameSession,
+    private val updateGameSession: UpdateGameSession,
+    private val deleteGameSession: DeleteGameSession,
+    private val getGameSession: GetGameSession,
+    private val listGameSessions: ListGameSessions,
+) {
+    @GetMapping
+    fun listSessions(
+        @AuthenticationPrincipal userIdString: String?,
+        @RequestParam(required = false) location: String?,
+        @RequestParam(required = false) gameType: String?,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) startDate: LocalDateTime?,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) endDate: LocalDateTime?,
+        @RequestParam(required = false, defaultValue = "false") includeDeleted: Boolean,
+    ): ResponseEntity<List<GameSessionDto>> {
+        val query =
+            ListGameSessionsQuery(
+                userId = null, // For now, list all sessions - will add user filtering later
+                location = location,
+                gameType = gameType,
+                startDate = startDate,
+                endDate = endDate,
+                includeDeleted = includeDeleted,
+            )
+        val sessions = listGameSessions.execute(query)
+        val dtos = sessions.map { GameSessionDto.fromDomain(it) }
+        return ResponseEntity.ok(dtos)
+    }
+
+    @GetMapping("/{id}")
+    fun getSession(
+        @PathVariable id: String,
+    ): ResponseEntity<GameSessionWithResultsDto> {
+        val sessionId = GameSessionId.fromString(id)
+        val result = getGameSession.execute(sessionId)
+        val dto =
+            GameSessionWithResultsDto(
+                session = GameSessionDto.fromDomain(result.session),
+                results = result.results.map { SessionResultDto.fromDomain(it) },
+            )
+        return ResponseEntity.ok(dto)
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun createSession(
+        @AuthenticationPrincipal userIdString: String,
+        @Valid @RequestBody request: CreateGameSessionRequest,
+    ): ResponseEntity<GameSessionWithResultsDto> {
+        val command =
+            CreateGameSessionCommand(
+                startTime = request.startTime,
+                endTime = request.endTime,
+                location = request.location,
+                gameType = request.gameType,
+                minBuyInCents = request.minBuyInCents,
+                notes = request.notes,
+                createdByUserId = userIdString,
+                results =
+                    request.results.map {
+                        CreateSessionResultCommand(
+                            playerId = it.playerId,
+                            buyInCents = it.buyInCents,
+                            cashOutCents = it.cashOutCents,
+                            notes = it.notes,
+                        )
+                    },
+            )
+        val result = createGameSession.execute(command)
+        val dto =
+            GameSessionWithResultsDto(
+                session = GameSessionDto.fromDomain(result.session),
+                results = result.results.map { SessionResultDto.fromDomain(it) },
+            )
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto)
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun updateSession(
+        @PathVariable id: String,
+        @Valid @RequestBody request: UpdateGameSessionRequest,
+    ): ResponseEntity<GameSessionDto> {
+        val sessionId = GameSessionId.fromString(id)
+        val command =
+            UpdateGameSessionCommand(
+                startTime = request.startTime,
+                endTime = request.endTime,
+                location = request.location,
+                gameType = request.gameType,
+                minBuyInCents = request.minBuyInCents,
+                notes = request.notes,
+            )
+        val session = updateGameSession.execute(sessionId, command)
+        return ResponseEntity.ok(GameSessionDto.fromDomain(session))
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun deleteSession(
+        @PathVariable id: String,
+    ): ResponseEntity<Map<String, String>> {
+        val sessionId = GameSessionId.fromString(id)
+        deleteGameSession.execute(sessionId)
+        return ResponseEntity.ok(mapOf("message" to "Session deleted successfully"))
+    }
+}

@@ -8,6 +8,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 import pl.kmazurek.application.usecase.auth.EmailAlreadyExistsException
 import pl.kmazurek.application.usecase.auth.InvalidCredentialsException
 import pl.kmazurek.application.usecase.auth.InvalidRefreshTokenException
+import pl.kmazurek.application.usecase.gamesession.GameSessionNotFoundException
+import pl.kmazurek.application.usecase.player.PlayerAlreadyExistsException
+import pl.kmazurek.application.usecase.player.PlayerNotFoundException
+import pl.kmazurek.application.usecase.sessionresult.SessionResultNotFoundException
 import pl.kmazurek.application.usecase.user.InvalidPasswordException
 import pl.kmazurek.application.usecase.user.UserNotFoundException
 
@@ -42,6 +46,34 @@ class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.NOT_FOUND)
             .body(ErrorResponse(ex.message ?: "User not found"))
+    }
+
+    @ExceptionHandler(PlayerAlreadyExistsException::class)
+    fun handlePlayerAlreadyExists(ex: PlayerAlreadyExistsException): ResponseEntity<ErrorResponse> {
+        return ResponseEntity
+            .status(HttpStatus.CONFLICT)
+            .body(ErrorResponse(ex.message ?: "Player already exists"))
+    }
+
+    @ExceptionHandler(PlayerNotFoundException::class)
+    fun handlePlayerNotFound(ex: PlayerNotFoundException): ResponseEntity<ErrorResponse> {
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(ErrorResponse(ex.message ?: "Player not found"))
+    }
+
+    @ExceptionHandler(GameSessionNotFoundException::class)
+    fun handleGameSessionNotFound(ex: GameSessionNotFoundException): ResponseEntity<ErrorResponse> {
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(ErrorResponse(ex.message ?: "Game session not found"))
+    }
+
+    @ExceptionHandler(SessionResultNotFoundException::class)
+    fun handleSessionResultNotFound(ex: SessionResultNotFoundException): ResponseEntity<ErrorResponse> {
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(ErrorResponse(ex.message ?: "Session result not found"))
     }
 
     @ExceptionHandler(InvalidPasswordException::class)
