@@ -1,11 +1,11 @@
 package pl.kmazurek.application.usecase.auth
 
+import org.springframework.stereotype.Service
 import pl.kmazurek.domain.model.user.Email
 import pl.kmazurek.domain.model.user.User
 import pl.kmazurek.domain.repository.UserRepository
 import pl.kmazurek.infrastructure.security.JwtService
 import pl.kmazurek.infrastructure.security.PasswordEncoderService
-import org.springframework.stereotype.Service
 
 /**
  * Use Case: Login user

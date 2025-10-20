@@ -35,7 +35,6 @@ class JwtAuthenticationFilter(
 
             if (jwtService.isTokenValid(token) && !jwtService.isRefreshToken(token)) {
                 val userId = jwtService.extractUserId(token)
-                val email = jwtService.extractEmail(token)
                 val role = jwtService.extractRole(token)
 
                 val authorities =

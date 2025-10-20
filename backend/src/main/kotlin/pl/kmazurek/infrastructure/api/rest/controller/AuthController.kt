@@ -1,5 +1,12 @@
 package pl.kmazurek.infrastructure.api.rest.controller
 
+import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import pl.kmazurek.application.dto.AuthResponse
 import pl.kmazurek.application.dto.LoginRequest
 import pl.kmazurek.application.dto.RefreshTokenRequest
@@ -9,13 +16,6 @@ import pl.kmazurek.application.usecase.auth.LoginUser
 import pl.kmazurek.application.usecase.auth.RefreshAccessToken
 import pl.kmazurek.application.usecase.auth.RegisterUser
 import pl.kmazurek.domain.model.user.User
-import jakarta.validation.Valid
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
 
 /**
  * REST Controller for authentication endpoints

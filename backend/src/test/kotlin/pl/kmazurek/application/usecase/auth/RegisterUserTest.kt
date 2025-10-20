@@ -1,9 +1,5 @@
 package pl.kmazurek.application.usecase.auth
 
-import pl.kmazurek.domain.model.user.Email
-import pl.kmazurek.domain.model.user.HashedPassword
-import pl.kmazurek.domain.repository.UserRepository
-import pl.kmazurek.infrastructure.security.PasswordEncoderService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -11,6 +7,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import pl.kmazurek.domain.model.user.Email
+import pl.kmazurek.domain.model.user.HashedPassword
+import pl.kmazurek.domain.repository.UserRepository
+import pl.kmazurek.infrastructure.security.PasswordEncoderService
 
 /**
  * Unit tests for RegisterUser use case

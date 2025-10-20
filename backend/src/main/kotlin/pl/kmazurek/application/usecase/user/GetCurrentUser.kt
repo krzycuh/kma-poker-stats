@@ -1,9 +1,9 @@
 package pl.kmazurek.application.usecase.user
 
+import org.springframework.stereotype.Service
 import pl.kmazurek.domain.model.user.User
 import pl.kmazurek.domain.model.user.UserId
 import pl.kmazurek.domain.repository.UserRepository
-import org.springframework.stereotype.Service
 
 /**
  * Use Case: Get current authenticated user

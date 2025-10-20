@@ -1,8 +1,8 @@
 package pl.kmazurek.infrastructure.security
 
-import pl.kmazurek.domain.model.user.HashedPassword
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import pl.kmazurek.domain.model.user.HashedPassword
 
 /**
  * Service for password hashing and verification

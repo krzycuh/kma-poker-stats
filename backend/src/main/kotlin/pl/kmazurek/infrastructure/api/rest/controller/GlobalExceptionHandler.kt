@@ -1,15 +1,15 @@
 package pl.kmazurek.infrastructure.api.rest.controller
 
-import pl.kmazurek.application.usecase.auth.EmailAlreadyExistsException
-import pl.kmazurek.application.usecase.auth.InvalidCredentialsException
-import pl.kmazurek.application.usecase.auth.InvalidRefreshTokenException
-import pl.kmazurek.application.usecase.user.InvalidPasswordException
-import pl.kmazurek.application.usecase.user.UserNotFoundException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import pl.kmazurek.application.usecase.auth.EmailAlreadyExistsException
+import pl.kmazurek.application.usecase.auth.InvalidCredentialsException
+import pl.kmazurek.application.usecase.auth.InvalidRefreshTokenException
+import pl.kmazurek.application.usecase.user.InvalidPasswordException
+import pl.kmazurek.application.usecase.user.UserNotFoundException
 
 /**
  * Global exception handler for REST controllers

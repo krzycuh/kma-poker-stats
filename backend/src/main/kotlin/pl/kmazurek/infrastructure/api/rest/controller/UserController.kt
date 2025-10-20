@@ -1,13 +1,5 @@
 package pl.kmazurek.infrastructure.api.rest.controller
 
-import pl.kmazurek.application.dto.ChangePasswordRequest
-import pl.kmazurek.application.dto.UpdateProfileRequest
-import pl.kmazurek.application.dto.UserDto
-import pl.kmazurek.application.usecase.user.ChangeUserPassword
-import pl.kmazurek.application.usecase.user.GetCurrentUser
-import pl.kmazurek.application.usecase.user.UpdateUserProfile
-import pl.kmazurek.domain.model.user.User
-import pl.kmazurek.domain.model.user.UserId
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -17,6 +9,14 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import pl.kmazurek.application.dto.ChangePasswordRequest
+import pl.kmazurek.application.dto.UpdateProfileRequest
+import pl.kmazurek.application.dto.UserDto
+import pl.kmazurek.application.usecase.user.ChangeUserPassword
+import pl.kmazurek.application.usecase.user.GetCurrentUser
+import pl.kmazurek.application.usecase.user.UpdateUserProfile
+import pl.kmazurek.domain.model.user.User
+import pl.kmazurek.domain.model.user.UserId
 
 /**
  * REST Controller for user profile endpoints

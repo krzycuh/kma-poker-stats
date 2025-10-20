@@ -1,9 +1,9 @@
 package pl.kmazurek.application.dto
 
-import pl.kmazurek.domain.model.user.UserRole
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
+import pl.kmazurek.domain.model.user.UserRole
 
 /**
  * DTOs for authentication endpoints

@@ -1,8 +1,8 @@
 package pl.kmazurek.application.usecase.auth
 
+import org.springframework.stereotype.Service
 import pl.kmazurek.domain.repository.UserRepository
 import pl.kmazurek.infrastructure.security.JwtService
-import org.springframework.stereotype.Service
 
 /**
  * Use Case: Refresh access token using refresh token

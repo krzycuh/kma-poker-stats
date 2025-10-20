@@ -1,13 +1,13 @@
 package pl.kmazurek.infrastructure.security
 
-import pl.kmazurek.domain.model.user.Email
-import pl.kmazurek.domain.model.user.UserId
-import pl.kmazurek.domain.model.user.UserRole
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import pl.kmazurek.domain.model.user.Email
+import pl.kmazurek.domain.model.user.UserId
+import pl.kmazurek.domain.model.user.UserRole
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.Date

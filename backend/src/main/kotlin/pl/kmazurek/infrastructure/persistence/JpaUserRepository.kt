@@ -1,8 +1,8 @@
 package pl.kmazurek.infrastructure.persistence
 
-import pl.kmazurek.infrastructure.persistence.entity.UserJpaEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
+import pl.kmazurek.infrastructure.persistence.entity.UserJpaEntity
 import java.util.UUID
 
 /**

@@ -1,11 +1,11 @@
 package pl.kmazurek.infrastructure.persistence
 
+import org.springframework.stereotype.Component
 import pl.kmazurek.domain.model.user.Email
 import pl.kmazurek.domain.model.user.User
 import pl.kmazurek.domain.model.user.UserId
 import pl.kmazurek.domain.repository.UserRepository
 import pl.kmazurek.infrastructure.persistence.mapper.UserMapper
-import org.springframework.stereotype.Component
 
 /**
  * Implementation of UserRepository (domain interface)
