@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { apiClient } from '../api/client';
 import type { UpdateProfileRequest, ChangePasswordRequest } from '../types/auth';
+import type { AxiosError } from 'axios';
 
 /**
  * Profile page component
@@ -67,8 +68,9 @@ export const Profile: React.FC = () => {
       });
       await refreshUser();
       setSuccessMessage('Profile updated successfully!');
-    } catch (err: any) {
-      setErrorMessage(err.response?.data?.message || 'Failed to update profile.');
+    } catch (err) {
+      const error = err as AxiosError<{ message: string }>;
+      setErrorMessage(error.response?.data?.message || 'Failed to update profile.');
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -86,8 +88,9 @@ export const Profile: React.FC = () => {
       });
       setSuccessMessage('Password changed successfully!');
       resetPasswordForm();
-    } catch (err: any) {
-      setErrorMessage(err.response?.data?.message || 'Failed to change password.');
+    } catch (err) {
+      const error = err as AxiosError<{ message: string }>;
+      setErrorMessage(error.response?.data?.message || 'Failed to change password.');
     } finally {
       setIsChangingPassword(false);
     }
