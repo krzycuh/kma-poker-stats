@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { playerApi } from '../api/players'
 import { useAuth } from '../hooks/useAuth'
+import { UserRole } from '../types/auth'
 import type { Player } from '../types/player'
 
 export default function Players() {
@@ -38,7 +39,7 @@ export default function Players() {
   })
 
   // Check if user is admin
-  const isAdmin = user?.role === 'ADMIN'
+  const isAdmin = user?.role === UserRole.ADMIN
 
   if (!isAdmin) {
     return (

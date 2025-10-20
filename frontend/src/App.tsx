@@ -7,6 +7,7 @@ import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
 import Players from './pages/Players';
+import { UserRole } from './types/auth';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -45,7 +46,7 @@ function App() {
             <Route
               path="/players"
               element={
-                <ProtectedRoute requiredRole="ADMIN">
+                <ProtectedRoute requireRole={UserRole.ADMIN}>
                   <Players />
                 </ProtectedRoute>
               }
