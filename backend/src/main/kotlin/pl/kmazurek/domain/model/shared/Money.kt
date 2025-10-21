@@ -27,17 +27,17 @@ value class Money private constructor(val amountInCents: Long) {
         val ZERO = Money(0)
 
         fun ofCents(cents: Long): Money {
-            require(cents >= 0) { "Money amount must be non-negative, got $cents cents" }
+            // Allow negative values for profit/loss calculations
             return Money(cents)
         }
 
         fun ofUnits(units: Int): Money {
-            require(units >= 0) { "Money amount must be non-negative, got $units units" }
+            // Allow negative values for profit/loss calculations
             return Money(units.toLong() * 100)
         }
 
         fun ofDecimal(amount: Double): Money {
-            require(amount >= 0) { "Money amount must be non-negative, got $amount" }
+            // Allow negative values for profit/loss calculations
             return Money((amount * 100).toLong())
         }
     }

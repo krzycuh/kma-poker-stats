@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:16:///test
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  flyway:
+    enabled: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      # Using embedded Redis for tests or mocking
+
+jwt:
+  secret: test-secret-key-that-is-long-enough-for-jwt-signing-minimum-256-bits
+  access-token-expiration: 3600000
+  refresh-token-expiration: 86400000
+
+logging:
+  level:
+    pl.kmazurek: DEBUG
+    org.springframework.security: DEBUG
