@@ -20,8 +20,10 @@ data class SessionResult(
     val updatedAt: LocalDateTime,
 ) {
     init {
-        require(buyIn.amountInCents >= 0) { "Buy-in must be non-negative" }
-        require(cashOut.amountInCents >= 0) { "Cash-out must be non-negative" }
+        // Buy-in and cash-out themselves must be non-negative
+        // (but profit, which is cashOut - buyIn, can be negative)
+        require(buyIn.amountInCents >= 0) { "Buy-in must be non-negative, got ${buyIn.amountInCents}" }
+        require(cashOut.amountInCents >= 0) { "Cash-out must be non-negative, got ${cashOut.amountInCents}" }
     }
 
     /**

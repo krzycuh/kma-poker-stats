@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 class MoneyTest {
     @Test
@@ -54,18 +53,19 @@ class MoneyTest {
     }
 
     @Test
-    fun `should reject negative amounts`() {
-        assertThrows<IllegalArgumentException> {
-            Money.ofUnits(-10)
-        }
+    fun `should allow negative amounts for profit loss calculations`() {
+        // Money now allows negative values to represent losses
+        val negativeUnits = Money.ofUnits(-10)
+        assertEquals(-1000L, negativeUnits.amountInCents)
+        assertTrue(negativeUnits.isNegative())
 
-        assertThrows<IllegalArgumentException> {
-            Money.ofCents(-100)
-        }
+        val negativeCents = Money.ofCents(-100)
+        assertEquals(-100L, negativeCents.amountInCents)
+        assertTrue(negativeCents.isNegative())
 
-        assertThrows<IllegalArgumentException> {
-            Money.ofDecimal(-5.0)
-        }
+        val negativeDecimal = Money.ofDecimal(-5.0)
+        assertEquals(-500L, negativeDecimal.amountInCents)
+        assertTrue(negativeDecimal.isNegative())
     }
 
     @Test

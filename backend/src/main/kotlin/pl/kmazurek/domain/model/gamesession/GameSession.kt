@@ -23,7 +23,7 @@ data class GameSession(
     val updatedAt: LocalDateTime,
 ) {
     init {
-        require(minBuyIn.amountInCents >= 0) { "Minimum buy-in must be non-negative" }
+        require(minBuyIn.amountInCents >= 0) { "Minimum buy-in must be non-negative, got ${minBuyIn.amountInCents}" }
         if (endTime != null) {
             require(endTime.isAfter(startTime)) { "End time must be after start time" }
         }
