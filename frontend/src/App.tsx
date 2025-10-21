@@ -11,6 +11,8 @@ import LogSession from './pages/LogSession';
 import EditSession from './pages/EditSession';
 import { Sessions } from './pages/Sessions';
 import { SessionDetail } from './pages/SessionDetail';
+import Stats from './pages/Stats';
+import Leaderboard from './pages/Leaderboard';
 import { UserRole } from './types/auth';
 import './App.css';
 
@@ -84,6 +86,22 @@ function App() {
               element={
                 <ProtectedRoute requireRole={UserRole.ADMIN}>
                   <EditSession />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/stats"
+              element={
+                <ProtectedRoute>
+                  <Stats />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/leaderboard"
+              element={
+                <ProtectedRoute>
+                  <Leaderboard />
                 </ProtectedRoute>
               }
             />
