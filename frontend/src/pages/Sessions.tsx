@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { sessionApi } from '../api/sessions';
+import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { EmptyState } from '../components/EmptyState';
 import {
   formatDateTime,
   formatGameType,
@@ -76,12 +78,7 @@ export const Sessions: React.FC = () => {
         </div>
 
         {/* Loading State */}
-        {isLoading && (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="mt-4 text-gray-600">Loading sessions...</p>
-          </div>
-        )}
+        {isLoading && <LoadingSkeleton variant="table" />}
 
         {/* Error State */}
         {error && (
@@ -144,22 +141,23 @@ export const Sessions: React.FC = () => {
         )}
 
         {/* Empty State */}
-        {filteredSessions && filteredSessions.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500">
-              {searchTerm
-                ? 'No sessions found matching your search.'
-                : 'No sessions yet. Start by logging your first session!'}
-            </p>
-            {!searchTerm && (
-              <Link
-                to="/log-session"
-                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-              >
-                Log Your First Session
-              </Link>
-            )}
-          </div>
+        {filteredSessions && filteredSessions.length === 0 && !searchTerm && (
+          <EmptyState
+            icon="🎲"
+            title="No Sessions Yet"
+            description="Start by logging your first poker session!"
+            action={{
+              label: 'Log Your First Session',
+              onClick: () => window.location.href = '/log-session',
+            }}
+          />
+        )}
+        {filteredSessions && filteredSessions.length === 0 && searchTerm && (
+          <EmptyState
+            icon="🔍"
+            title="No Matches Found"
+            description={`No sessions found matching "${searchTerm}". Try a different search term.`}
+          />
         )}
       </div>
     </div>

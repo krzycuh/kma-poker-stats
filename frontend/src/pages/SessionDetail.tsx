@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sessionApi } from '../api/sessions';
 import { useAuth } from '../hooks/useAuth';
 import { UserRole } from '../types/auth';
+import { ConfirmationModal } from '../components/ConfirmationModal';
+import { useToast } from '../hooks/useToast';
 import {
   formatDateTime,
   formatGameType,
@@ -20,6 +22,8 @@ export const SessionDetail: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const toast = useToast();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const isAdmin = user?.role === UserRole.ADMIN;
 
@@ -35,18 +39,17 @@ export const SessionDetail: React.FC = () => {
     mutationFn: (sessionId: string) => sessionApi.delete(sessionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      toast.success('Session deleted successfully');
       navigate('/sessions');
+    },
+    onError: () => {
+      toast.error('Failed to delete session. Please try again.');
     },
   });
 
   const handleDelete = () => {
-    if (
-      window.confirm(
-        'Are you sure you want to delete this session? This action cannot be undone.'
-      )
-    ) {
-      deleteMutation.mutate(id!);
-    }
+    deleteMutation.mutate(id!);
+    setShowDeleteModal(false);
   };
 
   if (isLoading) {
@@ -119,11 +122,11 @@ export const SessionDetail: React.FC = () => {
                   Edit Session
                 </Link>
                 <button
-                  onClick={handleDelete}
-                  disabled={deleteMutation.isPending}
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
+                  onClick={() => setShowDeleteModal(true)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                  aria-label="Delete session"
                 >
-                  {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                  Delete
                 </button>
               </div>
             )}
@@ -263,6 +266,19 @@ export const SessionDetail: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="Delete Session"
+        description="Are you sure you want to delete this session? This action cannot be undone and all associated data will be permanently removed."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 };
