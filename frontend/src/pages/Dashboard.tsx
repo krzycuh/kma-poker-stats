@@ -58,6 +58,12 @@ export const Dashboard: React.FC = () => {
               <h1 className="text-xl font-bold text-gray-900">Poker Stats</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <Link to="/stats" className="text-gray-700 hover:text-gray-900">
+                Stats
+              </Link>
+              <Link to="/leaderboard" className="text-gray-700 hover:text-gray-900">
+                Leaderboard
+              </Link>
               <Link to="/profile" className="text-gray-700 hover:text-gray-900">
                 Profile
               </Link>
