@@ -6,6 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 import { dashboardApi } from '../api/dashboard';
 import { StatsCard } from '../components/StatsCard';
 import { RecentSessionsList } from '../components/RecentSessionsList';
+import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { EmptyState } from '../components/EmptyState';
 import {
   formatCents,
   formatProfitCents,
@@ -114,9 +116,11 @@ export const Dashboard: React.FC = () => {
 
         {/* Loading State */}
         {isLoading && (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              <LoadingSkeleton variant="stat" count={4} />
+            </div>
+            <LoadingSkeleton variant="card" count={2} />
           </div>
         )}
 
@@ -350,15 +354,11 @@ export const Dashboard: React.FC = () => {
           !isAdmin &&
           casualError instanceof Error &&
           casualError.message.includes('No player linked') && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-              <h3 className="text-lg font-medium text-yellow-900 mb-2">
-                No Player Profile Found
-              </h3>
-              <p className="text-yellow-800">
-                Your account is not linked to a player profile yet. Please
-                contact an administrator to set up your player profile.
-              </p>
-            </div>
+            <EmptyState
+              icon="👤"
+              title="No Player Profile Found"
+              description="Your account is not linked to a player profile yet. Please contact an administrator to set up your player profile."
+            />
           )}
       </div>
     </div>

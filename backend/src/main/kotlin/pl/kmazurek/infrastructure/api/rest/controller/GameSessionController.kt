@@ -52,6 +52,8 @@ class GameSessionController(
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) startDate: LocalDateTime?,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) endDate: LocalDateTime?,
         @RequestParam(required = false, defaultValue = "false") includeDeleted: Boolean,
+        @RequestParam(required = false, defaultValue = "0") page: Int,
+        @RequestParam(required = false, defaultValue = "50") pageSize: Int,
     ): ResponseEntity<List<GameSessionDto>> {
         val query =
             ListGameSessionsQuery(
@@ -62,8 +64,20 @@ class GameSessionController(
                 endDate = endDate,
                 includeDeleted = includeDeleted,
             )
-        val sessions = listGameSessions.execute(query)
-        val dtos = sessions.map { GameSessionDto.fromDomain(it) }
+        val allSessions = listGameSessions.execute(query)
+
+        // Apply pagination
+        val startIndex = page * pageSize
+        val endIndex = minOf(startIndex + pageSize, allSessions.size)
+
+        val paginatedSessions =
+            if (startIndex < allSessions.size) {
+                allSessions.subList(startIndex, endIndex)
+            } else {
+                emptyList()
+            }
+
+        val dtos = paginatedSessions.map { GameSessionDto.fromDomain(it) }
         return ResponseEntity.ok(dtos)
     }
 

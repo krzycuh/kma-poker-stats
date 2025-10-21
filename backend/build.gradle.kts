@@ -50,6 +50,9 @@ dependencies {
     // OpenAPI Documentation
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
 
+    // Rate Limiting
+    implementation("com.bucket4j:bucket4j-core:8.10.1")
+
     // Development
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 

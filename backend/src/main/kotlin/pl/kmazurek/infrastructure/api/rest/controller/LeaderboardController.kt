@@ -35,9 +35,17 @@ class LeaderboardController(
         @AuthenticationPrincipal userIdString: String,
         @RequestParam(defaultValue = "NET_PROFIT") metric: LeaderboardMetric,
         @RequestParam(defaultValue = "50") limit: Int,
+        @RequestParam(defaultValue = "0") page: Int,
     ): ResponseEntity<LeaderboardDto> {
         val userId = UserId.fromString(userIdString)
         val leaderboard = leaderboardService.getLeaderboard(metric, userId, limit)
-        return ResponseEntity.ok(leaderboard)
+
+        // Add pagination info as headers
+        return ResponseEntity
+            .ok()
+            .header("X-Page", page.toString())
+            .header("X-Page-Size", limit.toString())
+            .header("X-Total-Entries", leaderboard.totalEntries.toString())
+            .body(leaderboard)
     }
 }
