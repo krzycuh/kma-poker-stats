@@ -1,53 +1,68 @@
 import { describe, it, expect } from 'vitest';
 import { 
-  formatCurrency, 
+  formatCents,
+  formatProfitCents,
+  formatPercentage,
+  formatROI,
   formatDate, 
-  formatDateTime, 
-  formatRelativeTime, 
-  calculateProfit 
+  formatDateTime,
+  formatGameType,
+  formatStreak
 } from '../format';
 
-describe('formatCurrency', () => {
+describe('formatCents', () => {
   it('should format positive amounts correctly', () => {
-    expect(formatCurrency(1000)).toBe('10.00 PLN');
-    expect(formatCurrency(12345)).toBe('123.45 PLN');
-    expect(formatCurrency(100)).toBe('1.00 PLN');
+    expect(formatCents(1000)).toBe('$10.00');
+    expect(formatCents(12345)).toBe('$123.45');
+    expect(formatCents(100)).toBe('$1.00');
   });
 
   it('should format negative amounts correctly', () => {
-    expect(formatCurrency(-1000)).toBe('-10.00 PLN');
-    expect(formatCurrency(-12345)).toBe('-123.45 PLN');
+    expect(formatCents(-1000)).toBe('-$10.00');
+    expect(formatCents(-12345)).toBe('-$123.45');
   });
 
   it('should format zero correctly', () => {
-    expect(formatCurrency(0)).toBe('0.00 PLN');
-  });
-
-  it('should handle large amounts', () => {
-    expect(formatCurrency(1000000)).toBe('10,000.00 PLN');
-    expect(formatCurrency(123456789)).toBe('1,234,567.89 PLN');
+    expect(formatCents(0)).toBe('$0.00');
   });
 });
 
-describe('calculateProfit', () => {
-  it('should calculate positive profit correctly', () => {
-    expect(calculateProfit(10000, 15000)).toBe(5000); // +50.00 PLN
-    expect(calculateProfit(10000, 20000)).toBe(10000); // +100.00 PLN
+describe('formatProfitCents', () => {
+  it('should format positive profit with plus sign', () => {
+    expect(formatProfitCents(5000)).toBe('+$50.00');
+    expect(formatProfitCents(10000)).toBe('+$100.00');
   });
 
-  it('should calculate negative profit (loss) correctly', () => {
-    expect(calculateProfit(10000, 5000)).toBe(-5000); // -50.00 PLN
-    expect(calculateProfit(20000, 0)).toBe(-20000); // -200.00 PLN
+  it('should format negative profit with minus sign', () => {
+    expect(formatProfitCents(-5000)).toBe('-$50.00');
+    expect(formatProfitCents(-20000)).toBe('-$200.00');
   });
 
-  it('should return zero for break-even', () => {
-    expect(calculateProfit(10000, 10000)).toBe(0);
+  it('should format zero with plus sign', () => {
+    expect(formatProfitCents(0)).toBe('+$0.00');
+  });
+});
+
+describe('formatPercentage', () => {
+  it('should format percentage correctly', () => {
+    expect(formatPercentage(50.5)).toBe('50.5%');
+    expect(formatPercentage(100)).toBe('100.0%');
+    expect(formatPercentage(0)).toBe('0.0%');
+  });
+});
+
+describe('formatROI', () => {
+  it('should format positive ROI with plus sign', () => {
+    expect(formatROI(25.5)).toBe('+25.5%');
+    expect(formatROI(100)).toBe('+100.0%');
   });
 
-  it('should handle edge cases', () => {
-    expect(calculateProfit(0, 10000)).toBe(10000);
-    expect(calculateProfit(10000, 0)).toBe(-10000);
-    expect(calculateProfit(0, 0)).toBe(0);
+  it('should format negative ROI with minus sign', () => {
+    expect(formatROI(-25.5)).toBe('-25.5%');
+  });
+
+  it('should format zero ROI with plus sign', () => {
+    expect(formatROI(0)).toBe('+0.0%');
   });
 });
 
@@ -70,22 +85,34 @@ describe('formatDateTime', () => {
     const datetime = '2025-10-21T15:30:00';
     const formatted = formatDateTime(datetime);
     expect(formatted).toMatch(/Oct 21, 2025/);
-    expect(formatted).toMatch(/3:30 PM|15:30/);
+    expect(formatted).toMatch(/3:30|15:30/);
   });
 });
 
-describe('formatRelativeTime', () => {
-  it('should format recent times correctly', () => {
-    const now = new Date();
-    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-    const formatted = formatRelativeTime(oneHourAgo.toISOString());
-    expect(formatted).toMatch(/hour|hours/i);
+describe('formatGameType', () => {
+  it('should format game types correctly', () => {
+    expect(formatGameType('TEXAS_HOLDEM')).toBe("Texas Hold'em");
+    expect(formatGameType('OMAHA')).toBe('Omaha');
+    expect(formatGameType('OTHER')).toBe('Other');
   });
 
-  it('should format past days correctly', () => {
-    const now = new Date();
-    const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
-    const formatted = formatRelativeTime(twoDaysAgo.toISOString());
-    expect(formatted).toMatch(/day|days/i);
+  it('should return unknown types as-is', () => {
+    expect(formatGameType('UNKNOWN_TYPE')).toBe('UNKNOWN_TYPE');
+  });
+});
+
+describe('formatStreak', () => {
+  it('should format winning streaks', () => {
+    expect(formatStreak(3)).toBe('3 Win Streak');
+    expect(formatStreak(1)).toBe('1 Win Streak');
+  });
+
+  it('should format losing streaks', () => {
+    expect(formatStreak(-3)).toBe('3 Loss Streak');
+    expect(formatStreak(-1)).toBe('1 Loss Streak');
+  });
+
+  it('should format no streak', () => {
+    expect(formatStreak(0)).toBe('No Streak');
   });
 });

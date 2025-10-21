@@ -19,13 +19,14 @@ class GameSessionTest {
         val userId = UserId.generate()
 
         // When
-        val session = GameSession.create(
-            startTime = startTime,
-            location = location,
-            gameType = gameType,
-            minBuyIn = minBuyIn,
-            createdByUserId = userId,
-        )
+        val session =
+            GameSession.create(
+                startTime = startTime,
+                location = location,
+                gameType = gameType,
+                minBuyIn = minBuyIn,
+                createdByUserId = userId,
+            )
 
         // Then
         session.id shouldNotBe null
@@ -73,12 +74,13 @@ class GameSessionTest {
     @Test
     fun `should end session successfully`() {
         // Given
-        val session = GameSession.create(
-            startTime = LocalDateTime.now().minusHours(2),
-            location = Location("Home"),
-            gameType = GameType.TEXAS_HOLDEM,
-            minBuyIn = Money.ofUnits(50),
-        )
+        val session =
+            GameSession.create(
+                startTime = LocalDateTime.now().minusHours(2),
+                location = Location("Home"),
+                gameType = GameType.TEXAS_HOLDEM,
+                minBuyIn = Money.ofUnits(50),
+            )
         val endTime = LocalDateTime.now()
 
         // When
@@ -93,12 +95,13 @@ class GameSessionTest {
     @Test
     fun `should reject ending session that already ended`() {
         // Given
-        val session = GameSession.create(
-            startTime = LocalDateTime.now().minusHours(2),
-            location = Location("Home"),
-            gameType = GameType.TEXAS_HOLDEM,
-            minBuyIn = Money.ofUnits(50),
-        ).end(LocalDateTime.now().minusHours(1))
+        val session =
+            GameSession.create(
+                startTime = LocalDateTime.now().minusHours(2),
+                location = Location("Home"),
+                gameType = GameType.TEXAS_HOLDEM,
+                minBuyIn = Money.ofUnits(50),
+            ).end(LocalDateTime.now().minusHours(1))
 
         // When/Then
         shouldThrow<IllegalArgumentException> {
@@ -111,13 +114,14 @@ class GameSessionTest {
         // Given
         val startTime = LocalDateTime.now().minusHours(3)
         val endTime = LocalDateTime.now()
-        val session = GameSession.create(
-            startTime = startTime,
-            endTime = endTime,
-            location = Location("Home"),
-            gameType = GameType.TEXAS_HOLDEM,
-            minBuyIn = Money.ofUnits(50),
-        )
+        val session =
+            GameSession.create(
+                startTime = startTime,
+                endTime = endTime,
+                location = Location("Home"),
+                gameType = GameType.TEXAS_HOLDEM,
+                minBuyIn = Money.ofUnits(50),
+            )
 
         // When
         val duration = session.duration()
@@ -130,12 +134,13 @@ class GameSessionTest {
     @Test
     fun `should return null duration for active session`() {
         // Given
-        val session = GameSession.create(
-            startTime = LocalDateTime.now(),
-            location = Location("Home"),
-            gameType = GameType.TEXAS_HOLDEM,
-            minBuyIn = Money.ofUnits(50),
-        )
+        val session =
+            GameSession.create(
+                startTime = LocalDateTime.now(),
+                location = Location("Home"),
+                gameType = GameType.TEXAS_HOLDEM,
+                minBuyIn = Money.ofUnits(50),
+            )
 
         // When
         val duration = session.duration()
@@ -147,22 +152,24 @@ class GameSessionTest {
     @Test
     fun `should update session successfully`() {
         // Given
-        val session = GameSession.create(
-            startTime = LocalDateTime.now(),
-            location = Location("Old Location"),
-            gameType = GameType.TEXAS_HOLDEM,
-            minBuyIn = Money.ofUnits(50),
-        )
+        val session =
+            GameSession.create(
+                startTime = LocalDateTime.now(),
+                location = Location("Old Location"),
+                gameType = GameType.TEXAS_HOLDEM,
+                minBuyIn = Money.ofUnits(50),
+            )
         val newLocation = Location("New Location")
         val newMinBuyIn = Money.ofUnits(100)
 
         // When
-        val updated = session.update(
-            startTime = session.startTime,
-            location = newLocation,
-            gameType = GameType.OMAHA,
-            minBuyIn = newMinBuyIn,
-        )
+        val updated =
+            session.update(
+                startTime = session.startTime,
+                location = newLocation,
+                gameType = GameType.OMAHA,
+                minBuyIn = newMinBuyIn,
+            )
 
         // Then
         updated.location shouldBe newLocation
@@ -173,12 +180,13 @@ class GameSessionTest {
     @Test
     fun `should soft delete session`() {
         // Given
-        val session = GameSession.create(
-            startTime = LocalDateTime.now(),
-            location = Location("Home"),
-            gameType = GameType.TEXAS_HOLDEM,
-            minBuyIn = Money.ofUnits(50),
-        )
+        val session =
+            GameSession.create(
+                startTime = LocalDateTime.now(),
+                location = Location("Home"),
+                gameType = GameType.TEXAS_HOLDEM,
+                minBuyIn = Money.ofUnits(50),
+            )
 
         // When
         val deleted = session.delete()
@@ -191,12 +199,13 @@ class GameSessionTest {
     @Test
     fun `should reject deleting already deleted session`() {
         // Given
-        val session = GameSession.create(
-            startTime = LocalDateTime.now(),
-            location = Location("Home"),
-            gameType = GameType.TEXAS_HOLDEM,
-            minBuyIn = Money.ofUnits(50),
-        ).delete()
+        val session =
+            GameSession.create(
+                startTime = LocalDateTime.now(),
+                location = Location("Home"),
+                gameType = GameType.TEXAS_HOLDEM,
+                minBuyIn = Money.ofUnits(50),
+            ).delete()
 
         // When/Then
         shouldThrow<IllegalArgumentException> {
@@ -207,12 +216,13 @@ class GameSessionTest {
     @Test
     fun `should restore deleted session`() {
         // Given
-        val session = GameSession.create(
-            startTime = LocalDateTime.now(),
-            location = Location("Home"),
-            gameType = GameType.TEXAS_HOLDEM,
-            minBuyIn = Money.ofUnits(50),
-        ).delete()
+        val session =
+            GameSession.create(
+                startTime = LocalDateTime.now(),
+                location = Location("Home"),
+                gameType = GameType.TEXAS_HOLDEM,
+                minBuyIn = Money.ofUnits(50),
+            ).delete()
 
         // When
         val restored = session.restore()
@@ -225,12 +235,13 @@ class GameSessionTest {
     @Test
     fun `should reject restoring non-deleted session`() {
         // Given
-        val session = GameSession.create(
-            startTime = LocalDateTime.now(),
-            location = Location("Home"),
-            gameType = GameType.TEXAS_HOLDEM,
-            minBuyIn = Money.ofUnits(50),
-        )
+        val session =
+            GameSession.create(
+                startTime = LocalDateTime.now(),
+                location = Location("Home"),
+                gameType = GameType.TEXAS_HOLDEM,
+                minBuyIn = Money.ofUnits(50),
+            )
 
         // When/Then
         shouldThrow<IllegalArgumentException> {

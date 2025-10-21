@@ -15,11 +15,12 @@ class PlayerTest {
         val userId = UserId.generate()
 
         // When
-        val player = Player.create(
-            name = name,
-            avatarUrl = avatarUrl,
-            userId = userId,
-        )
+        val player =
+            Player.create(
+                name = name,
+                avatarUrl = avatarUrl,
+                userId = userId,
+            )
 
         // Then
         player.id shouldNotBe null
@@ -47,18 +48,20 @@ class PlayerTest {
     @Test
     fun `should update player information`() {
         // Given
-        val player = Player.create(
-            name = PlayerName("Old Name"),
-            avatarUrl = "https://example.com/old.jpg",
-        )
+        val player =
+            Player.create(
+                name = PlayerName("Old Name"),
+                avatarUrl = "https://example.com/old.jpg",
+            )
         val newName = PlayerName("New Name")
         val newAvatarUrl = "https://example.com/new.jpg"
 
         // When
-        val updated = player.update(
-            name = newName,
-            avatarUrl = newAvatarUrl,
-        )
+        val updated =
+            player.update(
+                name = newName,
+                avatarUrl = newAvatarUrl,
+            )
 
         // Then
         updated.name shouldBe newName
@@ -84,10 +87,11 @@ class PlayerTest {
         // Given
         val userId1 = UserId.generate()
         val userId2 = UserId.generate()
-        val player = Player.create(
-            name = PlayerName("John Doe"),
-            userId = userId1,
-        )
+        val player =
+            Player.create(
+                name = PlayerName("John Doe"),
+                userId = userId1,
+            )
 
         // When/Then
         shouldThrow<IllegalArgumentException> {
@@ -99,10 +103,11 @@ class PlayerTest {
     fun `should unlink player from user`() {
         // Given
         val userId = UserId.generate()
-        val player = Player.create(
-            name = PlayerName("John Doe"),
-            userId = userId,
-        )
+        val player =
+            Player.create(
+                name = PlayerName("John Doe"),
+                userId = userId,
+            )
 
         // When
         val unlinked = player.unlinkFromUser()

@@ -2,13 +2,9 @@ package pl.kmazurek.domain.service
 
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
-import pl.kmazurek.domain.model.gamesession.GameSession
-import pl.kmazurek.domain.model.gamesession.GameType
-import pl.kmazurek.domain.model.gamesession.Location
 import pl.kmazurek.domain.model.gamesession.SessionResult
 import pl.kmazurek.domain.model.player.PlayerId
 import pl.kmazurek.domain.model.shared.Money
-import java.time.LocalDateTime
 
 class StatsCalculatorTest {
     private val calculator = StatsCalculator()
@@ -17,10 +13,11 @@ class StatsCalculatorTest {
     fun `should calculate total sessions for player`() {
         // Given
         val playerId = PlayerId.generate()
-        val results = listOf(
-            createResult(playerId, buyIn = 100, cashOut = 150),
-            createResult(playerId, buyIn = 200, cashOut = 180),
-        )
+        val results =
+            listOf(
+                createResult(playerId, buyIn = 100, cashOut = 150),
+                createResult(playerId, buyIn = 200, cashOut = 180),
+            )
 
         // When
         val stats = calculator.calculatePlayerStats(playerId, results)
@@ -33,11 +30,12 @@ class StatsCalculatorTest {
     fun `should calculate net profit correctly`() {
         // Given
         val playerId = PlayerId.generate()
-        val results = listOf(
-            createResult(playerId, buyIn = 100, cashOut = 150), // +50
-            createResult(playerId, buyIn = 200, cashOut = 180), // -20
-            createResult(playerId, buyIn = 100, cashOut = 200), // +100
-        )
+        val results =
+            listOf(
+                createResult(playerId, buyIn = 100, cashOut = 150), // +50
+                createResult(playerId, buyIn = 200, cashOut = 180), // -20
+                createResult(playerId, buyIn = 100, cashOut = 200), // +100
+            )
 
         // When
         val stats = calculator.calculatePlayerStats(playerId, results)
@@ -51,10 +49,11 @@ class StatsCalculatorTest {
     fun `should calculate total buy-in correctly`() {
         // Given
         val playerId = PlayerId.generate()
-        val results = listOf(
-            createResult(playerId, buyIn = 100, cashOut = 150),
-            createResult(playerId, buyIn = 200, cashOut = 180),
-        )
+        val results =
+            listOf(
+                createResult(playerId, buyIn = 100, cashOut = 150),
+                createResult(playerId, buyIn = 200, cashOut = 180),
+            )
 
         // When
         val stats = calculator.calculatePlayerStats(playerId, results)
@@ -67,10 +66,11 @@ class StatsCalculatorTest {
     fun `should calculate total cash-out correctly`() {
         // Given
         val playerId = PlayerId.generate()
-        val results = listOf(
-            createResult(playerId, buyIn = 100, cashOut = 150),
-            createResult(playerId, buyIn = 200, cashOut = 180),
-        )
+        val results =
+            listOf(
+                createResult(playerId, buyIn = 100, cashOut = 150),
+                createResult(playerId, buyIn = 200, cashOut = 180),
+            )
 
         // When
         val stats = calculator.calculatePlayerStats(playerId, results)
@@ -83,10 +83,11 @@ class StatsCalculatorTest {
     fun `should calculate ROI correctly`() {
         // Given
         val playerId = PlayerId.generate()
-        val results = listOf(
-            createResult(playerId, buyIn = 100, cashOut = 150), // +50
-            createResult(playerId, buyIn = 100, cashOut = 100), // 0
-        )
+        val results =
+            listOf(
+                createResult(playerId, buyIn = 100, cashOut = 150), // +50
+                createResult(playerId, buyIn = 100, cashOut = 100), // 0
+            )
 
         // When
         val stats = calculator.calculatePlayerStats(playerId, results)
@@ -100,12 +101,13 @@ class StatsCalculatorTest {
     fun `should calculate win rate correctly`() {
         // Given
         val playerId = PlayerId.generate()
-        val results = listOf(
-            createResult(playerId, buyIn = 100, cashOut = 150), // Win
-            createResult(playerId, buyIn = 100, cashOut = 50), // Loss
-            createResult(playerId, buyIn = 100, cashOut = 200), // Win
-            createResult(playerId, buyIn = 100, cashOut = 100), // Break-even
-        )
+        val results =
+            listOf(
+                createResult(playerId, buyIn = 100, cashOut = 150), // Win
+                createResult(playerId, buyIn = 100, cashOut = 50), // Loss
+                createResult(playerId, buyIn = 100, cashOut = 200), // Win
+                createResult(playerId, buyIn = 100, cashOut = 100), // Break-even
+            )
 
         // When
         val stats = calculator.calculatePlayerStats(playerId, results)
@@ -119,11 +121,12 @@ class StatsCalculatorTest {
     fun `should find biggest win`() {
         // Given
         val playerId = PlayerId.generate()
-        val results = listOf(
-            createResult(playerId, buyIn = 100, cashOut = 150), // +50
-            createResult(playerId, buyIn = 100, cashOut = 500), // +400 (biggest win)
-            createResult(playerId, buyIn = 100, cashOut = 200), // +100
-        )
+        val results =
+            listOf(
+                createResult(playerId, buyIn = 100, cashOut = 150), // +50
+                createResult(playerId, buyIn = 100, cashOut = 500), // +400 (biggest win)
+                createResult(playerId, buyIn = 100, cashOut = 200), // +100
+            )
 
         // When
         val stats = calculator.calculatePlayerStats(playerId, results)
@@ -136,11 +139,12 @@ class StatsCalculatorTest {
     fun `should find biggest loss`() {
         // Given
         val playerId = PlayerId.generate()
-        val results = listOf(
-            createResult(playerId, buyIn = 100, cashOut = 50), // -50
-            createResult(playerId, buyIn = 500, cashOut = 0), // -500 (biggest loss)
-            createResult(playerId, buyIn = 100, cashOut = 20), // -80
-        )
+        val results =
+            listOf(
+                createResult(playerId, buyIn = 100, cashOut = 50), // -50
+                createResult(playerId, buyIn = 500, cashOut = 0), // -500 (biggest loss)
+                createResult(playerId, buyIn = 100, cashOut = 20), // -80
+            )
 
         // When
         val stats = calculator.calculatePlayerStats(playerId, results)
@@ -154,12 +158,13 @@ class StatsCalculatorTest {
     fun `should calculate average session profit`() {
         // Given
         val playerId = PlayerId.generate()
-        val results = listOf(
-            createResult(playerId, buyIn = 100, cashOut = 150), // +50
-            createResult(playerId, buyIn = 100, cashOut = 50), // -50
-            createResult(playerId, buyIn = 100, cashOut = 200), // +100
-            createResult(playerId, buyIn = 100, cashOut = 100), // 0
-        )
+        val results =
+            listOf(
+                createResult(playerId, buyIn = 100, cashOut = 150), // +50
+                createResult(playerId, buyIn = 100, cashOut = 50), // -50
+                createResult(playerId, buyIn = 100, cashOut = 200), // +100
+                createResult(playerId, buyIn = 100, cashOut = 100), // 0
+            )
 
         // When
         val stats = calculator.calculatePlayerStats(playerId, results)
@@ -194,10 +199,11 @@ class StatsCalculatorTest {
     fun `should handle all losing sessions`() {
         // Given
         val playerId = PlayerId.generate()
-        val results = listOf(
-            createResult(playerId, buyIn = 100, cashOut = 50),
-            createResult(playerId, buyIn = 100, cashOut = 80),
-        )
+        val results =
+            listOf(
+                createResult(playerId, buyIn = 100, cashOut = 50),
+                createResult(playerId, buyIn = 100, cashOut = 80),
+            )
 
         // When
         val stats = calculator.calculatePlayerStats(playerId, results)
@@ -213,12 +219,13 @@ class StatsCalculatorTest {
     fun `should calculate current streak correctly for winning streak`() {
         // Given
         val playerId = PlayerId.generate()
-        val results = listOf(
-            createResult(playerId, buyIn = 100, cashOut = 50), // Loss
-            createResult(playerId, buyIn = 100, cashOut = 150), // Win
-            createResult(playerId, buyIn = 100, cashOut = 200), // Win
-            createResult(playerId, buyIn = 100, cashOut = 180), // Win
-        )
+        val results =
+            listOf(
+                createResult(playerId, buyIn = 100, cashOut = 50), // Loss
+                createResult(playerId, buyIn = 100, cashOut = 150), // Win
+                createResult(playerId, buyIn = 100, cashOut = 200), // Win
+                createResult(playerId, buyIn = 100, cashOut = 180), // Win
+            )
 
         // When
         val stats = calculator.calculatePlayerStats(playerId, results)
@@ -231,11 +238,12 @@ class StatsCalculatorTest {
     fun `should calculate current streak correctly for losing streak`() {
         // Given
         val playerId = PlayerId.generate()
-        val results = listOf(
-            createResult(playerId, buyIn = 100, cashOut = 200), // Win
-            createResult(playerId, buyIn = 100, cashOut = 50), // Loss
-            createResult(playerId, buyIn = 100, cashOut = 20), // Loss
-        )
+        val results =
+            listOf(
+                createResult(playerId, buyIn = 100, cashOut = 200), // Win
+                createResult(playerId, buyIn = 100, cashOut = 50), // Loss
+                createResult(playerId, buyIn = 100, cashOut = 20), // Loss
+            )
 
         // When
         val stats = calculator.calculatePlayerStats(playerId, results)

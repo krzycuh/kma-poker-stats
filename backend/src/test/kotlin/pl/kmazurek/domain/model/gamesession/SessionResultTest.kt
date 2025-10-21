@@ -17,12 +17,13 @@ class SessionResultTest {
         val cashOut = Money.ofUnits(150)
 
         // When
-        val result = SessionResult.create(
-            sessionId = sessionId,
-            playerId = playerId,
-            buyIn = buyIn,
-            cashOut = cashOut,
-        )
+        val result =
+            SessionResult.create(
+                sessionId = sessionId,
+                playerId = playerId,
+                buyIn = buyIn,
+                cashOut = cashOut,
+            )
 
         // Then
         result.id shouldNotBe null
@@ -35,12 +36,13 @@ class SessionResultTest {
     @Test
     fun `should calculate positive profit correctly`() {
         // Given
-        val result = SessionResult.create(
-            sessionId = GameSessionId.generate(),
-            playerId = PlayerId.generate(),
-            buyIn = Money.ofUnits(100),
-            cashOut = Money.ofUnits(150),
-        )
+        val result =
+            SessionResult.create(
+                sessionId = GameSessionId.generate(),
+                playerId = PlayerId.generate(),
+                buyIn = Money.ofUnits(100),
+                cashOut = Money.ofUnits(150),
+            )
 
         // When
         val profit = result.profit()
@@ -55,12 +57,13 @@ class SessionResultTest {
     @Test
     fun `should calculate negative profit correctly`() {
         // Given
-        val result = SessionResult.create(
-            sessionId = GameSessionId.generate(),
-            playerId = PlayerId.generate(),
-            buyIn = Money.ofUnits(100),
-            cashOut = Money.ofUnits(75),
-        )
+        val result =
+            SessionResult.create(
+                sessionId = GameSessionId.generate(),
+                playerId = PlayerId.generate(),
+                buyIn = Money.ofUnits(100),
+                cashOut = Money.ofUnits(75),
+            )
 
         // When
         val profit = result.profit()
@@ -75,12 +78,13 @@ class SessionResultTest {
     @Test
     fun `should identify break-even result`() {
         // Given
-        val result = SessionResult.create(
-            sessionId = GameSessionId.generate(),
-            playerId = PlayerId.generate(),
-            buyIn = Money.ofUnits(100),
-            cashOut = Money.ofUnits(100),
-        )
+        val result =
+            SessionResult.create(
+                sessionId = GameSessionId.generate(),
+                playerId = PlayerId.generate(),
+                buyIn = Money.ofUnits(100),
+                cashOut = Money.ofUnits(100),
+            )
 
         // When/Then
         result.profit() shouldBe Money.ZERO
@@ -120,12 +124,13 @@ class SessionResultTest {
     @Test
     fun `should allow zero buy-in and cash-out`() {
         // When
-        val result = SessionResult.create(
-            sessionId = GameSessionId.generate(),
-            playerId = PlayerId.generate(),
-            buyIn = Money.ZERO,
-            cashOut = Money.ZERO,
-        )
+        val result =
+            SessionResult.create(
+                sessionId = GameSessionId.generate(),
+                playerId = PlayerId.generate(),
+                buyIn = Money.ZERO,
+                cashOut = Money.ZERO,
+            )
 
         // Then
         result.buyIn shouldBe Money.ZERO
@@ -136,23 +141,25 @@ class SessionResultTest {
     @Test
     fun `should update result successfully`() {
         // Given
-        val result = SessionResult.create(
-            sessionId = GameSessionId.generate(),
-            playerId = PlayerId.generate(),
-            buyIn = Money.ofUnits(100),
-            cashOut = Money.ofUnits(150),
-            notes = "Old notes",
-        )
+        val result =
+            SessionResult.create(
+                sessionId = GameSessionId.generate(),
+                playerId = PlayerId.generate(),
+                buyIn = Money.ofUnits(100),
+                cashOut = Money.ofUnits(150),
+                notes = "Old notes",
+            )
         val newBuyIn = Money.ofUnits(200)
         val newCashOut = Money.ofUnits(250)
         val newNotes = "New notes"
 
         // When
-        val updated = result.update(
-            buyIn = newBuyIn,
-            cashOut = newCashOut,
-            notes = newNotes,
-        )
+        val updated =
+            result.update(
+                buyIn = newBuyIn,
+                cashOut = newCashOut,
+                notes = newNotes,
+            )
 
         // Then
         updated.buyIn shouldBe newBuyIn
@@ -164,12 +171,13 @@ class SessionResultTest {
     @Test
     fun `should handle large profit amounts`() {
         // Given
-        val result = SessionResult.create(
-            sessionId = GameSessionId.generate(),
-            playerId = PlayerId.generate(),
-            buyIn = Money.ofUnits(1000),
-            cashOut = Money.ofUnits(5000),
-        )
+        val result =
+            SessionResult.create(
+                sessionId = GameSessionId.generate(),
+                playerId = PlayerId.generate(),
+                buyIn = Money.ofUnits(1000),
+                cashOut = Money.ofUnits(5000),
+            )
 
         // When
         val profit = result.profit()
@@ -182,12 +190,13 @@ class SessionResultTest {
     @Test
     fun `should handle large loss amounts`() {
         // Given
-        val result = SessionResult.create(
-            sessionId = GameSessionId.generate(),
-            playerId = PlayerId.generate(),
-            buyIn = Money.ofUnits(5000),
-            cashOut = Money.ofUnits(500),
-        )
+        val result =
+            SessionResult.create(
+                sessionId = GameSessionId.generate(),
+                playerId = PlayerId.generate(),
+                buyIn = Money.ofUnits(5000),
+                cashOut = Money.ofUnits(500),
+            )
 
         // When
         val profit = result.profit()
