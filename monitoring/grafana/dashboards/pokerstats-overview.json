@@ -1,0 +1,204 @@
+{
+  "dashboard": {
+    "title": "Poker Stats - Application Overview",
+    "tags": ["pokerstats", "overview"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Application Health Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job='pokerstats-backend'}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {
+                "options": {
+                  "0": {
+                    "color": "red",
+                    "text": "Down"
+                  },
+                  "1": {
+                    "color": "green",
+                    "text": "Healthy"
+                  }
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Request Rate (req/s)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_server_requests_seconds_count{job='pokerstats-backend'}[5m])",
+            "refId": "A",
+            "legendFormat": "{{uri}}"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 4
+        }
+      },
+      {
+        "id": 3,
+        "title": "Response Time (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_server_requests_seconds_bucket{job='pokerstats-backend'}[5m]))",
+            "refId": "A",
+            "legendFormat": "{{uri}}"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 4,
+        "title": "Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_server_requests_seconds_count{job='pokerstats-backend',status=~'5..'}[5m])",
+            "refId": "A",
+            "legendFormat": "5xx errors"
+          },
+          {
+            "expr": "rate(http_server_requests_seconds_count{job='pokerstats-backend',status=~'4..'}[5m])",
+            "refId": "B",
+            "legendFormat": "4xx errors"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 12
+        }
+      },
+      {
+        "id": 5,
+        "title": "JVM Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "jvm_memory_used_bytes{job='pokerstats-backend',area='heap'} / jvm_memory_max_bytes{job='pokerstats-backend',area='heap'}",
+            "refId": "A",
+            "legendFormat": "Heap Usage %"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        }
+      },
+      {
+        "id": 6,
+        "title": "Database Connections",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "hikaricp_connections_active{job='pokerstats-backend'}",
+            "refId": "A",
+            "legendFormat": "Active"
+          },
+          {
+            "expr": "hikaricp_connections_idle{job='pokerstats-backend'}",
+            "refId": "B",
+            "legendFormat": "Idle"
+          },
+          {
+            "expr": "hikaricp_connections{job='pokerstats-backend'}",
+            "refId": "C",
+            "legendFormat": "Total"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 20
+        }
+      },
+      {
+        "id": 7,
+        "title": "Sessions Created (24h)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "increase(sessions_created_total[24h])",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 12,
+          "y": 20
+        }
+      },
+      {
+        "id": 8,
+        "title": "Active Users (24h)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "count(count by (user) (increase(user_login_total[24h])))",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 18,
+          "y": 20
+        }
+      }
+    ],
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "30s",
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    }
+  }
+}
