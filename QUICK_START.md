@@ -203,25 +203,17 @@ bash scripts/rollback.sh
 
 ## Monitoring
 
-### Access Dashboards
+### Monitoring Endpoints
 
 - **Application**: https://pokerstats.yourdomain.com
-- **Grafana**: http://your-server-ip:3000
-  - Username: `admin`
-  - Password: (from `.env.production`)
-- **Prometheus**: http://your-server-ip:9090
+- **Health**: https://pokerstats.yourdomain.com/api/actuator/health
+- **Metrics**: https://pokerstats.yourdomain.com/api/actuator/metrics
 
 ### Check Metrics
 
 ```bash
-# Application metrics
+# Application metrics (local)
 curl http://localhost:8080/actuator/metrics
-
-# Prometheus targets
-curl http://localhost:9090/api/v1/targets
-
-# Check alerts
-curl http://localhost:9090/api/v1/alerts
 ```
 
 ---
@@ -246,8 +238,6 @@ ls -lh /mnt/pokerstats-data/backups/postgres/
 
 # Run data integrity check
 bash scripts/verify-data-integrity.sh
-
-# Review Grafana dashboards
 ```
 
 ### Monthly

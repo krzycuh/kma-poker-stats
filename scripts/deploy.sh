@@ -81,7 +81,7 @@ check_prerequisites() {
     source "$PROJECT_ROOT/$ENV_FILE"
     if [ ! -d "${DATA_PATH:-/mnt/pokerstats-data}" ]; then
         warning "Data path ${DATA_PATH:-/mnt/pokerstats-data} does not exist. Creating it..."
-        mkdir -p "${DATA_PATH:-/mnt/pokerstats-data}"/{postgres,redis,prometheus,grafana,backups}
+        mkdir -p "${DATA_PATH:-/mnt/pokerstats-data}"/{postgres,redis,backups}
     fi
     
     success "All prerequisites met"
@@ -235,7 +235,7 @@ verify_deployment() {
     log "Verifying deployment..."
     
     # Check if all containers are running
-    local expected_containers=("postgres" "redis" "backend" "frontend" "nginx" "prometheus" "grafana")
+    local expected_containers=("postgres" "redis" "backend" "frontend" "nginx")
     local all_running=true
     
     for container in "${expected_containers[@]}"; do
@@ -281,8 +281,7 @@ print_summary() {
     echo "Application URLs:"
     echo "  - Frontend: https://$(hostname)"
     echo "  - API: https://$(hostname)/api"
-    echo "  - Grafana: http://localhost:3000"
-    echo "  - Prometheus: http://localhost:9090"
+    echo "  - Backend health: https://$(hostname)/api/actuator/health"
     echo ""
     echo "Logs:"
     echo "  docker-compose -f $COMPOSE_FILE logs -f [service]"

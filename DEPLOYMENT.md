@@ -90,7 +90,7 @@ echo "/dev/sda1 /mnt/pokerstats-data ext4 defaults,nofail 0 2" | sudo tee -a /et
 sudo chown -R $USER:$USER /mnt/pokerstats-data
 
 # Create required directories
-mkdir -p /mnt/pokerstats-data/{postgres,redis,prometheus,grafana,backups}
+mkdir -p /mnt/pokerstats-data/{postgres,redis,backups}
 ```
 
 ### Step 3: Clone the Repository
@@ -118,7 +118,6 @@ cp .env.production.template .env.production
 echo "POSTGRES_PASSWORD=$(openssl rand -base64 32)" >> .env.production
 echo "REDIS_PASSWORD=$(openssl rand -base64 32)" >> .env.production
 echo "JWT_SECRET=$(openssl rand -base64 64)" >> .env.production
-echo "GRAFANA_ADMIN_PASSWORD=$(openssl rand -base64 20)" >> .env.production
 
 # Edit .env.production and configure remaining values
 nano .env.production
@@ -247,9 +246,6 @@ curl http://localhost:8080/actuator/health
 
 # Check frontend (in browser)
 https://pokerstats.yourdomain.com
-
-# Check Grafana
-http://localhost:3000
 ```
 
 ---
@@ -320,13 +316,11 @@ bash scripts/restore-database.sh
 
 ## Monitoring and Maintenance
 
-### Access Monitoring Dashboards
+### Monitoring Endpoints
 
-**Grafana**: `http://your-server:3000`
-- Username: `admin`
-- Password: (from `.env.production`)
-
-**Prometheus**: `http://your-server:9090`
+Use Spring Boot Actuator for lightweight health checks:
+- `curl http://localhost:8080/actuator/health`
+- `curl http://localhost:8080/actuator/metrics`
 
 ### Daily Operations
 

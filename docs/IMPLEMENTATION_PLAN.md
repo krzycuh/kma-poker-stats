@@ -1103,7 +1103,7 @@ After completing this phase, demo leaderboards and charts to validate usefulness
 - [ ] Frontend: Optimize bundle size
 - [ ] Frontend: Image optimization (avatar compression)
 - [ ] Frontend: Implement virtual scrolling for long lists
-- [ ] Add performance monitoring (Actuator metrics, Prometheus)
+- [ ] Add performance monitoring (Actuator metrics, external uptime checks)
 
 **Deliverables:**
 - App loading time < 3 seconds
@@ -1222,15 +1222,15 @@ After completing this phase, demo leaderboards and charts to validate usefulness
   - Daily database backups to external storage
   - Backup rotation policy
 - [ ] Set up monitoring:
-  - Prometheus + Grafana
-  - Health check endpoints
+  - Spring Boot Actuator health and metrics endpoints
+  - Optional external uptime checks (e.g., UptimeRobot)
   - Log aggregation
   - Disk space alerts
 
 **Deliverables:**
 - Production environment ready
 - SSL certificates configured
-- Monitoring dashboards set up
+- Monitoring endpoints documented
 
 ### 8.2 Deployment Pipeline
 

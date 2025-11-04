@@ -27,7 +27,7 @@ This document is based on `FUNCTIONALITY_DESIGN.md` and `UI_WIREFRAMES.md`. The 
   - Security: Spring Security, JWT (roles: `casual_player`, `admin`), password hashing (Argon2/BCrypt).
   - API docs: OpenAPI 3 (springdoc-openapi) + TypeScript client generation for the frontend.
   - Caching: Spring Cache + Redis (cache player stats and leaderboards; invalidate on session create/edit).
-  - Observability: Spring Actuator, Micrometer → Prometheus/Grafana; JSON logs (ELK/OpenTelemetry).
+- Observability: Spring Actuator (health/metrics); JSON logs (ELK/OpenTelemetry).
   - Testing: JUnit 5, MockK, Testcontainers (database/Redis).
 - Build: Gradle with Kotlin DSL.
   
@@ -64,7 +64,7 @@ This document is based on `FUNCTIONALITY_DESIGN.md` and `UI_WIREFRAMES.md`. The 
 ## CI/CD and Infrastructure
 - Containerization: Docker; dev environment via Docker Compose (backend, frontend, Postgres, Redis).
 - CI: GitHub Actions (build + test backend/frontend, scans, Docker image).
-- Monitoring: Prometheus + Grafana; logs to ELK/Loki; tracing via OpenTelemetry.
+- Monitoring: Spring Actuator endpoints; logs to ELK/Loki; tracing via OpenTelemetry.
 - Configuration: Spring profiles + `.env` for Compose; CI secrets for production.
   
   - Storage on Pi: mount an external SSD for uploads and database data to avoid SD‑card wear. Example (Compose):
@@ -88,4 +88,4 @@ This document is based on `FUNCTIONALITY_DESIGN.md` and `UI_WIREFRAMES.md`. The 
 - Backend: Kotlin + Spring Boot (Web, Security, Validation, Data JPA, Cache, Actuator, OpenAPI).
 - Database: PostgreSQL + Flyway; Redis for caching.
 - Auth: JWT (httpOnly), roles `admin`/`casual_player`.
-- Hosting: Docker images; basic monitoring (Actuator + Prometheus).
+- Hosting: Docker images; basic monitoring via Actuator endpoints.

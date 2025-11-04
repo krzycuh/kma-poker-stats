@@ -16,8 +16,7 @@ Phase 8 of the Poker Stats application has been successfully implemented, establ
    - ✅ Backend application with environment configuration
    - ✅ Frontend with optimized build
    - ✅ Nginx reverse proxy with SSL support
-   - ✅ Prometheus monitoring
-   - ✅ Grafana dashboards
+   - ✅ Spring Boot Actuator health checks exposed via reverse proxy
    - ✅ Production-grade logging configuration
    - ✅ Resource limits and restart policies
 
@@ -52,13 +51,10 @@ Phase 8 of the Poker Stats application has been successfully implemented, establ
    - ✅ Verification after restore
    - ✅ Service management during restore
 
-5. **Monitoring Infrastructure:**
-   - ✅ Prometheus configuration (`monitoring/prometheus/prometheus.yml`)
-   - ✅ Alert rules for application health (`monitoring/prometheus/alerts/pokerstats.yml`)
-   - ✅ Grafana datasource provisioning
-   - ✅ Grafana dashboard (`monitoring/grafana/dashboards/pokerstats-overview.json`)
-   - ✅ Application metrics tracking
-   - ✅ System resource monitoring
+5. **Application Health Checks:**
+   - ✅ Spring Boot Actuator endpoints for health and metrics
+   - ✅ Nginx proxy health endpoint for external monitoring
+   - ✅ Documentation on using Actuator for basic observability
 
 ### 8.2 Deployment Pipeline ✅
 
@@ -195,33 +191,16 @@ Phase 8 of the Poker Stats application has been successfully implemented, establ
 **Monitoring and Feedback:**
 
 1. **Health Monitoring:**
-   - ✅ Prometheus metrics collection
-   - ✅ Application health alerts
-   - ✅ Database monitoring
-   - ✅ Redis monitoring
-   - ✅ System resource alerts
-   - ✅ Performance metrics tracking
+   - ✅ Spring Boot Actuator `/actuator/health` endpoint exposed via Nginx
+   - ✅ `/actuator/metrics` available for runtime statistics
+   - ✅ Documentation on integrating external uptime services (e.g., UptimeRobot, Cloudflare health checks)
 
-2. **Alerting Rules:**
-   - ✅ Backend down alert
-   - ✅ High error rate alert
-   - ✅ Slow response time alert
-   - ✅ Database connection alerts
-   - ✅ High memory usage alerts
-   - ✅ Disk space alerts
-   - ✅ Security alerts (failed logins)
+2. **Operational Checks:**
+   - ✅ Deployment scripts verify container health during rollout
+   - ✅ Daily and weekly runbooks for manual log and resource reviews
+   - ✅ Guidance on investigating performance issues via Actuator metrics
 
-3. **Grafana Dashboard:**
-   - ✅ Application health status
-   - ✅ Request rate visualization
-   - ✅ Response time metrics (p95)
-   - ✅ Error rate tracking
-   - ✅ JVM memory usage
-   - ✅ Database connection pool
-   - ✅ Sessions created counter
-   - ✅ Active users counter
-
-4. **docs/FEEDBACK.md** - Feedback collection process
+3. **docs/FEEDBACK.md** - Feedback collection process
    - ✅ Multiple feedback channels (email, GitHub, surveys)
    - ✅ Feedback categories and priorities
    - ✅ Processing workflow
@@ -303,19 +282,8 @@ Phase 8 of the Poker Stats application has been successfully implemented, establ
 /workspace/
 ├── docker-compose.prod.yml                           # Production stack
 ├── .env.production.template                          # Environment template
-├── nginx/
-│   └── nginx.prod.conf                              # Nginx production config
-└── monitoring/
-    ├── prometheus/
-    │   ├── prometheus.yml                           # Prometheus config
-    │   └── alerts/
-    │       └── pokerstats.yml                       # Alert rules
-    └── grafana/
-        ├── provisioning/
-        │   ├── datasources/prometheus.yml           # Datasource config
-        │   └── dashboards/dashboards.yml            # Dashboard provisioning
-        └── dashboards/
-            └── pokerstats-overview.json             # Main dashboard
+└── nginx/
+    └── nginx.prod.conf                              # Nginx production config
 ```
 
 ### Scripts
@@ -382,28 +350,21 @@ Phase 8 of the Poker Stats application has been successfully implemented, establ
 - Health check endpoint
 ```
 
-### Monitoring Stack
+### Health Monitoring
 
 ```
-Prometheus → Scrapes metrics from:
-  - Backend (Spring Boot Actuator)
-  - PostgreSQL (via exporter)
-  - Redis (via exporter)
-  - System (node exporter)
+Spring Boot Actuator → Provides:
+  - `/actuator/health` for overall service status
+  - `/actuator/metrics` for key runtime statistics
+  - `/actuator/loggers` for dynamic log level management
 
-Grafana → Visualizes:
-  - Application health
-  - Request rates
-  - Response times
-  - Error rates
-  - Resource usage
-  - Business metrics
+Nginx → Exposes:
+  - `/health` endpoint mapped to backend health check
+  - HTTPS termination with optional Cloudflare integration
 
-Alertmanager → Sends alerts for:
-  - Service downtime
-  - High error rates
-  - Performance degradation
-  - Resource exhaustion
+External Services (optional):
+  - UptimeRobot or Cloudflare health checks for availability monitoring
+  - Custom scripts using `curl` against Actuator endpoints
 ```
 
 ### Backup Strategy
@@ -494,9 +455,6 @@ ls -lh /mnt/pokerstats-data/backups/postgres/
 
 # Run integrity check
 bash scripts/verify-data-integrity.sh
-
-# Review Grafana dashboards
-# Access: http://localhost:3000
 ```
 
 ### Monthly Tasks
@@ -533,10 +491,8 @@ Redis           2-5%    ~50MB     ~100MB
 Backend         10-20%  ~512MB    ~300MB
 Frontend        1-2%    ~50MB     ~100MB
 Nginx           1-2%    ~20MB     ~50MB
-Prometheus      5-10%   ~100MB    ~1GB
-Grafana         5-10%   ~100MB    ~200MB
 ----------------------------------------
-Total           ~40%    ~1GB      ~2.3GB + data
+Total           ~25%    ~0.8GB    ~1.1GB + data
 ```
 
 ### Backup Performance
@@ -740,7 +696,7 @@ Phase 8 has successfully prepared the Poker Stats application for production dep
 
 - **Complete production infrastructure** with Docker Compose orchestration
 - **Automated deployment pipeline** with rollback capabilities
-- **Comprehensive monitoring** with Prometheus and Grafana
+- **Lightweight monitoring** via Spring Boot Actuator endpoints
 - **Robust backup system** with automated rotation
 - **Extensive documentation** for users, admins, and operators
 - **Security hardening** with SSL, rate limiting, and secure configurations
@@ -748,11 +704,10 @@ Phase 8 has successfully prepared the Poker Stats application for production dep
 **Key Metrics:**
 - ✅ 7 production scripts created
 - ✅ 5 comprehensive documentation guides
-- ✅ 50+ alert rules configured
+- ✅ Actuator health and metrics endpoints exposed via Nginx
 - ✅ 100% deployment automation
 - ✅ Zero manual steps for deployment (after initial setup)
 - ✅ Sub-5-minute deployment time
-- ✅ Production-ready monitoring stack
 
 **Phase 8 Status: 100% Complete**
 
@@ -763,7 +718,7 @@ The application is now ready for production deployment and can support a poker g
 **Phase 8 Completion Date:** October 22, 2025  
 **Scripts Created:** 7  
 **Documentation Pages:** 5 (2,000+ lines)  
-**Monitoring Alerts:** 50+  
+**Actuator Endpoints Exposed:** 2 (`/actuator/health`, `/actuator/metrics`)
 **Deployment Automation:** 100%  
 **Production Readiness:** ✅ Ready
 
