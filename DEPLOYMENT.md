@@ -90,7 +90,7 @@ echo "/dev/sda1 /mnt/pokerstats-data ext4 defaults,nofail 0 2" | sudo tee -a /et
 sudo chown -R $USER:$USER /mnt/pokerstats-data
 
 # Create required directories
-mkdir -p /mnt/pokerstats-data/{postgres,redis,prometheus,grafana,backups}
+mkdir -p /mnt/pokerstats-data/{postgres,redis,backups}
 ```
 
 ### Step 3: Clone the Repository
@@ -118,7 +118,6 @@ cp .env.production.template .env.production
 echo "POSTGRES_PASSWORD=$(openssl rand -base64 32)" >> .env.production
 echo "REDIS_PASSWORD=$(openssl rand -base64 32)" >> .env.production
 echo "JWT_SECRET=$(openssl rand -base64 64)" >> .env.production
-echo "GRAFANA_ADMIN_PASSWORD=$(openssl rand -base64 20)" >> .env.production
 
 # Edit .env.production and configure remaining values
 nano .env.production
@@ -128,6 +127,7 @@ nano .env.production
 - `DATA_PATH`: Set to `/mnt/pokerstats-data`
 - `CORS_ALLOWED_ORIGINS`: Your domain (e.g., `https://pokerstats.yourdomain.com`)
 - `VITE_API_URL`: Your API URL
+- `BACKEND_IMAGE` / `FRONTEND_IMAGE`: Registry path to the published Docker images (e.g., `ghcr.io/your-org/pokerstats/backend`)
 - Email settings (if using notifications)
 
 ### Step 5: Setup SSL Certificates
@@ -186,28 +186,31 @@ sudo ufw status
 
 ## Initial Deployment
 
-### Step 1: Build Images
+### Step 1: Set Target Version
 
 ```bash
 cd /opt/pokerstats
 
-# Build Docker images
-export VERSION=1.0.0
-docker-compose -f docker-compose.prod.yml build
+# Use the image tag you want to deploy (default: main)
+export VERSION=main
 ```
 
-### Step 2: Run Database Migrations
+### Step 2: Run Deployment Script
 
 ```bash
-# Start only the database first
-docker-compose -f docker-compose.prod.yml up -d postgres
-
-# Wait for database to be ready
-sleep 10
-
-# Migrations will run automatically when backend starts
-docker-compose -f docker-compose.prod.yml up -d backend
+# Deploys backend/frontend images pulled from the registry
+bash scripts/deploy.sh
 ```
+
+The deployment script will:
+1. Check prerequisites
+2. Validate environment configuration
+3. Create a backup (if database exists)
+4. Pull latest code
+5. Pull pre-built Docker images from the registry
+6. Start all services
+7. Wait for health checks
+8. Verify the deployment
 
 ### Step 3: Create Admin User
 
@@ -218,25 +221,7 @@ bash scripts/create-admin-user.sh
 # Save the credentials securely!
 ```
 
-### Step 4: Deploy All Services
-
-```bash
-# Deploy using the deployment script
-bash scripts/deploy.sh
-```
-
-The deployment script will:
-1. Check prerequisites
-2. Validate environment configuration
-3. Create a backup (if database exists)
-4. Pull latest code
-5. Build Docker images
-6. Run database migrations
-7. Deploy all services
-8. Wait for health checks
-9. Verify deployment
-
-### Step 5: Verify Deployment
+### Step 4: Verify Deployment
 
 ```bash
 # Check all containers are running
@@ -247,31 +232,29 @@ curl http://localhost:8080/actuator/health
 
 # Check frontend (in browser)
 https://pokerstats.yourdomain.com
-
-# Check Grafana
-http://localhost:3000
 ```
 
 ---
 
 ## Ongoing Deployments
 
-### Automated Deployment via GitHub Actions
+### Image Publishing via GitHub Actions
 
-When you push a release tag, GitHub Actions will automatically:
-1. Build Docker images
-2. Push to container registry
-3. SSH to production server
-4. Create backup
-5. Deploy new version
-6. Verify deployment
-7. Rollback on failure
+When you publish a release tag or manually trigger the workflow, GitHub Actions will:
+1. Build multi-architecture Docker images (amd64 + arm64)
+2. Push the backend and frontend images to GitHub Container Registry (GHCR)
+3. Update the floating `main` tag alongside versioned tags
+
+Deployment on the Raspberry Pi is triggered manually by pulling those images (see above).
 
 ### Manual Deployment
 
 ```bash
 # Navigate to project directory
 cd /opt/pokerstats
+
+# Set the release tag you want to deploy
+export VERSION=main
 
 # Run deployment script
 bash scripts/deploy.sh
@@ -280,11 +263,11 @@ bash scripts/deploy.sh
 ### Zero-Downtime Deployment
 
 The deployment script handles this automatically by:
-1. Building new images
-2. Running migrations while old version is still up
-3. Starting new containers
-4. Nginx routes traffic once containers are healthy
-5. Old containers are stopped
+1. Pulling the published images for the selected tag
+2. Starting new containers alongside the existing ones
+3. Waiting for health checks to pass
+4. Switching traffic through Nginx once containers are healthy
+5. Stopping the previous containers
 
 ---
 
@@ -292,7 +275,7 @@ The deployment script handles this automatically by:
 
 ### Automatic Rollback
 
-If deployment fails, GitHub Actions will automatically rollback.
+If deployment fails, the deployment script aborts before swapping traffic. Use the rollback script or re-run the deployment after addressing the issue.
 
 ### Manual Rollback
 
@@ -320,13 +303,11 @@ bash scripts/restore-database.sh
 
 ## Monitoring and Maintenance
 
-### Access Monitoring Dashboards
+### Monitoring Endpoints
 
-**Grafana**: `http://your-server:3000`
-- Username: `admin`
-- Password: (from `.env.production`)
-
-**Prometheus**: `http://your-server:9090`
+Use Spring Boot Actuator for lightweight health checks:
+- `curl http://localhost:8080/actuator/health`
+- `curl http://localhost:8080/actuator/metrics`
 
 ### Daily Operations
 

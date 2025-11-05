@@ -241,7 +241,7 @@ Check what's slow:
    - Old cached data can slow things down
 
 4. Check server load (Admin)
-   - View Grafana dashboard
+   - Query `/actuator/metrics` for resource usage snapshots
    - Check if server is under heavy load
 
 5. Optimize session history
