@@ -55,14 +55,7 @@ services:
 
   # Backend Application
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      args:
-        - BUILD_DATE=${BUILD_DATE}
-        - VCS_REF=${VCS_REF}
-        - VERSION=${VERSION:-latest}
-    image: pokerstats-backend:${VERSION:-latest}
+    image: ${BACKEND_IMAGE}:${VERSION:-latest}
     container_name: pokerstats-backend-prod
     restart: unless-stopped
     environment:
@@ -104,14 +97,7 @@ services:
 
   # Frontend Application
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_URL=${VITE_API_URL:-http://localhost:8080}
-        - BUILD_DATE=${BUILD_DATE}
-        - VERSION=${VERSION:-latest}
-    image: pokerstats-frontend:${VERSION:-latest}
+    image: ${FRONTEND_IMAGE}:${VERSION:-latest}
     container_name: pokerstats-frontend-prod
     restart: unless-stopped
     depends_on:

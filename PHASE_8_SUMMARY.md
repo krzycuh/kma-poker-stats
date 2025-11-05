@@ -65,8 +65,7 @@ Phase 8 of the Poker Stats application has been successfully implemented, establ
    - ✅ Environment validation
    - ✅ Automated backup creation
    - ✅ Git repository updates
-   - ✅ Docker image building
-   - ✅ Database migrations
+   - ✅ Registry image pull and version pinning
    - ✅ Service deployment
    - ✅ Health checks
    - ✅ Deployment verification
@@ -86,13 +85,9 @@ Phase 8 of the Poker Stats application has been successfully implemented, establ
 
 3. **GitHub Actions CI/CD:**
    - ✅ `.github/workflows/deploy-production.yml`
-   - ✅ Automated build on release
-   - ✅ Docker image building and pushing
-   - ✅ SSH deployment to production server
-   - ✅ Automated backup before deployment
-   - ✅ Health checks after deployment
-   - ✅ Automatic rollback on failure
-   - ✅ Deployment notifications
+   - ✅ Automated multi-architecture image builds on release
+   - ✅ Docker image publishing to GitHub Container Registry
+   - ✅ Release-driven version metadata tagging
 
 4. **Documentation:**
    - ✅ `DEPLOYMENT.md` - Comprehensive deployment guide
@@ -318,7 +313,7 @@ Phase 8 of the Poker Stats application has been successfully implemented, establ
 
 ```
 /workspace/.github/workflows/
-└── deploy-production.yml                             # GitHub Actions deployment
+└── deploy-production.yml                             # GitHub Actions image publishing workflow
 ```
 
 ## Technical Highlights
@@ -414,13 +409,14 @@ curl https://pokerstats.yourdomain.com/api/actuator/health
 ### Ongoing Deployments
 
 ```bash
-# Automated (via GitHub Actions)
+# Publish release images (via GitHub Actions)
 git tag v1.0.1
 git push origin v1.0.1
-# Deployment happens automatically
+# Images are built and pushed to GHCR
 
-# Manual
+# Manual deployment on Raspberry Pi
 cd /opt/pokerstats
+export VERSION=v1.0.1
 bash scripts/deploy.sh
 ```
 

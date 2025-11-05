@@ -1,4 +1,4 @@
-name: Deploy to Production
+name: Publish Release Images
 
 on:
   release:
@@ -15,7 +15,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push:
+  publish-images:
     name: Build and Push Docker Images
     runs-on: ubuntu-latest
     permissions:
@@ -47,130 +47,42 @@ jobs:
             type=ref,event=branch
             type=sha
       
-      - name: Extract metadata for Frontend
-        id: meta-frontend
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=ref,event=branch
-            type=sha
-      
-      - name: Build and push Backend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          push: true
-          tags: ${{ steps.meta-backend.outputs.tags }}
-          labels: ${{ steps.meta-backend.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            BUILD_DATE=${{ steps.meta-backend.outputs.created }}
-            VCS_REF=${{ github.sha }}
-            VERSION=${{ github.ref_name }}
-      
-      - name: Build and push Frontend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          push: true
-          tags: ${{ steps.meta-frontend.outputs.tags }}
-          labels: ${{ steps.meta-frontend.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            BUILD_DATE=${{ steps.meta-frontend.outputs.created }}
-            VERSION=${{ github.ref_name }}
+        - name: Extract metadata for Frontend
+          id: meta-frontend
+          uses: docker/metadata-action@v5
+          with:
+            images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend
+            tags: |
+              type=semver,pattern={{version}}
+              type=semver,pattern={{major}}.{{minor}}
+              type=ref,event=branch
+              type=sha
 
-  deploy:
-    name: Deploy to Production Server
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://pokerstats.yourdomain.com
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.PRODUCTION_SSH_KEY }}
-      
-      - name: Add server to known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.PRODUCTION_SERVER }} >> ~/.ssh/known_hosts
-      
-      - name: Create backup
-        run: |
-          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_SERVER }} \
-            "cd /opt/pokerstats && bash scripts/backup-database.sh"
-      
-      - name: Deploy application
-        run: |
-          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_SERVER }} \
-            "cd /opt/pokerstats && \
-             git pull origin main && \
-             export VERSION=${{ github.ref_name }} && \
-             bash scripts/deploy.sh"
-      
-      - name: Verify deployment
-        run: |
-          sleep 30
-          curl -f https://pokerstats.yourdomain.com/api/actuator/health || exit 1
-      
-      - name: Notify on success
-        if: success()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.sha,
-              state: 'success',
-              context: 'Production Deployment',
-              description: 'Deployment successful'
-            })
-      
-      - name: Rollback on failure
-        if: failure()
-        run: |
-          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_SERVER }} \
-            "cd /opt/pokerstats && bash scripts/rollback.sh"
-      
-      - name: Notify on failure
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.sha,
-              state: 'failure',
-              context: 'Production Deployment',
-              description: 'Deployment failed - rolled back'
-            })
+        - name: Build and push Backend image
+          uses: docker/build-push-action@v5
+          with:
+            context: ./backend
+            push: true
+            tags: ${{ steps.meta-backend.outputs.tags }}
+            labels: ${{ steps.meta-backend.outputs.labels }}
+            platforms: linux/amd64,linux/arm64
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
+            build-args: |
+              BUILD_DATE=${{ steps.meta-backend.outputs.created }}
+              VCS_REF=${{ github.sha }}
+              VERSION=${{ github.ref_name }}
 
-  post-deploy:
-    name: Post-Deployment Tasks
-    needs: deploy
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Send deployment notification
-        run: |
-          echo "Deployment completed for version ${{ github.ref_name }}"
-          # Add Slack/Discord notification here if needed
-      
-      - name: Update documentation
-        run: |
-          echo "Update deployment documentation with version ${{ github.ref_name }}"
-          # Add documentation update logic if needed
+        - name: Build and push Frontend image
+          uses: docker/build-push-action@v5
+          with:
+            context: ./frontend
+            push: true
+            tags: ${{ steps.meta-frontend.outputs.tags }}
+            labels: ${{ steps.meta-frontend.outputs.labels }}
+            platforms: linux/amd64,linux/arm64
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
+            build-args: |
+              BUILD_DATE=${{ steps.meta-frontend.outputs.created }}
+              VERSION=${{ github.ref_name }}

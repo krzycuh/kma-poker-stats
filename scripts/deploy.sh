@@ -78,7 +78,9 @@ check_prerequisites() {
     fi
     
     # Check if required directories exist
+    set -a
     source "$PROJECT_ROOT/$ENV_FILE"
+    set +a
     if [ ! -d "${DATA_PATH:-/mnt/pokerstats-data}" ]; then
         warning "Data path ${DATA_PATH:-/mnt/pokerstats-data} does not exist. Creating it..."
         mkdir -p "${DATA_PATH:-/mnt/pokerstats-data}"/{postgres,redis,backups}
@@ -90,7 +92,9 @@ check_prerequisites() {
 validate_environment() {
     log "Validating environment configuration..."
     
+    set -a
     source "$PROJECT_ROOT/$ENV_FILE"
+    set +a
     
     # Check for default passwords
     if [[ "$POSTGRES_PASSWORD" == *"CHANGE_ME"* ]]; then
@@ -108,6 +112,16 @@ validate_environment() {
         exit 1
     fi
     
+    if [[ -z "${BACKEND_IMAGE:-}" ]]; then
+        error "BACKEND_IMAGE is not set. Update .env.production with your registry path."
+        exit 1
+    fi
+
+    if [[ -z "${FRONTEND_IMAGE:-}" ]]; then
+        error "FRONTEND_IMAGE is not set. Update .env.production with your registry path."
+        exit 1
+    fi
+
     success "Environment configuration is valid"
 }
 
@@ -152,42 +166,15 @@ pull_latest_code() {
     fi
 }
 
-build_images() {
-    log "Building Docker images..."
-    
-    cd "$PROJECT_ROOT"
-    
-    # Set build arguments
-    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-    export VCS_REF=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-    export VERSION=${VERSION:-latest}
-    
-    # Build images
-    docker-compose -f $COMPOSE_FILE build --no-cache --pull
-    
-    success "Images built successfully"
-}
+pull_images() {
+    log "Pulling container images..."
 
-run_database_migrations() {
-    log "Running database migrations..."
-    
-    # Start only the database
-    docker-compose -f $COMPOSE_FILE up -d postgres
-    
-    # Wait for database to be ready
-    log "Waiting for database to be ready..."
-    sleep 10
-    
-    # Run migrations via backend
-    docker-compose -f $COMPOSE_FILE run --rm backend /bin/sh -c "
-        echo 'Running Flyway migrations...'
-        ./gradlew flywayMigrate -i
-    " || {
-        error "Database migrations failed"
-        exit 1
-    }
-    
-    success "Database migrations completed"
+    cd "$PROJECT_ROOT"
+
+    export VERSION=${VERSION:-latest}
+    docker-compose -f $COMPOSE_FILE pull
+
+    success "Images pulled successfully"
 }
 
 deploy_services() {
@@ -331,8 +318,7 @@ main() {
     # Execute deployment steps
     create_backup
     pull_latest_code
-    build_images
-    run_database_migrations
+    pull_images
     deploy_services
     wait_for_health
     verify_deployment

@@ -1237,15 +1237,15 @@ After completing this phase, demo leaderboards and charts to validate usefulness
 **Tasks:**
 - [ ] Create deployment script
 - [ ] Set up GitHub Actions for CD:
-  - Build Docker images on release tags
+  - Build multi-architecture Docker images on release tags
   - Push images to registry
-  - Deploy to production (optional: manual approval)
+  - Provide release metadata for manual pull on Raspberry Pi
 - [ ] Create rollback procedure
 - [ ] Document deployment process
 - [ ] Test deployment on staging first
 
 **Deliverables:**
-- Automated deployment pipeline
+- Automated image publishing pipeline
 - Rollback procedure documented
 - Deployment runbook created
 
