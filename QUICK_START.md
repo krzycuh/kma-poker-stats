@@ -54,8 +54,8 @@ sudo cp /etc/letsencrypt/live/pokerstats.yourdomain.com/chain.pem nginx/ssl/
 ### 3. Deploy
 
 ```bash
-# First deployment
-export VERSION=v1.0.0
+# First deployment (defaults to main tag)
+export VERSION=main
 bash scripts/deploy.sh
 ```
 
@@ -81,7 +81,7 @@ bash scripts/seed-demo-data.sh
 
 ```bash
 cd /opt/pokerstats
-export VERSION=v1.0.0
+export VERSION=main
 bash scripts/deploy.sh
 ```
 

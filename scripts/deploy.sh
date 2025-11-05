@@ -171,7 +171,7 @@ pull_images() {
 
     cd "$PROJECT_ROOT"
 
-    export VERSION=${VERSION:-latest}
+    export VERSION=${VERSION:-main}
     docker-compose -f $COMPOSE_FILE pull
 
     success "Images pulled successfully"

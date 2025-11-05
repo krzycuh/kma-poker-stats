@@ -55,7 +55,7 @@ services:
 
   # Backend Application
   backend:
-    image: ${BACKEND_IMAGE}:${VERSION:-latest}
+    image: ${BACKEND_IMAGE}:${VERSION:-main}
     container_name: pokerstats-backend-prod
     restart: unless-stopped
     environment:
@@ -97,7 +97,7 @@ services:
 
   # Frontend Application
   frontend:
-    image: ${FRONTEND_IMAGE}:${VERSION:-latest}
+    image: ${FRONTEND_IMAGE}:${VERSION:-main}
     container_name: pokerstats-frontend-prod
     restart: unless-stopped
     depends_on:

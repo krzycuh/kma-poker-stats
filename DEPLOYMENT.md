@@ -191,8 +191,8 @@ sudo ufw status
 ```bash
 cd /opt/pokerstats
 
-# Use the release tag you want to deploy (e.g., v1.0.0)
-export VERSION=v1.0.0
+# Use the image tag you want to deploy (default: main)
+export VERSION=main
 ```
 
 ### Step 2: Run Deployment Script
@@ -240,9 +240,10 @@ https://pokerstats.yourdomain.com
 
 ### Image Publishing via GitHub Actions
 
-When you push a release tag, GitHub Actions will automatically:
+When you publish a release tag or manually trigger the workflow, GitHub Actions will:
 1. Build multi-architecture Docker images (amd64 + arm64)
 2. Push the backend and frontend images to GitHub Container Registry (GHCR)
+3. Update the floating `main` tag alongside versioned tags
 
 Deployment on the Raspberry Pi is triggered manually by pulling those images (see above).
 
@@ -253,7 +254,7 @@ Deployment on the Raspberry Pi is triggered manually by pulling those images (se
 cd /opt/pokerstats
 
 # Set the release tag you want to deploy
-export VERSION=v1.0.0
+export VERSION=main
 
 # Run deployment script
 bash scripts/deploy.sh

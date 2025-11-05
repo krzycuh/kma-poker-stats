@@ -409,14 +409,17 @@ curl https://pokerstats.yourdomain.com/api/actuator/health
 ### Ongoing Deployments
 
 ```bash
-# Publish release images (via GitHub Actions)
+# Publish images (via GitHub Actions)
+# Option 1: release tag (creates immutable tag + floating main)
 git tag v1.0.1
 git push origin v1.0.1
-# Images are built and pushed to GHCR
 
-# Manual deployment on Raspberry Pi
+# Option 2: manual dispatch for floating main tag
+gh workflow run publish-release-images.yml -f version=main
+
+# Manual deployment on Raspberry Pi (defaults to main tag)
 cd /opt/pokerstats
-export VERSION=v1.0.1
+export VERSION=main  # or v1.0.1 for a specific release
 bash scripts/deploy.sh
 ```
 
