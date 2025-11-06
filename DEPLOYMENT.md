@@ -18,6 +18,7 @@ docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 
 # Verify
 docker compose --env-file .env.production -f docker-compose.prod.yml ps
+curl -f http://localhost/health
 curl -f https://pokerstats.yourdomain.com/api/actuator/health
 ```
 
@@ -46,7 +47,9 @@ The production stack now contains the following long-running services:
 - `redis`: Redis cache with append-only persistence under `DATA_PATH/redis`
 - `backend`: Spring Boot API served from `ghcr.io/krzycuh/kma-poker-stats/backend:<tag>`
 - `frontend`: Static SPA + Nginx proxy from `ghcr.io/krzycuh/kma-poker-stats/frontend:<tag>`
-- `nginx`: TLS termination and routing between the public internet, the frontend container, and the backend API
+- `nginx`: HTTP reverse proxy that routes traffic between Cloudflared, the frontend container, and the backend API
+
+HTTPS termination is delegated to a Cloudflared tunnel. The local Nginx instance serves plain HTTP and only accepts traffic from the tunnel or the local network.
 
 Prometheus and Grafana were removed from the default deployment. If you still need metrics, host them separately.
 
@@ -130,26 +133,51 @@ Store the file securely; it is consumed by Docker Compose and helper scripts.
 
 Docker caches the credentials; renew the token before it expires.
 
-### 6. TLS certificates
+### 6. Configure Cloudflared tunnel
 
-Install Let’s Encrypt certificates (recommended):
+Cloudflared now handles HTTPS termination. The local Nginx container only listens on port 80.
 
-```bash
-sudo apt install certbot
-sudo certbot certonly --standalone -d pokerstats.yourdomain.com
+1. Install cloudflared on the host (follow the [official instructions](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/)).
+2. Authenticate and create a tunnel:
 
-sudo mkdir -p /opt/pokerstats/nginx/ssl
-sudo cp /etc/letsencrypt/live/pokerstats.yourdomain.com/{fullchain.pem,privkey.pem,chain.pem} /opt/pokerstats/nginx/ssl/
-```
+   ```bash
+   cloudflared tunnel login
+   cloudflared tunnel create pokerstats
+   ```
 
-Set up automatic renewal via `certbot renew` and copy the updated files after each renewal. Reload the `nginx` container with `docker compose exec nginx nginx -s reload` when certificates change.
+3. Map your domain to the tunnel:
+
+   ```bash
+   cloudflared tunnel route dns pokerstats <tunnel-uuid> pokerstats.yourdomain.com
+   ```
+
+4. Configure ingress rules so Cloudflared forwards requests to the local Nginx service:
+
+   ```yaml
+   # /etc/cloudflared/config.yml
+   tunnel: pokerstats
+   credentials-file: /home/<user>/.cloudflared/<tunnel-uuid>.json
+
+   ingress:
+     - hostname: pokerstats.yourdomain.com
+       service: http://localhost
+     - service: http_status:404
+   ```
+
+5. Run the tunnel as a service:
+
+   ```bash
+   sudo cloudflared service install
+   sudo systemctl enable --now cloudflared
+   ```
+
+With the tunnel running, Cloudflare provides the public HTTPS endpoint while the Docker stack remains on HTTP.
 
 ### 7. Firewall (UFW example)
 
 ```bash
 sudo ufw allow 22/tcp
 sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
 sudo ufw enable
 sudo ufw status
 ```
@@ -258,7 +286,7 @@ Schedule backups via cron (example):
 | Symptom | Checks | Remedies |
 | --- | --- | --- |
 | `backend` container keeps restarting | `docker compose logs backend` | Verify database credentials, ensure Postgres is healthy (`docker compose logs postgres`) |
-| Site returns 502/504 | `docker compose ps`, `docker compose logs nginx` | Pull latest images, restart `nginx`, verify TLS certificates |
+| Site returns 502/504 | `docker compose ps`, `docker compose logs nginx`, `systemctl status cloudflared` | Pull latest images, restart `nginx`, ensure the Cloudflared tunnel is running and pointing to `http://localhost` |
 | Image pulls fail | `docker logout ghcr.io` then re-run `docker login ghcr.io` | Renew GHCR token, confirm network access |
 | Database connection refused | `docker compose exec postgres pg_isready -U $POSTGRES_USER` | Restart Postgres, restore from backup if corrupt |
 
@@ -280,7 +308,6 @@ docker stats
 ## Frequently Used Paths
 
 - Compose file: `docker-compose.prod.yml`
-- TLS certificates: `nginx/ssl/`
 - Reverse proxy configuration: `nginx/nginx.prod.conf`
 - Logs (host): `/opt/pokerstats/logs/{backend,nginx}`
 - Persistent data: `${DATA_PATH}/postgres`, `${DATA_PATH}/redis`, `${DATA_PATH}/backups`
@@ -291,6 +318,6 @@ Keep these directories under restricted permissions and include them in your hos
 
 ## Change Log
 
-- **November 2025:** Consolidated Quick Start content into this guide, switched production workflow to GHCR images, and removed Prometheus/Grafana references.
+- **November 2025:** Consolidated Quick Start content into this guide, switched production workflow to GHCR images, removed Prometheus/Grafana references, and adopted Cloudflared-based HTTPS.
 
 For additional operational guidance, consult `docs/TROUBLESHOOTING.md` and `docs/ADMIN_GUIDE.md`.
