@@ -26,6 +26,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
+        - name: Set up QEMU
+          uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       
@@ -63,6 +66,7 @@ jobs:
         with:
           context: ./backend
           push: true
+          platforms: linux/amd64,linux/arm64/v8
           tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
           cache-from: type=gha
@@ -77,6 +81,7 @@ jobs:
         with:
           context: ./frontend
           push: true
+          platforms: linux/amd64,linux/arm64/v8
           tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
           cache-from: type=gha
@@ -85,83 +90,9 @@ jobs:
             BUILD_DATE=${{ steps.meta-frontend.outputs.created }}
             VERSION=${{ github.ref_name }}
 
-  deploy:
-    name: Deploy to Production Server
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://pokerstats.yourdomain.com
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.PRODUCTION_SSH_KEY }}
-      
-      - name: Add server to known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.PRODUCTION_SERVER }} >> ~/.ssh/known_hosts
-      
-      - name: Create backup
-        run: |
-          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_SERVER }} \
-            "cd /opt/pokerstats && bash scripts/backup-database.sh"
-      
-      - name: Deploy application
-        run: |
-          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_SERVER }} \
-            "cd /opt/pokerstats && \
-             git pull origin main && \
-             export VERSION=${{ github.ref_name }} && \
-             bash scripts/deploy.sh"
-      
-      - name: Verify deployment
-        run: |
-          sleep 30
-          curl -f https://pokerstats.yourdomain.com/api/actuator/health || exit 1
-      
-      - name: Notify on success
-        if: success()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.sha,
-              state: 'success',
-              context: 'Production Deployment',
-              description: 'Deployment successful'
-            })
-      
-      - name: Rollback on failure
-        if: failure()
-        run: |
-          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_SERVER }} \
-            "cd /opt/pokerstats && bash scripts/rollback.sh"
-      
-      - name: Notify on failure
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.sha,
-              state: 'failure',
-              context: 'Production Deployment',
-              description: 'Deployment failed - rolled back'
-            })
-
-  post-deploy:
-    name: Post-Deployment Tasks
-    needs: deploy
+    post-deploy:
+      name: Post-Deployment Tasks
+      needs: build-and-push
     runs-on: ubuntu-latest
     
     steps:
