@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service
 import pl.kmazurek.domain.model.user.Email
 import pl.kmazurek.domain.model.user.UserId
 import pl.kmazurek.domain.model.user.UserRole
+import java.time.Duration
 import java.time.Instant
-import java.time.temporal.ChronoUnit
 import java.util.Date
 import javax.crypto.SecretKey
 
@@ -18,12 +18,31 @@ import javax.crypto.SecretKey
  */
 @Service
 class JwtService(
-    @Value("\${jwt.secret}") private val secret: String,
-    @Value("\${jwt.expiration-hours:24}") private val expirationHours: Long,
-    @Value("\${jwt.refresh-expiration-days:7}") private val refreshExpirationDays: Long,
+    @Value("\${jwt.secret:changeme-this-is-a-development-secret-key-only-must-be-at-least-256-bits-long}")
+    private val secret: String,
+    @Value("\${jwt.expiration:0}") private val expirationMs: Long,
+    @Value("\${jwt.expiration-hours:-1}") private val expirationHours: Long,
+    @Value("\${jwt.refresh-expiration:0}") private val refreshExpirationMs: Long,
+    @Value("\${jwt.refresh-expiration-days:-1}") private val refreshExpirationDays: Long,
 ) {
     private val secretKey: SecretKey by lazy {
         Keys.hmacShaKeyFor(secret.toByteArray())
+    }
+
+    private val accessTokenDuration: Duration by lazy {
+        when {
+            expirationMs > 0 -> Duration.ofMillis(expirationMs)
+            expirationHours > 0 -> Duration.ofHours(expirationHours)
+            else -> Duration.ofHours(DEFAULT_ACCESS_TOKEN_EXPIRATION_HOURS)
+        }
+    }
+
+    private val refreshTokenDuration: Duration by lazy {
+        when {
+            refreshExpirationMs > 0 -> Duration.ofMillis(refreshExpirationMs)
+            refreshExpirationDays > 0 -> Duration.ofDays(refreshExpirationDays)
+            else -> Duration.ofDays(DEFAULT_REFRESH_TOKEN_EXPIRATION_DAYS)
+        }
     }
 
     /**
@@ -35,7 +54,7 @@ class JwtService(
         role: UserRole,
     ): String {
         val now = Instant.now()
-        val expiration = now.plus(expirationHours, ChronoUnit.HOURS)
+        val expiration = now.plus(accessTokenDuration)
 
         return Jwts.builder()
             .subject(userId.toString())
@@ -52,7 +71,7 @@ class JwtService(
      */
     fun generateRefreshToken(userId: UserId): String {
         val now = Instant.now()
-        val expiration = now.plus(refreshExpirationDays, ChronoUnit.DAYS)
+        val expiration = now.plus(refreshTokenDuration)
 
         return Jwts.builder()
             .subject(userId.toString())
@@ -121,5 +140,9 @@ class JwtService(
 
     private fun isTokenExpired(claims: Claims): Boolean {
         return claims.expiration.before(Date())
+    }
+    companion object {
+        private const val DEFAULT_ACCESS_TOKEN_EXPIRATION_HOURS = 24L
+        private const val DEFAULT_REFRESH_TOKEN_EXPIRATION_DAYS = 7L
     }
 }
