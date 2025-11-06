@@ -14,23 +14,29 @@ COPY src ./src
 RUN gradle build -x test --no-daemon
 
 # Runtime stage
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
-# Create non-root user
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
+# Install runtime dependencies and create non-root user
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends curl \
+  && rm -rf /var/lib/apt/lists/* \
+  && groupadd --system spring \
+  && useradd --system --gid spring --home /app spring
 
 # Copy JAR from builder
-COPY --from=builder /app/build/libs/*.jar app.jar
+COPY --from=builder --chown=spring:spring /app/build/libs/*.jar app.jar
+
+# Switch to non-root user
+USER spring:spring
 
 # Expose port
 EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+  CMD curl --fail --silent http://localhost:8080/actuator/health || exit 1
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
