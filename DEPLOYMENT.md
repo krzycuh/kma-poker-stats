@@ -1,538 +1,323 @@
-# Poker Stats - Deployment Guide
+# Poker Stats – Production Deployment Guide
 
-This guide covers deploying the Poker Stats application to a production environment, specifically optimized for Raspberry Pi deployment.
-
-## Table of Contents
-
-- [Prerequisites](#prerequisites)
-- [Production Environment Setup](#production-environment-setup)
-- [Initial Deployment](#initial-deployment)
-- [Ongoing Deployments](#ongoing-deployments)
-- [Rollback Procedures](#rollback-procedures)
-- [Monitoring and Maintenance](#monitoring-and-maintenance)
-- [Troubleshooting](#troubleshooting)
+This guide explains how to deploy and operate Poker Stats in production after migrating to GitHub Container Registry (GHCR). The CI pipeline now builds the frontend and backend images and publishes floating tags (for example `:main`). Production updates are executed manually on the Raspberry Pi by pulling those images and restarting the stack with Docker Compose.
 
 ---
 
-## Prerequisites
+## Quick Reference
 
-### Hardware Requirements
-
-**Raspberry Pi 4 (Recommended)**
-- Model: Raspberry Pi 4 Model B
-- RAM: Minimum 4GB, 8GB recommended
-- Storage: External SSD (minimum 128GB recommended)
-- Network: Ethernet connection preferred for stability
-
-### Software Requirements
-
-- **Operating System**: Raspberry Pi OS (64-bit) or Ubuntu Server 22.04 LTS
-- **Docker**: Version 20.10 or later
-- **Docker Compose**: Version 2.0 or later
-- **Git**: For code management
-- **OpenSSL**: For generating secrets
-
-### Network Requirements
-
-- Static IP address or DDNS
-- Port 80 and 443 accessible (HTTP/HTTPS)
-- Firewall configured appropriately
-- (Optional) Domain name pointing to your server
-
----
-
-## Production Environment Setup
-
-### Step 1: Prepare the System
+### Update to the latest `main` build
 
 ```bash
-# Update system packages
+ssh <user>@<rpi-host>
+cd /opt/pokerstats
+
+# Ensure GHCR credentials are configured (login steps below)
+docker compose --env-file .env.production -f docker-compose.prod.yml pull backend frontend
+docker compose --env-file .env.production -f docker-compose.prod.yml up -d
+
+# Verify
+docker compose --env-file .env.production -f docker-compose.prod.yml ps
+curl -f http://localhost/health
+curl -f https://pokerstats.yourdomain.com/api/actuator/health
+```
+
+### Roll back to a specific tag
+
+```bash
+cd /opt/pokerstats
+VERSION=2025.10.31 docker compose --env-file .env.production -f docker-compose.prod.yml pull backend frontend
+VERSION=2025.10.31 docker compose --env-file .env.production -f docker-compose.prod.yml up -d
+```
+
+### Manual database backup
+
+```bash
+cd /opt/pokerstats
+bash scripts/backup-database.sh
+```
+
+---
+
+## Architecture Overview
+
+The production stack now contains the following long-running services:
+
+- `postgres`: PostgreSQL 16 with data persisted under `DATA_PATH/postgres`
+- `redis`: Redis cache with append-only persistence under `DATA_PATH/redis`
+- `backend`: Spring Boot API served from `ghcr.io/krzycuh/kma-poker-stats/backend:<tag>`
+- `frontend`: Static SPA + Nginx proxy from `ghcr.io/krzycuh/kma-poker-stats/frontend:<tag>`
+- `nginx`: HTTP reverse proxy that routes traffic between Cloudflared, the frontend container, and the backend API
+
+HTTPS termination is delegated to a Cloudflared tunnel. The local Nginx instance serves plain HTTP and only accepts traffic from the tunnel or the local network.
+
+Prometheus and Grafana were removed from the default deployment. If you still need metrics, host them separately.
+
+---
+
+## One-Time Environment Preparation
+
+### 1. Base system
+
+```bash
 sudo apt update && sudo apt upgrade -y
+sudo apt install -y git curl openssl ca-certificates
 
-# Install required packages
-sudo apt install -y git curl openssl
-
-# Install Docker
+# Install Docker Engine + Compose plugin
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
-
-# Add your user to docker group
 sudo usermod -aG docker $USER
 newgrp docker
-
-# Install Docker Compose
-sudo apt install docker-compose-plugin
-
-# Verify installations
 docker --version
 docker compose version
 ```
 
-### Step 2: Setup External SSD (Recommended)
+### 2. Storage layout
 
 ```bash
-# Identify your SSD
-lsblk
-
-# Format SSD (if new) - CAUTION: This erases all data!
-sudo mkfs.ext4 /dev/sda1
-
-# Create mount point
 sudo mkdir -p /mnt/pokerstats-data
-
-# Mount the SSD
-sudo mount /dev/sda1 /mnt/pokerstats-data
-
-# Make mount permanent
-echo "/dev/sda1 /mnt/pokerstats-data ext4 defaults,nofail 0 2" | sudo tee -a /etc/fstab
-
-# Set ownership
 sudo chown -R $USER:$USER /mnt/pokerstats-data
 
-# Create required directories
-mkdir -p /mnt/pokerstats-data/{postgres,redis,prometheus,grafana,backups}
+# Optional: persist SSD mount in /etc/fstab as needed
+
+mkdir -p /mnt/pokerstats-data/{postgres,redis,backups}
+mkdir -p /opt/pokerstats/logs/{backend,nginx}
 ```
 
-### Step 3: Clone the Repository
+### 3. Retrieve deployment files
 
 ```bash
-# Choose installation directory
 sudo mkdir -p /opt/pokerstats
 sudo chown -R $USER:$USER /opt/pokerstats
-
-# Clone repository
 cd /opt/pokerstats
-git clone <your-repo-url> .
-
-# Checkout the desired branch (usually main)
+git clone https://github.com/krzycuh/kma-poker-stats.git .
 git checkout main
 ```
 
-### Step 4: Configure Environment Variables
+> The repository is only required for the Compose definition, configuration files, and helper scripts. Application code is delivered exclusively through GHCR images.
+
+### 4. Configure environment
+
+Copy the template and populate secrets:
 
 ```bash
-# Copy template to production config
 cp .env.production.template .env.production
-
-# Generate secure passwords and secrets
-echo "POSTGRES_PASSWORD=$(openssl rand -base64 32)" >> .env.production
-echo "REDIS_PASSWORD=$(openssl rand -base64 32)" >> .env.production
-echo "JWT_SECRET=$(openssl rand -base64 64)" >> .env.production
-echo "GRAFANA_ADMIN_PASSWORD=$(openssl rand -base64 20)" >> .env.production
-
-# Edit .env.production and configure remaining values
 nano .env.production
 ```
 
-**Important variables to configure:**
-- `DATA_PATH`: Set to `/mnt/pokerstats-data`
-- `CORS_ALLOWED_ORIGINS`: Your domain (e.g., `https://pokerstats.yourdomain.com`)
-- `VITE_API_URL`: Your API URL
-- Email settings (if using notifications)
+Recommended variables:
 
-### Step 5: Setup SSL Certificates
-
-#### Option A: Let's Encrypt (Recommended)
-
-```bash
-# Install certbot
-sudo apt install certbot
-
-# Generate certificate
-sudo certbot certonly --standalone -d pokerstats.yourdomain.com
-
-# Copy certificates to nginx directory
-sudo mkdir -p nginx/ssl
-sudo cp /etc/letsencrypt/live/pokerstats.yourdomain.com/fullchain.pem nginx/ssl/
-sudo cp /etc/letsencrypt/live/pokerstats.yourdomain.com/privkey.pem nginx/ssl/
-sudo cp /etc/letsencrypt/live/pokerstats.yourdomain.com/chain.pem nginx/ssl/
-
-# Set up auto-renewal
-sudo crontab -e
-# Add: 0 3 * * * certbot renew --quiet && cp /etc/letsencrypt/live/pokerstats.yourdomain.com/*.pem /opt/pokerstats/nginx/ssl/
+```
+POSTGRES_DB=pokerstats
+POSTGRES_USER=pokerstats
+POSTGRES_PASSWORD=<generated>
+REDIS_PASSWORD=<generated>
+JWT_SECRET=<generated>
+JWT_EXPIRATION=86400000
+DATA_PATH=/mnt/pokerstats-data
+CORS_ALLOWED_ORIGINS=https://pokerstats.yourdomain.com
+VITE_API_URL=https://pokerstats.yourdomain.com/api
+VERSION=main
 ```
 
-#### Option B: Self-Signed Certificate (Development/Testing)
+Store the file securely; it is consumed by Docker Compose and helper scripts.
+
+### 5. GHCR authentication
+
+1. Generate a GitHub personal access token with the `read:packages` scope.
+2. Log in once on the production host:
+
+   ```bash
+   echo <TOKEN> | docker login ghcr.io -u <github-username> --password-stdin
+   ```
+
+Docker caches the credentials; renew the token before it expires.
+
+### 6. Configure Cloudflared tunnel
+
+Cloudflared now handles HTTPS termination. The local Nginx container only listens on port 80.
+
+1. Install cloudflared on the host (follow the [official instructions](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/)).
+2. Authenticate and create a tunnel:
+
+   ```bash
+   cloudflared tunnel login
+   cloudflared tunnel create pokerstats
+   ```
+
+3. Map your domain to the tunnel:
+
+   ```bash
+   cloudflared tunnel route dns pokerstats <tunnel-uuid> pokerstats.yourdomain.com
+   ```
+
+4. Configure ingress rules so Cloudflared forwards requests to the local Nginx service:
+
+   ```yaml
+   # /etc/cloudflared/config.yml
+   tunnel: pokerstats
+   credentials-file: /home/<user>/.cloudflared/<tunnel-uuid>.json
+
+   ingress:
+     - hostname: pokerstats.yourdomain.com
+       service: http://localhost
+     - service: http_status:404
+   ```
+
+5. Run the tunnel as a service:
+
+   ```bash
+   sudo cloudflared service install
+   sudo systemctl enable --now cloudflared
+   ```
+
+With the tunnel running, Cloudflare provides the public HTTPS endpoint while the Docker stack remains on HTTP.
+
+### 7. Firewall (UFW example)
 
 ```bash
-# Generate self-signed certificate
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout nginx/ssl/privkey.pem \
-  -out nginx/ssl/fullchain.pem \
-  -subj "/CN=pokerstats.local"
-
-# Create chain file
-cp nginx/ssl/fullchain.pem nginx/ssl/chain.pem
-```
-
-### Step 6: Configure Firewall
-
-```bash
-# Allow SSH
 sudo ufw allow 22/tcp
-
-# Allow HTTP and HTTPS
 sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
-
-# Enable firewall
 sudo ufw enable
-
-# Check status
 sudo ufw status
 ```
 
 ---
 
-## Initial Deployment
+## Deploying the Stack
 
-### Step 1: Build Images
+### 1. First boot
 
 ```bash
 cd /opt/pokerstats
-
-# Build Docker images
-export VERSION=1.0.0
-docker-compose -f docker-compose.prod.yml build
+docker compose --env-file .env.production -f docker-compose.prod.yml pull
+docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 ```
 
-### Step 2: Run Database Migrations
+The backend image runs Flyway migrations automatically on startup. Monitor logs while the initial migration completes:
 
 ```bash
-# Start only the database first
-docker-compose -f docker-compose.prod.yml up -d postgres
-
-# Wait for database to be ready
-sleep 10
-
-# Migrations will run automatically when backend starts
-docker-compose -f docker-compose.prod.yml up -d backend
+docker compose --env-file .env.production -f docker-compose.prod.yml logs -f backend
 ```
 
-### Step 3: Create Admin User
+### 2. Create the first admin account
 
 ```bash
-# Run the admin user creation script
+cd /opt/pokerstats
 bash scripts/create-admin-user.sh
-
-# Save the credentials securely!
 ```
 
-### Step 4: Deploy All Services
+Store the generated credentials securely.
+
+### 3. (Optional) Seed demo data
 
 ```bash
-# Deploy using the deployment script
-bash scripts/deploy.sh
-```
-
-The deployment script will:
-1. Check prerequisites
-2. Validate environment configuration
-3. Create a backup (if database exists)
-4. Pull latest code
-5. Build Docker images
-6. Run database migrations
-7. Deploy all services
-8. Wait for health checks
-9. Verify deployment
-
-### Step 5: Verify Deployment
-
-```bash
-# Check all containers are running
-docker-compose -f docker-compose.prod.yml ps
-
-# Check backend health
-curl http://localhost:8080/actuator/health
-
-# Check frontend (in browser)
-https://pokerstats.yourdomain.com
-
-# Check Grafana
-http://localhost:3000
+bash scripts/seed-demo-data.sh
 ```
 
 ---
 
-## Ongoing Deployments
+## Updating to a New Build
 
-### Automated Deployment via GitHub Actions
+1. Confirm you are logged in to GHCR (`docker login ghcr.io`).
+2. Pull the latest images (defaults to `VERSION=main`):
 
-When you push a release tag, GitHub Actions will automatically:
-1. Build Docker images
-2. Push to container registry
-3. SSH to production server
-4. Create backup
-5. Deploy new version
-6. Verify deployment
-7. Rollback on failure
+   ```bash
+   docker compose --env-file .env.production -f docker-compose.prod.yml pull backend frontend
+   ```
 
-### Manual Deployment
+3. Apply the update:
 
-```bash
-# Navigate to project directory
-cd /opt/pokerstats
+   ```bash
+   docker compose --env-file .env.production -f docker-compose.prod.yml up -d
+   ```
 
-# Run deployment script
-bash scripts/deploy.sh
-```
+4. Verify:
 
-### Zero-Downtime Deployment
+   ```bash
+   docker compose --env-file .env.production -f docker-compose.prod.yml ps
+   curl -f https://pokerstats.yourdomain.com/api/actuator/health
+   ```
 
-The deployment script handles this automatically by:
-1. Building new images
-2. Running migrations while old version is still up
-3. Starting new containers
-4. Nginx routes traffic once containers are healthy
-5. Old containers are stopped
+Downtime is limited to the container restart; data volumes remain intact.
 
 ---
 
-## Rollback Procedures
+## Rolling Back
 
-### Automatic Rollback
+1. List available tags:
 
-If deployment fails, GitHub Actions will automatically rollback.
+   ```bash
+   curl -s https://ghcr.io/v2/krzycuh/kma-poker-stats/backend/tags/list | jq '.tags'
+   ```
 
-### Manual Rollback
+2. Choose the target tag (for example `2025.10.31`).
+3. Override `VERSION` and redeploy:
 
-```bash
-# Run rollback script
-bash scripts/rollback.sh
+   ```bash
+   VERSION=2025.10.31 docker compose --env-file .env.production -f docker-compose.prod.yml pull backend frontend
+   VERSION=2025.10.31 docker compose --env-file .env.production -f docker-compose.prod.yml up -d
+   ```
 
-# Select rollback method:
-# 1) Roll back to previous Git commit
-# 2) Roll back to previous Docker image
-# 3) Restore from database backup
-# 4) Full rollback (Git + Database)
-```
-
-### Database Restore
-
-```bash
-# List available backups
-bash scripts/restore-database.sh
-
-# Follow prompts to select backup and restore
-```
+Record the tag you rolled back to so future upgrades can bump forward deliberately.
 
 ---
 
-## Monitoring and Maintenance
+## Backups and Maintenance
 
-### Access Monitoring Dashboards
+- **Database backup:** `bash scripts/backup-database.sh`
+- **Database restore:** `bash scripts/restore-database.sh`
+- **Data integrity check:** `bash scripts/verify-data-integrity.sh`
+- **Watch logs:** `docker compose --env-file .env.production -f docker-compose.prod.yml logs -f <service>`
+- **Restart a service:** `docker compose --env-file .env.production -f docker-compose.prod.yml restart <service>`
+- **Prune unused images:** `docker image prune -f`
 
-**Grafana**: `http://your-server:3000`
-- Username: `admin`
-- Password: (from `.env.production`)
-
-**Prometheus**: `http://your-server:9090`
-
-### Daily Operations
-
-**View Logs:**
-```bash
-# All services
-docker-compose -f docker-compose.prod.yml logs -f
-
-# Specific service
-docker-compose -f docker-compose.prod.yml logs -f backend
-```
-
-**Restart Services:**
-```bash
-# Restart single service
-docker-compose -f docker-compose.prod.yml restart backend
-
-# Restart all services
-docker-compose -f docker-compose.prod.yml restart
-```
-
-**Check Resource Usage:**
-```bash
-# Container stats
-docker stats
-
-# Disk usage
-df -h
-
-# Database size
-docker exec pokerstats-postgres-prod psql -U pokerstats -d pokerstats \
-  -c "SELECT pg_size_pretty(pg_database_size('pokerstats'));"
-```
-
-### Automated Backups
-
-Setup cron job for daily backups:
+Schedule backups via cron (example):
 
 ```bash
-# Edit crontab
-crontab -e
-
-# Add daily backup at 2 AM
 0 2 * * * cd /opt/pokerstats && bash scripts/backup-database.sh
-
-# Add weekly data integrity check
 0 3 * * 0 cd /opt/pokerstats && bash scripts/verify-data-integrity.sh
-```
-
-### Security Updates
-
-```bash
-# Update Docker images weekly
-docker-compose -f docker-compose.prod.yml pull
-
-# Update system packages
-sudo apt update && sudo apt upgrade -y
-
-# Restart if kernel updated
-sudo reboot
 ```
 
 ---
 
 ## Troubleshooting
 
-### Service Won't Start
+| Symptom | Checks | Remedies |
+| --- | --- | --- |
+| `backend` container keeps restarting | `docker compose logs backend` | Verify database credentials, ensure Postgres is healthy (`docker compose logs postgres`) |
+| Site returns 502/504 | `docker compose ps`, `docker compose logs nginx`, `systemctl status cloudflared` | Pull latest images, restart `nginx`, ensure the Cloudflared tunnel is running and pointing to `http://localhost` |
+| Image pulls fail | `docker logout ghcr.io` then re-run `docker login ghcr.io` | Renew GHCR token, confirm network access |
+| Database connection refused | `docker compose exec postgres pg_isready -U $POSTGRES_USER` | Restart Postgres, restore from backup if corrupt |
+
+Additional health checks:
 
 ```bash
-# Check logs
-docker-compose -f docker-compose.prod.yml logs backend
-
-# Check if port is in use
-sudo lsof -i :8080
-
-# Restart Docker
-sudo systemctl restart docker
-```
-
-### Database Connection Issues
-
-```bash
-# Check PostgreSQL logs
-docker-compose -f docker-compose.prod.yml logs postgres
-
-# Test connection
-docker exec pokerstats-postgres-prod pg_isready -U pokerstats
-
-# Restart database
-docker-compose -f docker-compose.prod.yml restart postgres
-```
-
-### High Memory Usage
-
-```bash
-# Check memory usage
-free -h
-
-# Restart services to free memory
-docker-compose -f docker-compose.prod.yml restart
-
-# Adjust JVM memory in docker-compose.prod.yml:
-# JAVA_OPTS: "-Xms256m -Xmx512m"
-```
-
-### SSL Certificate Issues
-
-```bash
-# Check certificate expiry
-openssl x509 -in nginx/ssl/fullchain.pem -noout -dates
-
-# Renew Let's Encrypt certificate
-sudo certbot renew
-
-# Copy renewed certificates
-sudo cp /etc/letsencrypt/live/pokerstats.yourdomain.com/*.pem nginx/ssl/
-docker-compose -f docker-compose.prod.yml restart nginx
-```
-
-### Disk Space Issues
-
-```bash
-# Check disk usage
+# Disk space
 df -h
 
-# Clean Docker resources
-docker system prune -a
+# Memory pressure
+free -h
 
-# Remove old backups
-bash scripts/backup-database.sh  # Uses rotation policy
-
-# Check large files
-du -sh /mnt/pokerstats-data/*
+# Container resource usage
+docker stats
 ```
 
 ---
 
-## Performance Optimization
+## Frequently Used Paths
 
-### For Raspberry Pi
+- Compose file: `docker-compose.prod.yml`
+- Reverse proxy configuration: `nginx/nginx.prod.conf`
+- Logs (host): `/opt/pokerstats/logs/{backend,nginx}`
+- Persistent data: `${DATA_PATH}/postgres`, `${DATA_PATH}/redis`, `${DATA_PATH}/backups`
 
-```bash
-# Increase swap (if RAM < 4GB)
-sudo dphys-swapfile swapoff
-sudo nano /etc/dphys-swapfile  # Set CONF_SWAPSIZE=2048
-sudo dphys-swapfile setup
-sudo dphys-swapfile swapon
-
-# Reduce Docker logging
-# Already configured in docker-compose.prod.yml
-
-# Use overlay2 storage driver
-docker info | grep "Storage Driver"
-```
-
-### Database Optimization
-
-```bash
-# Run VACUUM regularly
-docker exec pokerstats-postgres-prod psql -U pokerstats -d pokerstats -c "VACUUM ANALYZE;"
-
-# Check query performance
-docker exec pokerstats-postgres-prod psql -U pokerstats -d pokerstats \
-  -c "SELECT query, calls, total_time, mean_time FROM pg_stat_statements ORDER BY mean_time DESC LIMIT 10;"
-```
+Keep these directories under restricted permissions and include them in your host-level backups.
 
 ---
 
-## Disaster Recovery
+## Change Log
 
-### Full Backup
+- **November 2025:** Consolidated Quick Start content into this guide, switched production workflow to GHCR images, removed Prometheus/Grafana references, and adopted Cloudflared-based HTTPS.
 
-```bash
-# Backup everything
-tar -czf pokerstats-full-backup-$(date +%Y%m%d).tar.gz \
-  /opt/pokerstats \
-  /mnt/pokerstats-data/backups
-
-# Store backup offsite
-rsync -avz pokerstats-full-backup-*.tar.gz user@backup-server:/backups/
-```
-
-### Full Restore
-
-```bash
-# Extract backup
-tar -xzf pokerstats-full-backup-YYYYMMDD.tar.gz -C /
-
-# Restore database
-bash scripts/restore-database.sh
-
-# Start services
-bash scripts/deploy.sh
-```
-
----
-
-## Support and Contact
-
-For issues not covered in this guide:
-1. Check the [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
-2. Review logs: `docker-compose -f docker-compose.prod.yml logs`
-3. Check GitHub issues
-4. Contact support: admin@pokerstats.local
-
----
-
-**Last Updated**: October 2025  
-**Version**: 1.0.0
+For additional operational guidance, consult `docs/TROUBLESHOOTING.md` and `docs/ADMIN_GUIDE.md`.
