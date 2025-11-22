@@ -101,11 +101,12 @@ class GlobalExceptionHandler {
     ): ResponseEntity<ErrorResponse> {
         logException(status, ex)
         // For server errors (5xx), never expose exception messages to clients for security
-        val clientMessage = if (status.is5xxServerError) {
-            fallbackMessage
-        } else {
-            ex.message ?: fallbackMessage
-        }
+        val clientMessage =
+            if (status.is5xxServerError) {
+                fallbackMessage
+            } else {
+                ex.message ?: fallbackMessage
+            }
         return ResponseEntity
             .status(status)
             .body(ErrorResponse(clientMessage))
