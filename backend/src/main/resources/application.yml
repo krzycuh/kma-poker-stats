@@ -16,9 +16,9 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: jdbc:postgresql://localhost:5432/pokerstats
-    username: pokerstats
-    password: pokerstats
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/pokerstats}
+    username: ${DATABASE_USERNAME:pokerstats}
+    password: ${DATABASE_PASSWORD:pokerstats}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -34,8 +34,8 @@ spring:
     baseline-on-migrate: true
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   cache:
     type: redis
     redis:
@@ -92,6 +92,7 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
 
 server:
   port: ${PORT:8080}

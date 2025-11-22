@@ -1,6 +1,7 @@
 # IDEs
 .idea/
 .vscode/
+.obsidian/
 *.swp
 *.swo
 *~
@@ -17,12 +18,21 @@ logs/
 .env
 .env.local
 .env.*.local
+.env.localhost
+.env.production
 
 # Build artifacts
 dist/
 build/
 target/
 out/
+
+# Gradle
+.gradle/
+gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
 
 # Dependencies
 node_modules/
