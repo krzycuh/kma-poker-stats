@@ -97,7 +97,7 @@ class GlobalExceptionHandler {
     private fun buildErrorResponse(
         status: HttpStatus,
         fallbackMessage: String,
-        ex: Exception
+        ex: Exception,
     ): ResponseEntity<ErrorResponse> {
         logException(status, ex)
         return ResponseEntity
@@ -105,7 +105,10 @@ class GlobalExceptionHandler {
             .body(ErrorResponse(ex.message ?: fallbackMessage))
     }
 
-    private fun logException(status: HttpStatus, ex: Exception) {
+    private fun logException(
+        status: HttpStatus,
+        ex: Exception,
+    ) {
         val message = ex.message ?: status.reasonPhrase
         val exceptionName = ex::class.simpleName ?: "UnknownException"
 
@@ -116,7 +119,7 @@ class GlobalExceptionHandler {
                 status.reasonPhrase,
                 exceptionName,
                 message,
-                ex
+                ex,
             )
         } else {
             logger.warn(
@@ -124,7 +127,7 @@ class GlobalExceptionHandler {
                 exceptionName,
                 status.value(),
                 status.reasonPhrase,
-                message
+                message,
             )
         }
     }
