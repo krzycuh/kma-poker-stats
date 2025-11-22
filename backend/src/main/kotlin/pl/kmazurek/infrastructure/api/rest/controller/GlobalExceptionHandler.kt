@@ -100,9 +100,15 @@ class GlobalExceptionHandler {
         ex: Exception,
     ): ResponseEntity<ErrorResponse> {
         logException(status, ex)
+        // For server errors (5xx), never expose exception messages to clients for security
+        val clientMessage = if (status.is5xxServerError) {
+            fallbackMessage
+        } else {
+            ex.message ?: fallbackMessage
+        }
         return ResponseEntity
             .status(status)
-            .body(ErrorResponse(ex.message ?: fallbackMessage))
+            .body(ErrorResponse(clientMessage))
     }
 
     private fun logException(
@@ -114,7 +120,7 @@ class GlobalExceptionHandler {
 
         if (status.is5xxServerError) {
             logger.error(
-                "Responding with {} ({}) due to {}: {}",
+                "HTTP {} ({}): {} - {}",
                 status.value(),
                 status.reasonPhrase,
                 exceptionName,
@@ -123,10 +129,10 @@ class GlobalExceptionHandler {
             )
         } else {
             logger.warn(
-                "Handled {} with {} ({}): {}",
-                exceptionName,
+                "HTTP {} ({}): {} - {}",
                 status.value(),
                 status.reasonPhrase,
+                exceptionName,
                 message,
             )
         }
