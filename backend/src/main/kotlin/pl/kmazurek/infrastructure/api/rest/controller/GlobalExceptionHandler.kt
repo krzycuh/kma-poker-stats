@@ -1,5 +1,6 @@
 package pl.kmazurek.infrastructure.api.rest.controller
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -20,67 +21,53 @@ import pl.kmazurek.application.usecase.user.UserNotFoundException
  */
 @RestControllerAdvice
 class GlobalExceptionHandler {
+    companion object {
+        private val logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
+    }
+
     @ExceptionHandler(EmailAlreadyExistsException::class)
     fun handleEmailAlreadyExists(ex: EmailAlreadyExistsException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.CONFLICT)
-            .body(ErrorResponse(ex.message ?: "Email already exists"))
+        return buildErrorResponse(HttpStatus.CONFLICT, "Email already exists", ex)
     }
 
     @ExceptionHandler(InvalidCredentialsException::class)
     fun handleInvalidCredentials(ex: InvalidCredentialsException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body(ErrorResponse(ex.message ?: "Invalid credentials"))
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Invalid credentials", ex)
     }
 
     @ExceptionHandler(InvalidRefreshTokenException::class)
     fun handleInvalidRefreshToken(ex: InvalidRefreshTokenException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body(ErrorResponse(ex.message ?: "Invalid refresh token"))
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Invalid refresh token", ex)
     }
 
     @ExceptionHandler(UserNotFoundException::class)
     fun handleUserNotFound(ex: UserNotFoundException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(ErrorResponse(ex.message ?: "User not found"))
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "User not found", ex)
     }
 
     @ExceptionHandler(PlayerAlreadyExistsException::class)
     fun handlePlayerAlreadyExists(ex: PlayerAlreadyExistsException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.CONFLICT)
-            .body(ErrorResponse(ex.message ?: "Player already exists"))
+        return buildErrorResponse(HttpStatus.CONFLICT, "Player already exists", ex)
     }
 
     @ExceptionHandler(PlayerNotFoundException::class)
     fun handlePlayerNotFound(ex: PlayerNotFoundException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(ErrorResponse(ex.message ?: "Player not found"))
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "Player not found", ex)
     }
 
     @ExceptionHandler(GameSessionNotFoundException::class)
     fun handleGameSessionNotFound(ex: GameSessionNotFoundException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(ErrorResponse(ex.message ?: "Game session not found"))
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "Game session not found", ex)
     }
 
     @ExceptionHandler(SessionResultNotFoundException::class)
     fun handleSessionResultNotFound(ex: SessionResultNotFoundException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(ErrorResponse(ex.message ?: "Session result not found"))
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "Session result not found", ex)
     }
 
     @ExceptionHandler(InvalidPasswordException::class)
     fun handleInvalidPassword(ex: InvalidPasswordException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(ErrorResponse(ex.message ?: "Invalid password"))
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid password", ex)
     }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
@@ -90,6 +77,8 @@ class GlobalExceptionHandler {
                 it.field to (it.defaultMessage ?: "Invalid value")
             }
 
+        logException(HttpStatus.BAD_REQUEST, ex)
+
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
             .body(ValidationErrorResponse("Validation failed", errors))
@@ -97,16 +86,57 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgument(ex: IllegalArgumentException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(ErrorResponse(ex.message ?: "Invalid request"))
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid request", ex)
     }
 
     @ExceptionHandler(Exception::class)
     fun handleGenericException(ex: Exception): ResponseEntity<ErrorResponse> {
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", ex)
+    }
+
+    private fun buildErrorResponse(
+        status: HttpStatus,
+        fallbackMessage: String,
+        ex: Exception,
+    ): ResponseEntity<ErrorResponse> {
+        logException(status, ex)
+        // For server errors (5xx), never expose exception messages to clients for security
+        val clientMessage =
+            if (status.is5xxServerError) {
+                fallbackMessage
+            } else {
+                ex.message ?: fallbackMessage
+            }
         return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ErrorResponse("An unexpected error occurred"))
+            .status(status)
+            .body(ErrorResponse(clientMessage))
+    }
+
+    private fun logException(
+        status: HttpStatus,
+        ex: Exception,
+    ) {
+        val message = ex.message ?: status.reasonPhrase
+        val exceptionName = ex::class.simpleName ?: "UnknownException"
+
+        if (status.is5xxServerError) {
+            logger.error(
+                "HTTP {} ({}): {} - {}",
+                status.value(),
+                status.reasonPhrase,
+                exceptionName,
+                message,
+                ex,
+            )
+        } else {
+            logger.warn(
+                "HTTP {} ({}): {} - {}",
+                status.value(),
+                status.reasonPhrase,
+                exceptionName,
+                message,
+            )
+        }
     }
 }
 
