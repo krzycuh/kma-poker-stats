@@ -33,4 +33,19 @@ interface UserRepository {
      * Delete user by ID
      */
     fun deleteById(id: UserId)
+
+    /**
+     * Find users that are not linked to any player.
+     * Returns a pair of (users, totalCount) for pagination support.
+     */
+    fun findUnlinkedUsers(
+        searchTerm: String?,
+        page: Int,
+        pageSize: Int,
+    ): Pair<List<User>, Long>
+
+    /**
+     * Count users that are not linked to any player.
+     */
+    fun countUnlinkedUsers(): Long
 }

@@ -13,6 +13,7 @@ export interface User {
   name: string;
   role: UserRole;
   avatarUrl?: string;
+  linkedPlayerId?: string | null;
 }
 
 export interface AuthResponse {

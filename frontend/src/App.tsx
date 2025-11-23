@@ -120,23 +120,23 @@ function App() {
                       <EditSession />
                     </ProtectedRoute>
                   }
-                />
-                <Route
-                  path="/stats"
-                  element={
-                    <ProtectedRoute>
-                      <Stats />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/leaderboard"
-                  element={
-                    <ProtectedRoute>
-                      <Leaderboard />
-                    </ProtectedRoute>
-                  }
-                />
+                  />
+                  <Route
+                    path="/stats"
+                    element={
+                      <ProtectedRoute requireLinkedPlayer>
+                        <Stats />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/leaderboard"
+                    element={
+                      <ProtectedRoute requireLinkedPlayer>
+                        <Leaderboard />
+                      </ProtectedRoute>
+                    }
+                  />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>

@@ -29,6 +29,18 @@ export const playerApi = {
     return response.data
   },
 
+  linkUser: async (playerId: string, userId: string): Promise<Player> => {
+    const response = await apiClient.post<Player>(`/players/${playerId}/link`, {
+      userId,
+    })
+    return response.data
+  },
+
+  unlinkUser: async (playerId: string): Promise<Player> => {
+    const response = await apiClient.delete<Player>(`/players/${playerId}/link`)
+    return response.data
+  },
+
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/players/${id}`)
   },

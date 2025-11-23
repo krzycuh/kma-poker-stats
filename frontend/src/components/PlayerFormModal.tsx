@@ -9,7 +9,6 @@ import { useToast } from '../hooks/useToast'
 type PlayerFormValues = {
   name: string
   avatarUrl: string
-  userId: string
 }
 
 interface PlayerFormModalProps {
@@ -31,7 +30,6 @@ export function PlayerFormModal({ isOpen, onClose, player }: PlayerFormModalProp
     defaultValues: {
       name: player?.name ?? '',
       avatarUrl: player?.avatarUrl ?? '',
-      userId: '',
     },
   })
 
@@ -40,7 +38,6 @@ export function PlayerFormModal({ isOpen, onClose, player }: PlayerFormModalProp
       reset({
         name: player?.name ?? '',
         avatarUrl: player?.avatarUrl ?? '',
-        userId: '',
       })
     }
   }, [isOpen, player, reset])
@@ -82,11 +79,10 @@ export function PlayerFormModal({ isOpen, onClose, player }: PlayerFormModalProp
         },
       })
     } else {
-      createMutation.mutate({
-        name: values.name.trim(),
-        avatarUrl: normalizedAvatar,
-        userId: values.userId.trim() || null,
-      })
+        createMutation.mutate({
+          name: values.name.trim(),
+          avatarUrl: normalizedAvatar,
+        })
     }
   }
 
@@ -155,33 +151,6 @@ export function PlayerFormModal({ isOpen, onClose, player }: PlayerFormModalProp
                 <p className="mt-1 text-sm text-red-600">{errors.avatarUrl.message}</p>
               )}
             </div>
-
-            {!player && (
-              <div>
-                <label htmlFor="userId" className="mb-1 block text-sm font-medium text-gray-700">
-                  Link to Existing User (optional)
-                </label>
-                <input
-                  id="userId"
-                  type="text"
-                  placeholder="User ID (UUID)"
-                  {...register('userId', {
-                    validate: (value) =>
-                      !value ||
-                      /^[0-9a-fA-F-]{36}$/.test(value.trim()) ||
-                      'Please enter a valid UUID',
-                  })}
-                  disabled={isSubmitting}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Provide this only if the player already has a user account.
-                </p>
-                {errors.userId && (
-                  <p className="mt-1 text-sm text-red-600">{errors.userId.message}</p>
-                )}
-              </div>
-            )}
 
             {player && player.userId && (
               <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-600">

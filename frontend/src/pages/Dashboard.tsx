@@ -20,19 +20,22 @@ import {
  * Dashboard page component
  * Main landing page after login - Shows personalized stats and recent sessions
  */
-export const Dashboard: React.FC = () => {
-  const { user, logout } = useAuth();
+  export const Dashboard: React.FC = () => {
+    const { user, logout } = useAuth();
+    const hasPlayerLink = !!user?.linkedPlayerId;
+    const isAdminUser = user?.role === UserRole.ADMIN;
+    const isCasualUser = user?.role === UserRole.CASUAL_PLAYER;
 
   // Fetch dashboard data based on user role
-  const {
-    data: casualDashboard,
-    isLoading: casualLoading,
-    error: casualError,
-  } = useQuery({
-    queryKey: ['dashboard', 'casual'],
-    queryFn: dashboardApi.getCasualPlayerDashboard,
-    enabled: user?.role === UserRole.CASUAL_PLAYER,
-  });
+    const {
+      data: casualDashboard,
+      isLoading: casualLoading,
+      error: casualError,
+    } = useQuery({
+      queryKey: ['dashboard', 'casual'],
+      queryFn: dashboardApi.getCasualPlayerDashboard,
+      enabled: isCasualUser && hasPlayerLink,
+    });
 
   const {
     data: adminDashboard,
@@ -46,9 +49,9 @@ export const Dashboard: React.FC = () => {
 
   if (!user) return null;
 
-  const isAdmin = user.role === UserRole.ADMIN;
-  const isLoading = isAdmin ? adminLoading : casualLoading;
-  const error = isAdmin ? adminError : casualError;
+    const isAdmin = isAdminUser;
+    const isLoading = isAdmin ? adminLoading : casualLoading;
+    const error = isAdmin ? adminError : casualError;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -60,12 +63,16 @@ export const Dashboard: React.FC = () => {
               <h1 className="text-xl font-bold text-gray-900">Poker Stats</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <Link to="/stats" className="text-gray-700 hover:text-gray-900">
-                Stats
-              </Link>
-              <Link to="/leaderboard" className="text-gray-700 hover:text-gray-900">
-                Leaderboard
-              </Link>
+                {hasPlayerLink && (
+                  <>
+                    <Link to="/stats" className="text-gray-700 hover:text-gray-900">
+                      Stats
+                    </Link>
+                    <Link to="/leaderboard" className="text-gray-700 hover:text-gray-900">
+                      Leaderboard
+                    </Link>
+                  </>
+                )}
               <Link to="/profile" className="text-gray-700 hover:text-gray-900">
                 Profile
               </Link>
@@ -114,27 +121,36 @@ export const Dashboard: React.FC = () => {
           </p>
         </div>
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              <LoadingSkeleton variant="stat" count={4} />
-            </div>
-            <LoadingSkeleton variant="card" count={2} />
-          </div>
-        )}
+          {/* Content */}
+          {(!isAdmin && !hasPlayerLink) ? (
+            <EmptyState
+              icon="👋"
+              title="Player profile pending"
+              description="Your account has not been linked to a player profile yet. Ask an administrator to link you so you can access stats and leaderboards."
+            />
+          ) : (
+            <>
+              {/* Loading State */}
+              {isLoading && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                    <LoadingSkeleton variant="stat" count={4} />
+                  </div>
+                  <LoadingSkeleton variant="card" count={2} />
+                </div>
+              )}
 
-        {/* Error State */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800">
-              Error loading dashboard. Please try again.
-            </p>
-          </div>
-        )}
+              {/* Error State */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-800">
+                    Error loading dashboard. Please try again.
+                  </p>
+                </div>
+              )}
 
-        {/* Admin Dashboard */}
-        {isAdmin && adminDashboard && !isLoading && (
+          {/* Admin Dashboard */}
+          {isAdmin && adminDashboard && !isLoading && (
           <div className="space-y-8">
             {/* System Stats */}
             <div>
@@ -217,8 +233,8 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Casual Player Dashboard */}
-        {!isAdmin && casualDashboard && !isLoading && (
+          {/* Casual Player Dashboard */}
+          {!isAdmin && casualDashboard && !isLoading && hasPlayerLink && (
           <div className="space-y-8">
             {/* Personal Stats */}
             <div>
@@ -348,17 +364,7 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Empty State - No Player Linked */}
-        {!isLoading &&
-          !error &&
-          !isAdmin &&
-          casualError instanceof Error &&
-          casualError.message.includes('No player linked') && (
-            <EmptyState
-              icon="👤"
-              title="No Player Profile Found"
-              description="Your account is not linked to a player profile yet. Please contact an administrator to set up your player profile."
-            />
+            </>
           )}
       </div>
     </div>

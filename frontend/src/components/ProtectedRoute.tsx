@@ -12,9 +12,14 @@ import { UserRole } from '../types/auth';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireRole?: UserRole;
+  requireLinkedPlayer?: boolean;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireRole }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  requireRole,
+  requireLinkedPlayer = false,
+}) => {
   const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
@@ -33,6 +38,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   }
 
   if (requireRole && user?.role !== requireRole) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (requireLinkedPlayer && !user?.linkedPlayerId) {
     return <Navigate to="/" replace />;
   }
 

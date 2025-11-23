@@ -1,19 +1,27 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { playerApi } from '../api/players'
+import { adminUsersApi } from '../api/adminUsers'
 import { useAuth } from '../hooks/useAuth'
 import { UserRole } from '../types/auth'
 import type { Player } from '../types/player'
 import { PlayerFormModal } from '../components/PlayerFormModal'
+import { LinkUserModal } from '../components/LinkUserModal'
+import { ConfirmationModal } from '../components/ConfirmationModal'
+import { useToast } from '../hooks/useToast'
 
 export default function Players() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { success, error } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [showInactive, setShowInactive] = useState(false)
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [linkTarget, setLinkTarget] = useState<Player | null>(null)
+  const [showLinkModal, setShowLinkModal] = useState(false)
+  const [unlinkTarget, setUnlinkTarget] = useState<Player | null>(null)
 
   // Fetch players
   const {
@@ -37,6 +45,42 @@ export default function Players() {
       setShowDeleteConfirm(false)
       setSelectedPlayer(null)
     },
+  })
+
+  const linkMutation = useMutation({
+    mutationFn: ({ playerId, userId }: { playerId: string; userId: string }) =>
+      playerApi.linkUser(playerId, userId),
+    onSuccess: () => {
+      success('Player linked to user account')
+      queryClient.invalidateQueries({ queryKey: ['players'] })
+      queryClient.invalidateQueries({ queryKey: ['unlinked-users-count'] })
+      queryClient.invalidateQueries({ queryKey: ['unlinked-users'] })
+      setShowLinkModal(false)
+      setLinkTarget(null)
+    },
+    onError: () => {
+      error('Failed to link player. Please try again.')
+    },
+  })
+
+  const unlinkMutation = useMutation({
+    mutationFn: (playerId: string) => playerApi.unlinkUser(playerId),
+    onSuccess: () => {
+      success('Player unlinked from user account')
+      queryClient.invalidateQueries({ queryKey: ['players'] })
+      queryClient.invalidateQueries({ queryKey: ['unlinked-users-count'] })
+      setUnlinkTarget(null)
+    },
+    onError: () => {
+      error('Failed to unlink player. Please try again.')
+    },
+  })
+
+  const { data: unlinkedCount } = useQuery({
+    queryKey: ['unlinked-users-count'],
+    queryFn: adminUsersApi.getUnlinkedCount,
+    enabled: user?.role === UserRole.ADMIN,
+    refetchInterval: 30000,
   })
 
   // Check if user is admin
@@ -78,17 +122,41 @@ export default function Players() {
     setSelectedPlayer(null)
   }
 
+  const handleOpenLinkModal = (player: Player) => {
+    setLinkTarget(player)
+    setShowLinkModal(true)
+  }
+
+  const handleLinkSelect = (userSummary: { id: string }) => {
+    if (!linkTarget) return
+    linkMutation.mutate({
+      playerId: linkTarget.id,
+      userId: userSummary.id,
+    })
+  }
+
+  const handleUnlink = (player: Player) => {
+    setUnlinkTarget(player)
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Players</h1>
-        <button
-          onClick={handleAddNew}
-          className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          Add Player
-        </button>
+        <div className="flex items-center gap-3">
+          {typeof unlinkedCount === 'number' && (
+            <span className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800">
+              Unlinked users: {unlinkedCount}
+            </span>
+          )}
+          <button
+            onClick={handleAddNew}
+            className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            Add Player
+          </button>
+        </div>
       </div>
 
       {/* Search and filters */}
@@ -160,14 +228,14 @@ export default function Players() {
                 </div>
 
                 {/* Player info */}
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0 flex-1">
                   <h3 className="truncate text-lg font-semibold text-gray-900">
                     {player.name}
                   </h3>
-                  {player.userId && (
-                    <p className="text-sm text-gray-500">
-                      Linked to account
-                    </p>
+                  {player.userId ? (
+                    <p className="text-sm text-gray-500">Linked to account</p>
+                  ) : (
+                    <p className="text-sm text-orange-600">Not linked</p>
                   )}
                   {!player.isActive && (
                     <span className="inline-block rounded bg-gray-200 px-2 py-0.5 text-xs text-gray-600">
@@ -178,7 +246,7 @@ export default function Players() {
               </div>
 
               {/* Actions */}
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   onClick={() => handleEdit(player)}
                   className="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
@@ -191,6 +259,21 @@ export default function Players() {
                 >
                   Delete
                 </button>
+                {player.userId ? (
+                  <button
+                    onClick={() => handleUnlink(player)}
+                    className="w-full rounded-md border border-yellow-300 px-3 py-1.5 text-sm text-yellow-700 hover:bg-yellow-50"
+                  >
+                    Unlink user
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleOpenLinkModal(player)}
+                    className="w-full rounded-md border border-blue-300 px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-50"
+                  >
+                    Link user
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -230,6 +313,34 @@ export default function Players() {
       )}
 
       <PlayerFormModal isOpen={showModal} onClose={handleCloseModal} player={selectedPlayer} />
+      <LinkUserModal
+        isOpen={showLinkModal}
+        onClose={() => {
+          if (!linkMutation.isPending) {
+            setShowLinkModal(false)
+            setLinkTarget(null)
+          }
+        }}
+        onSelect={handleLinkSelect}
+      />
+      <ConfirmationModal
+        isOpen={!!unlinkTarget}
+        onClose={() => {
+          if (!unlinkMutation.isPending) {
+            setUnlinkTarget(null)
+          }
+        }}
+        onConfirm={() => {
+          if (unlinkTarget) {
+            unlinkMutation.mutate(unlinkTarget.id)
+          }
+        }}
+        title="Unlink player?"
+        description="This player will lose access to their personal dashboard until linked again."
+        confirmText="Unlink"
+        variant="warning"
+        isLoading={unlinkMutation.isPending}
+      />
     </div>
   )
 }
