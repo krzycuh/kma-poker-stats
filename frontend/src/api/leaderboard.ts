@@ -38,7 +38,7 @@ export const leaderboardApi = {
     metric: LeaderboardMetric = LeaderboardMetric.NET_PROFIT,
     limit: number = 50
   ): Promise<Leaderboard> {
-    const response = await apiClient.get('/api/leaderboards', {
+    const response = await apiClient.get('/leaderboards', {
       params: { metric, limit },
     });
     return response.data;
