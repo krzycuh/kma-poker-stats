@@ -70,10 +70,9 @@ export const statsApi = {
     const params = new URLSearchParams();
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
-    
     const queryString = params.toString();
-    const url = `/api/stats/personal${queryString ? `?${queryString}` : ''}`;
-    
+    const url = `/stats/personal${queryString ? `?${queryString}` : ''}`;
+
     const response = await apiClient.get(url);
     return response.data;
   },
