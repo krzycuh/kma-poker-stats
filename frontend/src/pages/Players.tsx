@@ -4,6 +4,7 @@ import { playerApi } from '../api/players'
 import { useAuth } from '../hooks/useAuth'
 import { UserRole } from '../types/auth'
 import type { Player } from '../types/player'
+import { PlayerFormModal } from '../components/PlayerFormModal'
 
 export default function Players() {
   const { user } = useAuth()
@@ -70,6 +71,11 @@ export default function Players() {
   const handleEdit = (player: Player) => {
     setSelectedPlayer(player)
     setShowModal(true)
+  }
+
+  const handleCloseModal = () => {
+    setShowModal(false)
+    setSelectedPlayer(null)
   }
 
   return (
@@ -223,23 +229,7 @@ export default function Players() {
         </div>
       )}
 
-      {/* Player form modal (placeholder) */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">
-              {selectedPlayer ? 'Edit Player' : 'Add Player'}
-            </h3>
-            <p className="text-gray-600">Form component coming soon...</p>
-            <button
-              onClick={() => setShowModal(false)}
-              className="mt-4 w-full rounded-md bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      <PlayerFormModal isOpen={showModal} onClose={handleCloseModal} player={selectedPlayer} />
     </div>
   )
 }
