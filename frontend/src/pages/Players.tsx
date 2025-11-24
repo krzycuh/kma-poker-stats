@@ -13,7 +13,7 @@ import { useToast } from '../hooks/useToast'
 export default function Players() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  const { success, error } = useToast()
+  const { success, error: toastError } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [showInactive, setShowInactive] = useState(false)
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
@@ -27,7 +27,7 @@ export default function Players() {
   const {
     data: players,
     isLoading,
-    error,
+    error: playersError,
   } = useQuery({
     queryKey: ['players', searchTerm, showInactive],
     queryFn: () =>
@@ -59,7 +59,7 @@ export default function Players() {
       setLinkTarget(null)
     },
     onError: () => {
-      error('Failed to link player. Please try again.')
+      toastError('Failed to link player. Please try again.')
     },
   })
 
@@ -72,7 +72,7 @@ export default function Players() {
       setUnlinkTarget(null)
     },
     onError: () => {
-      error('Failed to unlink player. Please try again.')
+      toastError('Failed to unlink player. Please try again.')
     },
   })
 
@@ -187,7 +187,7 @@ export default function Players() {
       )}
 
       {/* Error state */}
-      {error && (
+      {playersError && (
         <div className="rounded-md bg-red-50 p-4 text-red-800">
           Error loading players. Please try again.
         </div>

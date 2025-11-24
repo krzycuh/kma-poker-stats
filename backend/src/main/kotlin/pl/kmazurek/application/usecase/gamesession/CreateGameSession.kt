@@ -2,6 +2,7 @@ package pl.kmazurek.application.usecase.gamesession
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import pl.kmazurek.application.usecase.player.PlayerNotFoundException
 import pl.kmazurek.domain.model.gamesession.GameSession
 import pl.kmazurek.domain.model.gamesession.GameType
 import pl.kmazurek.domain.model.gamesession.Location
@@ -89,5 +90,3 @@ data class GameSessionWithResults(
     val session: GameSession,
     val results: List<SessionResult>,
 )
-
-class PlayerNotFoundException(message: String) : RuntimeException(message)
