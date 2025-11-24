@@ -34,6 +34,7 @@ class SecurityConfig(
                 "http://localhost:3000", // Alternative frontend port
             )
     }
+
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
