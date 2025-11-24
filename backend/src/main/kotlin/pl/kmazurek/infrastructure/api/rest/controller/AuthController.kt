@@ -11,11 +11,10 @@ import pl.kmazurek.application.dto.AuthResponse
 import pl.kmazurek.application.dto.LoginRequest
 import pl.kmazurek.application.dto.RefreshTokenRequest
 import pl.kmazurek.application.dto.RegisterRequest
-import pl.kmazurek.application.dto.UserDto
+import pl.kmazurek.application.service.UserDtoMapper
 import pl.kmazurek.application.usecase.auth.LoginUser
 import pl.kmazurek.application.usecase.auth.RefreshAccessToken
 import pl.kmazurek.application.usecase.auth.RegisterUser
-import pl.kmazurek.domain.model.user.User
 
 /**
  * REST Controller for authentication endpoints
@@ -26,6 +25,7 @@ class AuthController(
     private val registerUser: RegisterUser,
     private val loginUser: LoginUser,
     private val refreshAccessToken: RefreshAccessToken,
+    private val userDtoMapper: UserDtoMapper,
 ) {
     @PostMapping("/register")
     fun register(
@@ -40,7 +40,7 @@ class AuthController(
             AuthResponse(
                 accessToken = loginResult.accessToken,
                 refreshToken = loginResult.refreshToken,
-                user = user.toDto(),
+                user = userDtoMapper.fromDomain(user),
             )
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
@@ -56,7 +56,7 @@ class AuthController(
             AuthResponse(
                 accessToken = result.accessToken,
                 refreshToken = result.refreshToken,
-                user = result.user.toDto(),
+                user = userDtoMapper.fromDomain(result.user),
             )
 
         return ResponseEntity.ok(response)
@@ -78,13 +78,4 @@ class AuthController(
         // TODO: Consider implementing token blacklist with Redis if needed
         return ResponseEntity.ok(mapOf("message" to "Logged out successfully"))
     }
-
-    private fun User.toDto() =
-        UserDto(
-            id = id.toString(),
-            email = email.value,
-            name = name,
-            role = role,
-            avatarUrl = avatarUrl,
-        )
 }

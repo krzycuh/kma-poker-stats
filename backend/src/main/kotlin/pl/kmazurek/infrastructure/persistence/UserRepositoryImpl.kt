@@ -1,5 +1,6 @@
 package pl.kmazurek.infrastructure.persistence
 
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import pl.kmazurek.domain.model.user.Email
 import pl.kmazurek.domain.model.user.User
@@ -38,5 +39,24 @@ class UserRepositoryImpl(
 
     override fun deleteById(id: UserId) {
         jpaRepository.deleteById(id.value)
+    }
+
+    override fun findUnlinkedUsers(
+        searchTerm: String?,
+        page: Int,
+        pageSize: Int,
+    ): Pair<List<User>, Long> {
+        val normalizedSearch = searchTerm?.trim()?.takeIf { it.isNotEmpty() }
+        val safePage = page.coerceAtLeast(0)
+        val safePageSize = pageSize.coerceAtLeast(1)
+        val pageable = PageRequest.of(safePage, safePageSize)
+
+        val resultPage = jpaRepository.findUnlinkedUsers(normalizedSearch, pageable)
+        val users = resultPage.content.map { UserMapper.toDomain(it) }
+        return users to resultPage.totalElements
+    }
+
+    override fun countUnlinkedUsers(): Long {
+        return jpaRepository.countUnlinkedUsers()
     }
 }

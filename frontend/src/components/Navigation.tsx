@@ -6,9 +6,10 @@ import { UserRole } from '../types/auth';
  * Main navigation component with accessibility features
  */
 export function Navigation() {
-  const { user, logout } = useAuth();
+    const { user, logout } = useAuth();
   const location = useLocation();
-  const isAdmin = user?.role === UserRole.ADMIN;
+    const isAdmin = user?.role === UserRole.ADMIN;
+    const hasPlayerLink = !!user?.linkedPlayerId;
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -33,16 +34,20 @@ export function Navigation() {
             </Link>
           </div>
           <div className="flex items-center space-x-2 md:space-x-4">
-            <Link to="/stats" className={linkClasses('/stats')} aria-label="View Statistics">
-              📊 Stats
-            </Link>
-            <Link
-              to="/leaderboard"
-              className={linkClasses('/leaderboard')}
-              aria-label="View Leaderboard"
-            >
-              🏆 Leaderboard
-            </Link>
+              {hasPlayerLink && (
+                <>
+                  <Link to="/stats" className={linkClasses('/stats')} aria-label="View Statistics">
+                    📊 Stats
+                  </Link>
+                  <Link
+                    to="/leaderboard"
+                    className={linkClasses('/leaderboard')}
+                    aria-label="View Leaderboard"
+                  >
+                    🏆 Leaderboard
+                  </Link>
+                </>
+              )}
             <Link to="/profile" className={linkClasses('/profile')} aria-label="View Profile">
               👤 Profile
             </Link>

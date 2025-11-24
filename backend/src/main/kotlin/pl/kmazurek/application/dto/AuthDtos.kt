@@ -46,4 +46,5 @@ data class UserDto(
     val name: String,
     val role: UserRole,
     val avatarUrl: String?,
+    val linkedPlayerId: String?,
 )

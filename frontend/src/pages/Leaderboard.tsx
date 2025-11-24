@@ -2,12 +2,16 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { leaderboardApi, LeaderboardMetric } from '../api/leaderboard';
+import { useAuth } from '../hooks/useAuth';
+import { EmptyState } from '../components/EmptyState';
 
 /**
  * Leaderboard Page (Phase 5)
  * Displays rankings across different metrics with podium for top 3
  */
 export default function Leaderboard() {
+  const { user } = useAuth();
+  const hasPlayerLink = !!user?.linkedPlayerId;
   const [selectedMetric, setSelectedMetric] = useState<LeaderboardMetric>(
     LeaderboardMetric.NET_PROFIT
   );
@@ -19,6 +23,7 @@ export default function Leaderboard() {
   } = useQuery({
     queryKey: ['leaderboard', selectedMetric],
     queryFn: () => leaderboardApi.getLeaderboard(selectedMetric, 50),
+    enabled: hasPlayerLink,
   });
 
   const metrics = [
@@ -55,6 +60,18 @@ export default function Leaderboard() {
         return 'bg-white';
     }
   };
+
+  if (!hasPlayerLink) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <EmptyState
+          icon="🏅"
+          title="Link required to view leaderboard"
+          description="Only linked players can browse leaderboard positions. Ask your admin to connect your account."
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

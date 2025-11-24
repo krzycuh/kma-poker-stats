@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RestController
 import pl.kmazurek.application.dto.ChangePasswordRequest
 import pl.kmazurek.application.dto.UpdateProfileRequest
 import pl.kmazurek.application.dto.UserDto
+import pl.kmazurek.application.service.UserDtoMapper
 import pl.kmazurek.application.usecase.user.ChangeUserPassword
 import pl.kmazurek.application.usecase.user.GetCurrentUser
 import pl.kmazurek.application.usecase.user.UpdateUserProfile
-import pl.kmazurek.domain.model.user.User
 import pl.kmazurek.domain.model.user.UserId
 
 /**
@@ -27,6 +27,7 @@ class UserController(
     private val getCurrentUser: GetCurrentUser,
     private val updateUserProfile: UpdateUserProfile,
     private val changeUserPassword: ChangeUserPassword,
+    private val userDtoMapper: UserDtoMapper,
 ) {
     @GetMapping("/me")
     fun getCurrentUserProfile(
@@ -34,7 +35,7 @@ class UserController(
     ): ResponseEntity<UserDto> {
         val userId = UserId.fromString(userIdString)
         val user = getCurrentUser.execute(userId)
-        return ResponseEntity.ok(user.toDto())
+        return ResponseEntity.ok(userDtoMapper.fromDomain(user))
     }
 
     @PutMapping("/me")
@@ -44,7 +45,7 @@ class UserController(
     ): ResponseEntity<UserDto> {
         val userId = UserId.fromString(userIdString)
         val user = updateUserProfile.execute(userId, request.name, request.avatarUrl)
-        return ResponseEntity.ok(user.toDto())
+        return ResponseEntity.ok(userDtoMapper.fromDomain(user))
     }
 
     @PatchMapping("/me/password")
@@ -56,13 +57,4 @@ class UserController(
         changeUserPassword.execute(userId, request.currentPassword, request.newPassword)
         return ResponseEntity.ok(mapOf("message" to "Password changed successfully"))
     }
-
-    private fun User.toDto() =
-        UserDto(
-            id = id.toString(),
-            email = email.value,
-            name = name,
-            role = role,
-            avatarUrl = avatarUrl,
-        )
 }

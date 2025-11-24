@@ -14,17 +14,21 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import pl.kmazurek.application.dto.CreatePlayerRequest
+import pl.kmazurek.application.dto.LinkPlayerRequest
 import pl.kmazurek.application.dto.PlayerDto
 import pl.kmazurek.application.dto.UpdatePlayerRequest
 import pl.kmazurek.application.usecase.player.CreatePlayer
 import pl.kmazurek.application.usecase.player.CreatePlayerCommand
 import pl.kmazurek.application.usecase.player.DeletePlayer
 import pl.kmazurek.application.usecase.player.GetPlayer
+import pl.kmazurek.application.usecase.player.LinkPlayerToUser
 import pl.kmazurek.application.usecase.player.ListPlayers
 import pl.kmazurek.application.usecase.player.ListPlayersQuery
+import pl.kmazurek.application.usecase.player.UnlinkPlayerFromUser
 import pl.kmazurek.application.usecase.player.UpdatePlayer
 import pl.kmazurek.application.usecase.player.UpdatePlayerCommand
 import pl.kmazurek.domain.model.player.PlayerId
+import pl.kmazurek.domain.model.user.UserId
 
 /**
  * REST Controller for player management endpoints
@@ -38,6 +42,8 @@ class PlayerController(
     private val deletePlayer: DeletePlayer,
     private val getPlayer: GetPlayer,
     private val listPlayers: ListPlayers,
+    private val linkPlayerToUser: LinkPlayerToUser,
+    private val unlinkPlayerFromUser: UnlinkPlayerFromUser,
 ) {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -100,5 +106,27 @@ class PlayerController(
         val playerId = PlayerId.fromString(id)
         deletePlayer.execute(playerId)
         return ResponseEntity.ok(mapOf("message" to "Player deactivated successfully"))
+    }
+
+    @PostMapping("/{id}/link")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun linkPlayer(
+        @PathVariable id: String,
+        @Valid @RequestBody request: LinkPlayerRequest,
+    ): ResponseEntity<PlayerDto> {
+        val playerId = PlayerId.fromString(id)
+        val userId = UserId.fromString(request.userId)
+        val player = linkPlayerToUser.execute(playerId, userId)
+        return ResponseEntity.ok(PlayerDto.fromDomain(player))
+    }
+
+    @DeleteMapping("/{id}/link")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun unlinkPlayer(
+        @PathVariable id: String,
+    ): ResponseEntity<PlayerDto> {
+        val playerId = PlayerId.fromString(id)
+        val player = unlinkPlayerFromUser.execute(playerId)
+        return ResponseEntity.ok(PlayerDto.fromDomain(player))
     }
 }

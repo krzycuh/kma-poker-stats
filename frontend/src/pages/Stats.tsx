@@ -18,12 +18,16 @@ import {
 } from 'recharts';
 import { statsApi } from '../api/stats';
 import { formatCents, formatPercentage, formatDate } from '../utils/format';
+import { useAuth } from '../hooks/useAuth';
+import { EmptyState } from '../components/EmptyState';
 
 /**
  * Personal Stats Page (Phase 5)
  * Displays comprehensive statistics with charts
  */
 export default function Stats() {
+  const { user } = useAuth();
+  const hasPlayerLink = !!user?.linkedPlayerId;
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [showDateFilter, setShowDateFilter] = useState(false);
@@ -35,6 +39,7 @@ export default function Stats() {
   } = useQuery({
     queryKey: ['stats', 'personal', startDate, endDate],
     queryFn: () => statsApi.getPersonalStats(startDate || undefined, endDate || undefined),
+    enabled: hasPlayerLink,
   });
 
   const handleClearFilters = () => {
@@ -64,6 +69,18 @@ export default function Stats() {
     link.click();
     URL.revokeObjectURL(url);
   };
+
+  if (!hasPlayerLink) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <EmptyState
+          icon="👤"
+          title="Player profile required"
+          description="Link this user account to a player profile to access personal statistics."
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

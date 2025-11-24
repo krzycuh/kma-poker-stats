@@ -1,5 +1,6 @@
 package pl.kmazurek.application.dto
 
+import jakarta.validation.constraints.NotBlank
 import pl.kmazurek.domain.model.player.Player
 import java.time.LocalDateTime
 
@@ -36,4 +37,9 @@ data class CreatePlayerRequest(
 data class UpdatePlayerRequest(
     val name: String,
     val avatarUrl: String? = null,
+)
+
+data class LinkPlayerRequest(
+    @field:NotBlank(message = "User ID is required")
+    val userId: String,
 )
