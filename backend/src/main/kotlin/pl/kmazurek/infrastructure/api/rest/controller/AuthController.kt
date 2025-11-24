@@ -78,5 +78,4 @@ class AuthController(
         // TODO: Consider implementing token blacklist with Redis if needed
         return ResponseEntity.ok(mapOf("message" to "Logged out successfully"))
     }
-
 }
