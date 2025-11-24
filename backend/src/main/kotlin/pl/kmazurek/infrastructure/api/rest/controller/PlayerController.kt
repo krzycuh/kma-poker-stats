@@ -24,9 +24,9 @@ import pl.kmazurek.application.usecase.player.GetPlayer
 import pl.kmazurek.application.usecase.player.LinkPlayerToUser
 import pl.kmazurek.application.usecase.player.ListPlayers
 import pl.kmazurek.application.usecase.player.ListPlayersQuery
+import pl.kmazurek.application.usecase.player.UnlinkPlayerFromUser
 import pl.kmazurek.application.usecase.player.UpdatePlayer
 import pl.kmazurek.application.usecase.player.UpdatePlayerCommand
-import pl.kmazurek.application.usecase.player.UnlinkPlayerFromUser
 import pl.kmazurek.domain.model.player.PlayerId
 import pl.kmazurek.domain.model.user.UserId
 
