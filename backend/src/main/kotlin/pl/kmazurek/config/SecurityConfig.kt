@@ -1,5 +1,6 @@
 package pl.kmazurek.config
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
@@ -24,7 +25,15 @@ import pl.kmazurek.infrastructure.security.JwtAuthenticationFilter
 @EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+    @Value("\${cors.allowed.origins:}") private val corsAllowedOrigins: String,
 ) {
+    companion object {
+        private val DEFAULT_ALLOWED_ORIGINS =
+            listOf(
+                "http://localhost:5173", // Vite dev server
+                "http://localhost:3000", // Alternative frontend port
+            )
+    }
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
@@ -61,11 +70,7 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOrigins =
-            listOf(
-                "http://localhost:5173", // Vite dev server
-                "http://localhost:3000", // Alternative frontend port
-            )
+        configuration.allowedOrigins = resolveAllowedOrigins()
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
         configuration.allowedHeaders = listOf("*")
         configuration.allowCredentials = true
@@ -74,5 +79,15 @@ class SecurityConfig(
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)
         return source
+    }
+
+    private fun resolveAllowedOrigins(): List<String> {
+        val configuredOrigins =
+            corsAllowedOrigins
+                .split(",")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+
+        return if (configuredOrigins.isNotEmpty()) configuredOrigins else DEFAULT_ALLOWED_ORIGINS
     }
 }
