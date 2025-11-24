@@ -35,5 +35,3 @@ data class UpdatePlayerCommand(
     val name: String,
     val avatarUrl: String? = null,
 )
-
-class PlayerNotFoundException(message: String) : RuntimeException(message)
