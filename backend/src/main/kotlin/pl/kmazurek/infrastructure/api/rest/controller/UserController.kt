@@ -57,5 +57,4 @@ class UserController(
         changeUserPassword.execute(userId, request.currentPassword, request.newPassword)
         return ResponseEntity.ok(mapOf("message" to "Password changed successfully"))
     }
-
 }

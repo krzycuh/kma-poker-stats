@@ -14,8 +14,8 @@ import pl.kmazurek.application.usecase.player.LinkedUserNotFoundException
 import pl.kmazurek.application.usecase.player.PlayerAlreadyExistsException
 import pl.kmazurek.application.usecase.player.PlayerAlreadyLinkedException
 import pl.kmazurek.application.usecase.player.PlayerInactiveException
-import pl.kmazurek.application.usecase.player.PlayerNotLinkedException
 import pl.kmazurek.application.usecase.player.PlayerNotFoundException
+import pl.kmazurek.application.usecase.player.PlayerNotLinkedException
 import pl.kmazurek.application.usecase.player.UserAlreadyLinkedException
 import pl.kmazurek.application.usecase.sessionresult.SessionResultNotFoundException
 import pl.kmazurek.application.usecase.user.InvalidPasswordException
