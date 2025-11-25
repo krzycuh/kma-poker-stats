@@ -14,6 +14,8 @@ interface PlayerRepository {
 
     fun findByUserId(userId: UserId): Player?
 
+    fun findByIds(ids: Collection<PlayerId>): List<Player>
+
     fun findAll(includeInactive: Boolean = false): List<Player>
 
     fun findByNameContaining(

@@ -13,3 +13,5 @@ class PlayerInactiveException(message: String) : RuntimeException(message)
 class PlayerNotLinkedException(message: String) : RuntimeException(message)
 
 class PlayerNotFoundException(message: String) : RuntimeException(message)
+
+class PlayerAccessDeniedException(message: String) : RuntimeException(message)

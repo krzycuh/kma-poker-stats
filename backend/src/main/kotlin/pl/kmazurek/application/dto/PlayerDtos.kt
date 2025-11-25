@@ -43,3 +43,19 @@ data class LinkPlayerRequest(
     @field:NotBlank(message = "User ID is required")
     val userId: String,
 )
+
+data class SharedPlayerSummaryDto(
+    val playerId: String,
+    val name: String,
+    val avatarUrl: String?,
+    val sharedSessionsCount: Int,
+    val lastSharedSessionAt: LocalDateTime?,
+)
+
+data class SharedPlayerStatsDto(
+    val playerId: String,
+    val playerName: String,
+    val avatarUrl: String?,
+    val sharedSessionsCount: Int,
+    val stats: CompleteStatsDto,
+)

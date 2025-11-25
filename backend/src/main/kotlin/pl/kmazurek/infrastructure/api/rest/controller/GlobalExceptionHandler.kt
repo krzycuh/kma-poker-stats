@@ -11,6 +11,7 @@ import pl.kmazurek.application.usecase.auth.InvalidCredentialsException
 import pl.kmazurek.application.usecase.auth.InvalidRefreshTokenException
 import pl.kmazurek.application.usecase.gamesession.GameSessionNotFoundException
 import pl.kmazurek.application.usecase.player.LinkedUserNotFoundException
+import pl.kmazurek.application.usecase.player.PlayerAccessDeniedException
 import pl.kmazurek.application.usecase.player.PlayerAlreadyExistsException
 import pl.kmazurek.application.usecase.player.PlayerAlreadyLinkedException
 import pl.kmazurek.application.usecase.player.PlayerInactiveException
@@ -73,6 +74,11 @@ class GlobalExceptionHandler {
     @ExceptionHandler(PlayerInactiveException::class)
     fun handlePlayerInactive(ex: PlayerInactiveException): ResponseEntity<ErrorResponse> {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Cannot link inactive player", ex)
+    }
+
+    @ExceptionHandler(PlayerAccessDeniedException::class)
+    fun handlePlayerAccessDenied(ex: PlayerAccessDeniedException): ResponseEntity<ErrorResponse> {
+        return buildErrorResponse(HttpStatus.FORBIDDEN, "Access denied", ex)
     }
 
     @ExceptionHandler(UserAlreadyLinkedException::class)

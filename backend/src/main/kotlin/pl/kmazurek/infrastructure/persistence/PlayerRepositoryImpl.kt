@@ -26,6 +26,15 @@ class PlayerRepositoryImpl(
             ?.let { PlayerMapper.toDomain(it) }
     }
 
+    override fun findByIds(ids: Collection<PlayerId>): List<Player> {
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
+        val uuidIds = ids.map { it.value }
+        return jpaRepository.findAllById(uuidIds)
+            .map { PlayerMapper.toDomain(it) }
+    }
+
     override fun findAll(includeInactive: Boolean): List<Player> {
         return if (includeInactive) {
             jpaRepository.findAll()

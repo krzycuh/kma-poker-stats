@@ -7,7 +7,10 @@ import pl.kmazurek.application.dto.LocationPerformanceDto
 import pl.kmazurek.application.dto.NotableSessionDto
 import pl.kmazurek.application.dto.PlayerStatsDto
 import pl.kmazurek.application.dto.ProfitDataPointDto
+import pl.kmazurek.application.dto.SharedPlayerStatsDto
+import pl.kmazurek.application.usecase.player.PlayerAccessDeniedException
 import pl.kmazurek.domain.model.gamesession.SessionResult
+import pl.kmazurek.domain.model.player.PlayerId
 import pl.kmazurek.domain.model.user.UserId
 import pl.kmazurek.domain.repository.GameSessionRepository
 import pl.kmazurek.domain.repository.PlayerRepository
@@ -26,6 +29,7 @@ class StatsService(
     private val sessionRepository: GameSessionRepository,
     private val resultRepository: SessionResultRepository,
     private val statsCalculator: StatsCalculator,
+    private val playerNetworkService: PlayerNetworkService,
 ) {
     /**
      * Get complete statistics for a player with optional date filtering
@@ -37,35 +41,56 @@ class StatsService(
     ): CompleteStatsDto {
         val player =
             playerRepository.findByUserId(userId)
-                ?: throw IllegalStateException("No player linked to user")
+                ?: throw PlayerAccessDeniedException("User is not linked to any player")
 
-        // Get all results for player
         val allResults = resultRepository.findByPlayerId(player.id)
+        return buildCompleteStats(player.id, allResults, startDate, endDate)
+    }
 
-        // Apply date filtering if provided
-        val filteredResults = filterResultsByDateRange(allResults, startDate, endDate)
+    fun getSharedPlayerStats(
+        viewerUserId: UserId,
+        targetPlayerId: PlayerId,
+        startDate: LocalDate? = null,
+        endDate: LocalDate? = null,
+    ): SharedPlayerStatsDto {
+        val (targetPlayer, sharedSessionIds) = playerNetworkService.sharedSessionIdsBetween(viewerUserId, targetPlayerId)
 
-        // Calculate overview stats
-        val stats = statsCalculator.calculatePlayerStats(player.id, filteredResults)
+        val sharedResults =
+            resultRepository.findByPlayerId(targetPlayer.id)
+                .filter { it.sessionId in sharedSessionIds }
+
+        val stats = buildCompleteStats(targetPlayer.id, sharedResults, startDate, endDate)
+
+        return SharedPlayerStatsDto(
+            playerId = targetPlayer.id.toString(),
+            playerName = targetPlayer.name.value,
+            avatarUrl = targetPlayer.avatarUrl,
+            sharedSessionsCount = sharedSessionIds.size,
+            stats = stats,
+        )
+    }
+
+    private fun buildCompleteStats(
+        playerId: PlayerId,
+        unfilteredResults: List<SessionResult>,
+        startDate: LocalDate?,
+        endDate: LocalDate?,
+    ): CompleteStatsDto {
+        val filteredResults = filterResultsByDateRange(unfilteredResults, startDate, endDate)
+
+        val stats = statsCalculator.calculatePlayerStats(playerId, filteredResults)
         val overview = PlayerStatsDto.fromDomain(stats)
 
-        // Get all sessions for additional analysis
         val sessions =
             filteredResults.map { result ->
                 sessionRepository.findById(result.sessionId)
                     ?: throw IllegalStateException("Session not found: ${result.sessionId}")
             }
 
-        // Calculate time-series data
         val profitOverTime = calculateProfitOverTime(filteredResults, sessions)
-
-        // Calculate location performance
         val locationPerformance = calculateLocationPerformance(filteredResults, sessions)
-
-        // Calculate day of week performance
         val dayOfWeekPerformance = calculateDayOfWeekPerformance(filteredResults, sessions)
 
-        // Get best and worst sessions
         val sortedResults = filteredResults.sortedByDescending { it.profit().amountInCents }
         val bestSessions =
             sortedResults.take(5).map { result ->
