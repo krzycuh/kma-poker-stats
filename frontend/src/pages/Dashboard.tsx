@@ -1,6 +1,5 @@
 import React from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { Link } from 'react-router-dom';
 import { UserRole } from '../types/auth';
 import { useQuery } from '@tanstack/react-query';
 import { dashboardApi } from '../api/dashboard';
@@ -21,7 +20,7 @@ import {
  * Main landing page after login - Shows personalized stats and recent sessions
  */
   export const Dashboard: React.FC = () => {
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const hasPlayerLink = !!user?.linkedPlayerId;
     const isAdminUser = user?.role === UserRole.ADMIN;
     const isCasualUser = user?.role === UserRole.CASUAL_PLAYER;
@@ -54,63 +53,9 @@ import {
     const error = isAdmin ? adminError : casualError;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">Poker Stats</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-                {hasPlayerLink && (
-                  <>
-                    <Link to="/stats" className="text-gray-700 hover:text-gray-900">
-                      Stats
-                    </Link>
-                    <Link to="/leaderboard" className="text-gray-700 hover:text-gray-900">
-                      Leaderboard
-                    </Link>
-                  </>
-                )}
-              <Link to="/profile" className="text-gray-700 hover:text-gray-900">
-                Profile
-              </Link>
-              {isAdmin && (
-                <>
-                  <Link
-                    to="/players"
-                    className="text-gray-700 hover:text-gray-900"
-                  >
-                    Players
-                  </Link>
-                  <Link
-                    to="/sessions"
-                    className="text-gray-700 hover:text-gray-900"
-                  >
-                    Sessions
-                  </Link>
-                  <Link
-                    to="/log-session"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Log Session
-                  </Link>
-                </>
-              )}
-              <button
-                onClick={logout}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
+    <div className="mx-auto max-w-7xl">
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="py-2">
         {/* Header */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900">

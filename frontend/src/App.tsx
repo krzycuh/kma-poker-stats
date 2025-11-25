@@ -9,6 +9,7 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { UserRole } from './types/auth';
+import { AppLayout } from './components/AppLayout';
 import './App.css';
 
 // Lazy load pages for better performance
@@ -66,60 +67,63 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route
-                  path="/"
                   element={
                     <ProtectedRoute>
+                      <AppLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route
+                    path="/"
+                    element={
                       <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
                       <Profile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/players"
-                  element={
-                    <ProtectedRoute requireRole={UserRole.ADMIN}>
-                      <Players />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/log-session"
-                  element={
-                    <ProtectedRoute requireRole={UserRole.ADMIN}>
-                      <LogSession />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/sessions"
-                  element={
-                    <ProtectedRoute requireRole={UserRole.ADMIN}>
-                      <Sessions />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/sessions/:id"
-                  element={
-                    <ProtectedRoute requireRole={UserRole.ADMIN}>
-                      <SessionDetail />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/sessions/:id/edit"
-                  element={
-                    <ProtectedRoute requireRole={UserRole.ADMIN}>
-                      <EditSession />
-                    </ProtectedRoute>
-                  }
+                    }
+                  />
+                  <Route
+                    path="/players"
+                    element={
+                      <ProtectedRoute requireRole={UserRole.ADMIN}>
+                        <Players />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/log-session"
+                    element={
+                      <ProtectedRoute requireRole={UserRole.ADMIN}>
+                        <LogSession />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/sessions"
+                    element={
+                      <ProtectedRoute requireRole={UserRole.ADMIN}>
+                        <Sessions />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/sessions/:id"
+                    element={
+                      <ProtectedRoute requireRole={UserRole.ADMIN}>
+                        <SessionDetail />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/sessions/:id/edit"
+                    element={
+                      <ProtectedRoute requireRole={UserRole.ADMIN}>
+                        <EditSession />
+                      </ProtectedRoute>
+                    }
                   />
                   <Route
                     path="/stats"
@@ -137,6 +141,7 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+                </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>
