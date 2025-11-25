@@ -22,6 +22,9 @@ export interface SessionResult {
   notes: string | null
   createdAt: string
   updatedAt: string
+  playerName?: string | null
+  playerAvatarUrl?: string | null
+  linkedUserId?: string | null
 }
 
 export interface GameSessionWithResults {

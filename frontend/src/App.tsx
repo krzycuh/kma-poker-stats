@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
+import { useAuth } from './hooks/useAuth';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LoadingSpinner } from './components/LoadingSpinner';
@@ -22,6 +23,20 @@ const Sessions = lazy(() => import('./pages/Sessions').then(m => ({ default: m.S
 const SessionDetail = lazy(() => import('./pages/SessionDetail').then(m => ({ default: m.SessionDetail })));
 const Stats = lazy(() => import('./pages/Stats'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
+
+const SessionDetailAccess = () => {
+  const { user } = useAuth();
+
+  if (user?.role === UserRole.ADMIN) {
+    return <SessionDetail />;
+  }
+
+  if (user?.role === UserRole.CASUAL_PLAYER && user.linkedPlayerId) {
+    return <SessionDetail />;
+  }
+
+  return <Navigate to="/" replace />;
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -112,9 +127,7 @@ function App() {
                   <Route
                     path="/sessions/:id"
                     element={
-                      <ProtectedRoute requireRole={UserRole.ADMIN}>
-                        <SessionDetail />
-                      </ProtectedRoute>
+                      <SessionDetailAccess />
                     }
                   />
                   <Route

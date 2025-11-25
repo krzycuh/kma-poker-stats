@@ -7,6 +7,7 @@ import pl.kmazurek.domain.model.gamesession.GameSession
 import pl.kmazurek.domain.model.gamesession.GameType
 import pl.kmazurek.domain.model.gamesession.Location
 import pl.kmazurek.domain.model.gamesession.SessionResult
+import pl.kmazurek.domain.model.player.Player
 import pl.kmazurek.domain.model.player.PlayerId
 import pl.kmazurek.domain.model.shared.Money
 import pl.kmazurek.domain.model.user.UserId
@@ -89,4 +90,5 @@ data class CreateSessionResultCommand(
 data class GameSessionWithResults(
     val session: GameSession,
     val results: List<SessionResult>,
+    val playersById: Map<PlayerId, Player> = emptyMap(),
 )
