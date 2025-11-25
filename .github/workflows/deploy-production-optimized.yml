@@ -8,7 +8,7 @@ on:
       version:
         description: 'Version to deploy'
         required: true
-        default: 'latest'
+        default: 'main'
 
 env:
   REGISTRY: ghcr.io
