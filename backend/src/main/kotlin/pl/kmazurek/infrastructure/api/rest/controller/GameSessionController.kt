@@ -185,5 +185,6 @@ class GameSessionController(
     }
 }
 
-private fun Authentication.isAdmin(): Boolean =
-    authorities.any { it.authority == "ROLE_ADMIN" }
+private fun Authentication.isAdmin(): Boolean {
+    return authorities.any { it.authority == "ROLE_ADMIN" }
+}
