@@ -27,6 +27,15 @@ class SessionResultRepositoryImpl(
             .map { SessionResultMapper.toDomain(it) }
     }
 
+    override fun findBySessionIds(sessionIds: Collection<GameSessionId>): List<SessionResult> {
+        if (sessionIds.isEmpty()) {
+            return emptyList()
+        }
+        val uuidIds = sessionIds.map { it.value }
+        return jpaRepository.findBySessionIdIn(uuidIds)
+            .map { SessionResultMapper.toDomain(it) }
+    }
+
     override fun findByPlayerId(playerId: PlayerId): List<SessionResult> {
         return jpaRepository.findByPlayerId(playerId.value)
             .map { SessionResultMapper.toDomain(it) }

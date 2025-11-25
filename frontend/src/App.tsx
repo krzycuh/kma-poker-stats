@@ -23,6 +23,7 @@ const Sessions = lazy(() => import('./pages/Sessions').then(m => ({ default: m.S
 const SessionDetail = lazy(() => import('./pages/SessionDetail').then(m => ({ default: m.SessionDetail })));
 const Stats = lazy(() => import('./pages/Stats'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
+const PlayerNetwork = lazy(() => import('./pages/PlayerNetwork'));
 
 const SessionDetailAccess = () => {
   const { user } = useAuth();
@@ -151,6 +152,14 @@ function App() {
                     element={
                       <ProtectedRoute requireLinkedPlayer>
                         <Leaderboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/player-network"
+                    element={
+                      <ProtectedRoute requireLinkedPlayer>
+                        <PlayerNetwork />
                       </ProtectedRoute>
                     }
                   />

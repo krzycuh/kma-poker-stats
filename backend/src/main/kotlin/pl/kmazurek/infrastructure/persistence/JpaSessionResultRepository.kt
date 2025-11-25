@@ -12,6 +12,8 @@ import java.util.UUID
 interface JpaSessionResultRepository : JpaRepository<SessionResultJpaEntity, UUID> {
     fun findBySessionId(sessionId: UUID): List<SessionResultJpaEntity>
 
+    fun findBySessionIdIn(sessionIds: Collection<UUID>): List<SessionResultJpaEntity>
+
     fun findByPlayerId(playerId: UUID): List<SessionResultJpaEntity>
 
     fun existsBySessionIdAndPlayerId(

@@ -5,11 +5,14 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import pl.kmazurek.application.dto.CompleteStatsDto
+import pl.kmazurek.application.dto.SharedPlayerStatsDto
 import pl.kmazurek.application.service.StatsService
+import pl.kmazurek.domain.model.player.PlayerId
 import pl.kmazurek.domain.model.user.UserId
 import java.time.LocalDate
 
@@ -43,6 +46,24 @@ class StatsController(
     ): ResponseEntity<CompleteStatsDto> {
         val userId = UserId.fromString(userIdString)
         val stats = statsService.getCompleteStats(userId, startDate, endDate)
+        return ResponseEntity.ok(stats)
+    }
+
+    @GetMapping("/players/{playerId}")
+    @PreAuthorize("hasRole('CASUAL_PLAYER') or hasRole('ADMIN')")
+    fun getSharedPlayerStats(
+        @AuthenticationPrincipal userIdString: String,
+        @PathVariable playerId: String,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        startDate: LocalDate?,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        endDate: LocalDate?,
+    ): ResponseEntity<SharedPlayerStatsDto> {
+        val viewerId = UserId.fromString(userIdString)
+        val targetPlayerId = PlayerId.fromString(playerId)
+        val stats = statsService.getSharedPlayerStats(viewerId, targetPlayerId, startDate, endDate)
         return ResponseEntity.ok(stats)
     }
 }

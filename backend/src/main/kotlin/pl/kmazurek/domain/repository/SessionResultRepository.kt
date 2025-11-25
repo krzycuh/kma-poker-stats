@@ -15,6 +15,8 @@ interface SessionResultRepository {
 
     fun findBySessionId(sessionId: GameSessionId): List<SessionResult>
 
+    fun findBySessionIds(sessionIds: Collection<GameSessionId>): List<SessionResult>
+
     fun findByPlayerId(playerId: PlayerId): List<SessionResult>
 
     fun existsBySessionIdAndPlayerId(
