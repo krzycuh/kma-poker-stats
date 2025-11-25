@@ -30,8 +30,7 @@ export default function LogSession() {
   const { user } = useAuth()
   const [currentStep, setCurrentStep] = useState(0)
   const [formData, setFormData] = useState<SessionFormData>({
-    startTime: new Date().toISOString().slice(0, 16),
-    endTime: '',
+    sessionDate: new Date().toISOString().slice(0, 10),
     location: '',
     gameType: GameType.TEXAS_HOLDEM,
     minBuyInCents: 5000,
@@ -53,7 +52,13 @@ export default function LogSession() {
     if (draft) {
       try {
         const parsed = JSON.parse(draft)
-        setFormData(parsed)
+        setFormData((current) => ({
+          ...current,
+          ...parsed,
+          sessionDate:
+            parsed.sessionDate ||
+            (parsed.startTime ? String(parsed.startTime).slice(0, 10) : current.sessionDate),
+        }))
       } catch (err) {
         console.error('Failed to load draft:', err)
       }
@@ -103,8 +108,7 @@ export default function LogSession() {
 
   const handleSubmit = () => {
     const request: CreateGameSessionRequest = {
-      startTime: formData.startTime,
-      endTime: formData.endTime || null,
+      startTime: `${formData.sessionDate}T00:00`,
       location: formData.location,
       gameType: formData.gameType,
       minBuyInCents: formData.minBuyInCents,

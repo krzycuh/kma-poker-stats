@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { playerApi } from '../../api/players'
 import type { SessionFormData } from '../../types/sessionForm'
+import { formatCents } from '../../utils/format'
 
 interface Step3Props {
   formData: SessionFormData
@@ -218,8 +219,8 @@ export function Step3ResultsEntry({
                         : 'text-gray-600'
                 }`}
               >
-                {playerProfit > 0 ? '+' : ''}$
-                {formatCurrency(Math.abs(playerProfit))}
+                {playerProfit > 0 ? '+' : playerProfit < 0 ? '-' : ''}
+                {formatCents(Math.abs(playerProfit))}
               </span>
             </button>
           )
@@ -230,7 +231,7 @@ export function Step3ResultsEntry({
       <div className="bg-white border-2 border-gray-200 rounded-lg p-6 space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Buy-In ($) *
+            Buy-In (PLN) *
           </label>
           <input
             type="number"
@@ -258,7 +259,7 @@ export function Step3ResultsEntry({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Cash-Out ($) *
+            Cash-Out (PLN) *
           </label>
           <input
             type="number"
@@ -304,7 +305,8 @@ export function Step3ResultsEntry({
                   : 'text-gray-600'
             }`}
           >
-            {profit > 0 ? '+' : ''}${formatCurrency(Math.abs(profit))}
+            {profit > 0 ? '+' : profit < 0 ? '-' : ''}
+            {formatCents(Math.abs(profit))}
           </div>
         </div>
 
@@ -332,13 +334,13 @@ export function Step3ResultsEntry({
           <div>
             <div className="text-blue-700">Total Buy-In</div>
             <div className="font-semibold text-blue-900">
-              ${formatCurrency(totalBuyIn)}
+              {formatCents(totalBuyIn)}
             </div>
           </div>
           <div>
             <div className="text-blue-700">Total Cash-Out</div>
             <div className="font-semibold text-blue-900">
-              ${formatCurrency(totalCashOut)}
+              {formatCents(totalCashOut)}
             </div>
           </div>
           <div>
@@ -348,7 +350,8 @@ export function Step3ResultsEntry({
                 discrepancy !== 0 ? 'text-orange-600' : 'text-green-600'
               }`}
             >
-              {discrepancy > 0 ? '+' : ''}${formatCurrency(Math.abs(discrepancy))}
+              {discrepancy > 0 ? '+' : discrepancy < 0 ? '-' : ''}
+              {formatCents(Math.abs(discrepancy))}
             </div>
           </div>
         </div>

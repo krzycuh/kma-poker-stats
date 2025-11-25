@@ -34,7 +34,7 @@ export function PageHeader({
       <button
         type="button"
         onClick={handleBack}
-        className="text-blue-600 hover:text-blue-700 flex items-center gap-2 mb-4"
+        className="text-blue-600 hover:text-blue-700 flex items-center gap-2 mb-2"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path

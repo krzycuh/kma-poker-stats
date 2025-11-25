@@ -29,8 +29,7 @@ export default function EditSession() {
   const { user } = useAuth()
   const [currentStep, setCurrentStep] = useState(0)
   const [formData, setFormData] = useState<SessionFormData>({
-    startTime: '',
-    endTime: '',
+    sessionDate: '',
     location: '',
     gameType: GameType.TEXAS_HOLDEM,
     minBuyInCents: 5000,
@@ -57,10 +56,7 @@ export default function EditSession() {
   useEffect(() => {
     if (session) {
       setFormData({
-        startTime: session.session.startTime.slice(0, 16),
-        endTime: session.session.endTime
-          ? session.session.endTime.slice(0, 16)
-          : '',
+        sessionDate: session.session.startTime.slice(0, 10),
         location: session.session.location,
         gameType: session.session.gameType as GameType,
         minBuyInCents: session.session.minBuyInCents,
@@ -82,7 +78,6 @@ export default function EditSession() {
       // First update the session details
       const sessionUpdate: UpdateGameSessionRequest = {
         startTime: data.startTime,
-        endTime: data.endTime || null,
         location: data.location,
         gameType: data.gameType,
         minBuyInCents: data.minBuyInCents,
@@ -122,8 +117,7 @@ export default function EditSession() {
 
   const handleSubmit = () => {
     const request: CreateGameSessionRequest = {
-      startTime: formData.startTime,
-      endTime: formData.endTime || null,
+      startTime: `${formData.sessionDate}T00:00`,
       location: formData.location,
       gameType: formData.gameType,
       minBuyInCents: formData.minBuyInCents,
@@ -171,7 +165,7 @@ export default function EditSession() {
       <div className="max-w-4xl mx-auto mb-8">
         <button
           onClick={() => navigate('/')}
-          className="text-blue-600 hover:text-blue-700 flex items-center gap-2 mb-4"
+          className="text-blue-600 hover:text-blue-700 flex items-center gap-2 mb-2"
         >
           <svg
             className="w-5 h-5"

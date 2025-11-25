@@ -3,23 +3,26 @@
  */
 
 /**
- * Format cents to dollar string
+ * Format cents to PLN string
  */
+const PLN_NUMBER_FORMAT = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 export function formatCents(cents: number): string {
-  const dollars = Math.floor(Math.abs(cents) / 100);
-  const remainingCents = Math.abs(cents % 100);
   const sign = cents < 0 ? '-' : '';
-  return `${sign}$${dollars}.${remainingCents.toString().padStart(2, '0')}`;
+  const amount = PLN_NUMBER_FORMAT.format(Math.abs(cents) / 100);
+  return `${sign}PLN ${amount}`;
 }
 
 /**
- * Format cents to dollar string with +/- sign
+ * Format cents to PLN string with +/- sign
  */
 export function formatProfitCents(cents: number): string {
-  const dollars = Math.floor(Math.abs(cents) / 100);
-  const remainingCents = Math.abs(cents % 100);
   const sign = cents >= 0 ? '+' : '-';
-  return `${sign}$${dollars}.${remainingCents.toString().padStart(2, '0')}`;
+  const amount = PLN_NUMBER_FORMAT.format(Math.abs(cents) / 100);
+  return `${sign}PLN ${amount}`;
 }
 
 /**
@@ -53,14 +56,7 @@ export function formatDate(dateString: string): string {
  * Format date and time to readable string
  */
 export function formatDateTime(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+  return formatDate(dateString);
 }
 
 /**

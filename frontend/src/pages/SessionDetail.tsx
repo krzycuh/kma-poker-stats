@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sessionApi } from '../api/sessions';
+import { playerApi } from '../api/players';
 import { useAuth } from '../hooks/useAuth';
 import { UserRole } from '../types/auth';
 import { ConfirmationModal } from '../components/ConfirmationModal';
@@ -12,6 +13,7 @@ import {
   formatCents,
   formatProfitCents,
 } from '../utils/format';
+import type { Player } from '../types/player';
 
 /**
  * Session detail page
@@ -33,6 +35,57 @@ export const SessionDetail: React.FC = () => {
     queryFn: () => sessionApi.getById(id!),
     enabled: !!id,
   });
+
+  const { data: players } = useQuery({
+    queryKey: ['players', 'all'],
+    queryFn: () => playerApi.list({ includeInactive: true }),
+  });
+
+  const playersById = useMemo(() => {
+    const map = new Map<string, Player>();
+    players?.forEach((player) => map.set(player.id, player));
+    return map;
+  }, [players]);
+
+  const renderPlayerInfo = (playerId: string) => {
+    const player = playersById.get(playerId);
+    const fallback = `Player ${playerId.substring(0, 6)}`;
+    const label = player?.name || fallback;
+    const initials = player?.name
+      ? player.name
+          .split(' ')
+          .filter(Boolean)
+          .map((part) => part[0])
+          .join('')
+          .slice(0, 2)
+          .toUpperCase()
+      : fallback
+          .replace('Player ', '')
+          .slice(0, 2)
+          .toUpperCase();
+
+    return (
+      <div className="flex items-center gap-3">
+        {player?.avatarUrl ? (
+          <img
+            src={player.avatarUrl}
+            alt={`${label} avatar`}
+            className="h-10 w-10 rounded-full object-cover"
+          />
+        ) : (
+          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600">
+            {initials || 'PL'}
+          </div>
+        )}
+        <div className="min-w-0">
+          <p className="font-medium text-gray-900 truncate">{label}</p>
+          <p className="text-xs text-gray-500 truncate">
+            {player?.userId ? 'Linked user' : 'Unlinked player'}
+          </p>
+        </div>
+      </div>
+    );
+  };
 
   // Delete mutation
   const deleteMutation = useMutation({
@@ -157,7 +210,7 @@ export const SessionDetail: React.FC = () => {
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">
-                  Start Time
+                  Session Date
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900">
                   {formatDateTime(session.session.startTime)}
@@ -214,7 +267,7 @@ export const SessionDetail: React.FC = () => {
                     .map((result) => (
                       <tr key={result.id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          Player {result.playerId.substring(0, 8)}
+                          {renderPlayerInfo(result.playerId)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {formatCents(result.buyInCents)}
