@@ -46,9 +46,17 @@ data class SessionResultDto(
     val notes: String?,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
+    val playerName: String? = null,
+    val playerAvatarUrl: String? = null,
+    val linkedUserId: String? = null,
 ) {
     companion object {
-        fun fromDomain(result: SessionResult): SessionResultDto {
+        fun fromDomain(
+            result: SessionResult,
+            playerName: String? = null,
+            playerAvatarUrl: String? = null,
+            linkedUserId: String? = null,
+        ): SessionResultDto {
             return SessionResultDto(
                 id = result.id.toString(),
                 sessionId = result.sessionId.toString(),
@@ -59,6 +67,9 @@ data class SessionResultDto(
                 notes = result.notes,
                 createdAt = result.createdAt,
                 updatedAt = result.updatedAt,
+                playerName = playerName,
+                playerAvatarUrl = playerAvatarUrl,
+                linkedUserId = linkedUserId,
             )
         }
     }

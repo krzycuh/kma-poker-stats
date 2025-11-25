@@ -4,7 +4,9 @@ import jakarta.validation.Valid
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -30,6 +32,7 @@ import pl.kmazurek.application.usecase.gamesession.ListGameSessionsQuery
 import pl.kmazurek.application.usecase.gamesession.UpdateGameSession
 import pl.kmazurek.application.usecase.gamesession.UpdateGameSessionCommand
 import pl.kmazurek.domain.model.gamesession.GameSessionId
+import pl.kmazurek.domain.model.user.UserId
 import java.time.LocalDateTime
 
 /**
@@ -82,15 +85,37 @@ class GameSessionController(
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('CASUAL_PLAYER') or hasRole('ADMIN')")
     fun getSession(
         @PathVariable id: String,
+        @AuthenticationPrincipal userIdString: String?,
+        authentication: Authentication,
     ): ResponseEntity<GameSessionWithResultsDto> {
         val sessionId = GameSessionId.fromString(id)
-        val result = getGameSession.execute(sessionId)
+        val isAdmin = authentication.isAdmin()
+        val participantUserId =
+            if (isAdmin) {
+                null
+            } else {
+                userIdString?.let { UserId.fromString(it) }
+                    ?: throw AccessDeniedException("User context is missing")
+            }
+
+        val result = getGameSession.execute(sessionId, participantUserId)
+
         val dto =
             GameSessionWithResultsDto(
                 session = GameSessionDto.fromDomain(result.session),
-                results = result.results.map { SessionResultDto.fromDomain(it) },
+                results =
+                    result.results.map { sessionResult ->
+                        val player = result.playersById[sessionResult.playerId]
+                        SessionResultDto.fromDomain(
+                            sessionResult,
+                            playerName = player?.name?.value,
+                            playerAvatarUrl = player?.avatarUrl,
+                            linkedUserId = player?.userId?.toString(),
+                        )
+                    },
             )
         return ResponseEntity.ok(dto)
     }
@@ -158,4 +183,8 @@ class GameSessionController(
         deleteGameSession.execute(sessionId)
         return ResponseEntity.ok(mapOf("message" to "Session deleted successfully"))
     }
+}
+
+private fun Authentication.isAdmin(): Boolean {
+    return authorities.any { it.authority == "ROLE_ADMIN" }
 }
