@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 import { leaderboardApi, LeaderboardMetric } from '../api/leaderboard';
 import { useAuth } from '../hooks/useAuth';
 import { EmptyState } from '../components/EmptyState';
+import { PageHeader } from '../components/PageHeader';
 
 /**
  * Leaderboard Page (Phase 5)
@@ -103,21 +103,10 @@ export default function Leaderboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Leaderboard</h1>
-          <p className="text-gray-600 mt-1">
-            {leaderboard.totalEntries} players ranked
-          </p>
-        </div>
-        <Link
-          to="/dashboard"
-          className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-        >
-          Back to Dashboard
-        </Link>
-      </div>
+      <PageHeader
+        title="Leaderboard"
+        description={`${leaderboard.totalEntries} players ranked`}
+      />
 
       {/* Metric Selector */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">

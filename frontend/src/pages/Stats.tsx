@@ -20,6 +20,7 @@ import { statsApi } from '../api/stats';
 import { formatCents, formatPercentage, formatDate } from '../utils/format';
 import { useAuth } from '../hooks/useAuth';
 import { EmptyState } from '../components/EmptyState';
+import { PageHeader } from '../components/PageHeader';
 
 /**
  * Personal Stats Page (Phase 5)
@@ -139,33 +140,26 @@ export default function Stats() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Personal Statistics</h1>
-          <p className="text-gray-600 mt-1">Detailed performance analysis</p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => setShowDateFilter(!showDateFilter)}
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            {showDateFilter ? 'Hide' : 'Filter by Date'}
-          </button>
-          <button
-            onClick={handleExportCSV}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Export CSV
-          </button>
-          <Link
-            to="/dashboard"
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            Back to Dashboard
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        title="Personal Statistics"
+        description="Detailed performance analysis"
+        actions={
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => setShowDateFilter(!showDateFilter)}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              {showDateFilter ? 'Hide' : 'Filter by Date'}
+            </button>
+            <button
+              onClick={handleExportCSV}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Export CSV
+            </button>
+          </div>
+        }
+      />
 
       {/* Date Filter */}
       {showDateFilter && (
