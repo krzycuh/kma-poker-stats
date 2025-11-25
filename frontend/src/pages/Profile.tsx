@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { apiClient } from '../api/client';
 import type { UpdateProfileRequest, ChangePasswordRequest } from '../types/auth';
 import type { AxiosError } from 'axios';
+import { PageHeader } from '../components/PageHeader';
 
 /**
  * Profile page component
@@ -101,10 +102,12 @@ export const Profile: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
+        <PageHeader
+          title="Profile Settings"
+          description="Update your account details and password"
+        />
         <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Profile Settings</h1>
-
             {successMessage && (
               <div className="mb-4 rounded-md bg-green-50 p-4">
                 <p className="text-sm font-medium text-green-800">{successMessage}</p>

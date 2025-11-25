@@ -9,6 +9,7 @@ import { PlayerFormModal } from '../components/PlayerFormModal'
 import { LinkUserModal } from '../components/LinkUserModal'
 import { ConfirmationModal } from '../components/ConfirmationModal'
 import { useToast } from '../hooks/useToast'
+import { PageHeader } from '../components/PageHeader'
 
 export default function Players() {
   const { user } = useAuth()
@@ -141,23 +142,25 @@ export default function Players() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Players</h1>
-        <div className="flex items-center gap-3">
-          {typeof unlinkedCount === 'number' && (
-            <span className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800">
-              Unlinked users: {unlinkedCount}
-            </span>
-          )}
-          <button
-            onClick={handleAddNew}
-            className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
-            Add Player
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Players"
+        description="Manage your club roster and account links"
+        actions={
+          <div className="flex flex-wrap items-center gap-3">
+            {typeof unlinkedCount === 'number' && (
+              <span className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800">
+                Unlinked users: {unlinkedCount}
+              </span>
+            )}
+            <button
+              onClick={handleAddNew}
+              className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Add Player
+            </button>
+          </div>
+        }
+      />
 
       {/* Search and filters */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">

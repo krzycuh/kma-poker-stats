@@ -9,6 +9,7 @@ import {
   formatGameType,
   formatCents,
 } from '../utils/format';
+import { PageHeader } from '../components/PageHeader';
 
 /**
  * Sessions history page
@@ -32,23 +33,13 @@ export const Sessions: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="md:flex md:items-center md:justify-between">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Session History
-              </h1>
-            </div>
-            <div className="mt-4 flex md:mt-0 md:ml-4">
-              <Link
-                to="/dashboard"
-                className="mr-3 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Back to Dashboard
-              </Link>
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <PageHeader
+          title="Session History"
+          description="Review and manage all logged sessions"
+          actions={
+            <div className="flex flex-wrap gap-3">
               <Link
                 to="/log-session"
                 className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
@@ -56,12 +47,9 @@ export const Sessions: React.FC = () => {
                 Log New Session
               </Link>
             </div>
-          </div>
-        </div>
-      </div>
+          }
+        />
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search */}
         <div className="mb-6">
           <label htmlFor="search" className="sr-only">
