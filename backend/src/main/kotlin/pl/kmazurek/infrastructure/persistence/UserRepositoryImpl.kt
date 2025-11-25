@@ -47,11 +47,12 @@ class UserRepositoryImpl(
         pageSize: Int,
     ): Pair<List<User>, Long> {
         val normalizedSearch = searchTerm?.trim()?.takeIf { it.isNotEmpty() }
+        val searchPattern = normalizedSearch?.lowercase()?.let { "%$it%" }
         val safePage = page.coerceAtLeast(0)
         val safePageSize = pageSize.coerceAtLeast(1)
         val pageable = PageRequest.of(safePage, safePageSize)
 
-        val resultPage = jpaRepository.findUnlinkedUsers(normalizedSearch, pageable)
+        val resultPage = jpaRepository.findUnlinkedUsers(searchPattern, pageable)
         val users = resultPage.content.map { UserMapper.toDomain(it) }
         return users to resultPage.totalElements
     }

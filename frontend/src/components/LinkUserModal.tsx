@@ -20,11 +20,13 @@ export function LinkUserModal({ isOpen, onClose, onSelect }: LinkUserModalProps)
     }
   }, [isOpen])
 
+  const trimmedSearch = searchTerm.trim()
+
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['unlinked-users', searchTerm, page, isOpen],
     queryFn: () =>
       adminUsersApi.listUnlinked({
-        searchTerm: searchTerm || undefined,
+        searchTerm: trimmedSearch || undefined,
         page,
         pageSize: 10,
       }),

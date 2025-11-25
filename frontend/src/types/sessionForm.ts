@@ -1,8 +1,7 @@
 import { GameType } from './gameSession'
 
 export interface SessionFormData {
-  startTime: string
-  endTime: string
+  sessionDate: string
   location: string
   gameType: GameType
   minBuyInCents: number

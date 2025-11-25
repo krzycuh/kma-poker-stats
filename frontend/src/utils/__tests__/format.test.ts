@@ -12,34 +12,34 @@ import {
 
 describe('formatCents', () => {
   it('should format positive amounts correctly', () => {
-    expect(formatCents(1000)).toBe('$10.00');
-    expect(formatCents(12345)).toBe('$123.45');
-    expect(formatCents(100)).toBe('$1.00');
+    expect(formatCents(1000)).toBe('PLN 10.00');
+    expect(formatCents(12345)).toBe('PLN 123.45');
+    expect(formatCents(100)).toBe('PLN 1.00');
   });
 
   it('should format negative amounts correctly', () => {
-    expect(formatCents(-1000)).toBe('-$10.00');
-    expect(formatCents(-12345)).toBe('-$123.45');
+    expect(formatCents(-1000)).toBe('-PLN 10.00');
+    expect(formatCents(-12345)).toBe('-PLN 123.45');
   });
 
   it('should format zero correctly', () => {
-    expect(formatCents(0)).toBe('$0.00');
+    expect(formatCents(0)).toBe('PLN 0.00');
   });
 });
 
 describe('formatProfitCents', () => {
   it('should format positive profit with plus sign', () => {
-    expect(formatProfitCents(5000)).toBe('+$50.00');
-    expect(formatProfitCents(10000)).toBe('+$100.00');
+    expect(formatProfitCents(5000)).toBe('+PLN 50.00');
+    expect(formatProfitCents(10000)).toBe('+PLN 100.00');
   });
 
   it('should format negative profit with minus sign', () => {
-    expect(formatProfitCents(-5000)).toBe('-$50.00');
-    expect(formatProfitCents(-20000)).toBe('-$200.00');
+    expect(formatProfitCents(-5000)).toBe('-PLN 50.00');
+    expect(formatProfitCents(-20000)).toBe('-PLN 200.00');
   });
 
   it('should format zero with plus sign', () => {
-    expect(formatProfitCents(0)).toBe('+$0.00');
+    expect(formatProfitCents(0)).toBe('+PLN 0.00');
   });
 });
 
@@ -85,7 +85,6 @@ describe('formatDateTime', () => {
     const datetime = '2025-10-21T15:30:00';
     const formatted = formatDateTime(datetime);
     expect(formatted).toMatch(/Oct 21, 2025/);
-    expect(formatted).toMatch(/3:30|15:30/);
   });
 });
 

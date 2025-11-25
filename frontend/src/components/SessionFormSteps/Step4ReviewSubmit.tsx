@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { playerApi } from '../../api/players'
 import type { SessionFormData } from '../../types/sessionForm'
+import { formatCents, formatDateTime } from '../../utils/format'
 
 interface Step4Props {
   formData: SessionFormData
@@ -37,23 +38,6 @@ export function Step4ReviewSubmit({
   const getPlayerName = (playerId: string): string => {
     const player = allPlayers.find((p) => p.id === playerId)
     return player?.name || 'Unknown Player'
-  }
-
-  const formatCurrency = (cents: number): string => {
-    return (cents / 100).toFixed(2)
-  }
-
-  const formatDateTime = (dateTime: string): string => {
-    if (!dateTime) return 'Not set'
-    const date = new Date(dateTime)
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    })
   }
 
   const calculateProfit = (
@@ -115,16 +99,10 @@ export function Step4ReviewSubmit({
 
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <div className="text-gray-600">Start Time</div>
+            <div className="text-gray-600">Session Date</div>
             <div className="font-medium text-gray-900">
-              {formatDateTime(formData.startTime)}
-            </div>
-          </div>
-          <div>
-            <div className="text-gray-600">End Time</div>
-            <div className="font-medium text-gray-900">
-              {formData.endTime
-                ? formatDateTime(formData.endTime)
+              {formData.sessionDate
+                ? formatDateTime(`${formData.sessionDate}T00:00`)
                 : 'Not set'}
             </div>
           </div>
@@ -141,7 +119,7 @@ export function Step4ReviewSubmit({
           <div>
             <div className="text-gray-600">Min Buy-In</div>
             <div className="font-medium text-gray-900">
-              ${formatCurrency(formData.minBuyInCents)}
+              {formatCents(formData.minBuyInCents)}
             </div>
           </div>
           {formData.sessionNotes && (
@@ -192,8 +170,8 @@ export function Step4ReviewSubmit({
                       {getPlayerName(result.playerId)}
                     </div>
                     <div className="text-sm text-gray-600">
-                      Buy-in: ${formatCurrency(result.buyInCents)} → Cash-out:
-                      ${formatCurrency(result.cashOutCents)}
+                      Buy-in: {formatCents(result.buyInCents)} → Cash-out:
+                      {formatCents(result.cashOutCents)}
                     </div>
                     {result.notes && (
                       <div className="text-sm text-gray-500 mt-1 italic">
@@ -210,7 +188,8 @@ export function Step4ReviewSubmit({
                           : 'text-gray-600'
                     }`}
                   >
-                    {profit > 0 ? '+' : ''}${formatCurrency(Math.abs(profit))}
+                    {profit > 0 ? '+' : ''}
+                    {formatCents(Math.abs(profit))}
                   </div>
                 </div>
               )
@@ -223,13 +202,13 @@ export function Step4ReviewSubmit({
             <div>
               <div className="text-gray-600">Total Buy-In</div>
               <div className="font-semibold text-gray-900">
-                ${formatCurrency(totalBuyIn)}
+                {formatCents(totalBuyIn)}
               </div>
             </div>
             <div>
               <div className="text-gray-600">Total Cash-Out</div>
               <div className="font-semibold text-gray-900">
-                ${formatCurrency(totalCashOut)}
+                {formatCents(totalCashOut)}
               </div>
             </div>
             <div>
@@ -239,15 +218,15 @@ export function Step4ReviewSubmit({
                   discrepancy !== 0 ? 'text-orange-600' : 'text-green-600'
                 }`}
               >
-                {discrepancy > 0 ? '+' : ''}$
-                {formatCurrency(Math.abs(discrepancy))}
+                {discrepancy > 0 ? '+' : ''}
+                {formatCents(Math.abs(discrepancy))}
               </div>
             </div>
           </div>
           {discrepancy !== 0 && (
             <div className="mt-3 text-sm text-orange-700 bg-orange-50 border border-orange-200 rounded p-2">
-              ⚠️ Buy-ins and cash-outs don't balance by $
-              {formatCurrency(Math.abs(discrepancy))}
+              ⚠️ Buy-ins and cash-outs don't balance by{' '}
+              {formatCents(Math.abs(discrepancy))}
             </div>
           )}
         </div>

@@ -26,15 +26,15 @@ interface JpaUserRepository : JpaRepository<UserJpaEntity, UUID> {
             WHERE p.userId = u.id
         )
         AND (
-            :searchTerm IS NULL
-            OR LOWER(u.name) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
-            OR LOWER(u.email) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
+            :searchPattern IS NULL
+            OR LOWER(u.name) LIKE :searchPattern
+            OR LOWER(u.email) LIKE :searchPattern
         )
         ORDER BY u.createdAt DESC
         """,
     )
     fun findUnlinkedUsers(
-        @Param("searchTerm") searchTerm: String?,
+        @Param("searchPattern") searchPattern: String?,
         pageable: Pageable,
     ): Page<UserJpaEntity>
 

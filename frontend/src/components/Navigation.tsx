@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { UserRole } from '../types/auth';
+import logoCard from '../assets/logo-card.svg';
 
 /**
  * Main navigation component with accessibility features
@@ -65,10 +66,13 @@ export function Navigation() {
           <div className="flex items-center">
             <Link
               to="/"
-              className="rounded text-xl font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="rounded text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               aria-label="Poker Stats Home"
             >
-              🎲 Poker Stats
+              <span className="flex items-center gap-2">
+                <img src={logoCard} alt="" className="h-8 w-auto" />
+                <span className="text-xl font-bold tracking-tight">Poker Stats</span>
+              </span>
             </Link>
           </div>
           <div className="hidden items-center space-x-2 md:flex">
