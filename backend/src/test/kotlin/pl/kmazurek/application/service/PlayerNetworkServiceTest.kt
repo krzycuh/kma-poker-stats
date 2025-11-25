@@ -1,7 +1,6 @@
 package pl.kmazurek.application.service
 
 import io.mockk.every
-import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -35,21 +34,24 @@ class PlayerNetworkServiceTest {
         val sessionTwo = GameSessionId.generate()
 
         every { playerRepository.findByUserId(viewerUserId) } returns viewerPlayer
-        every { sessionResultRepository.findByPlayerId(viewerPlayer.id) } returns listOf(
-            sessionResult(sessionOne, viewerPlayer.id, createdAt = LocalDateTime.now().minusDays(2)),
-            sessionResult(sessionTwo, viewerPlayer.id, createdAt = LocalDateTime.now().minusDays(1)),
-        )
+        every { sessionResultRepository.findByPlayerId(viewerPlayer.id) } returns
+            listOf(
+                sessionResult(sessionOne, viewerPlayer.id, createdAt = LocalDateTime.now().minusDays(2)),
+                sessionResult(sessionTwo, viewerPlayer.id, createdAt = LocalDateTime.now().minusDays(1)),
+            )
 
-        every { sessionResultRepository.findBySessionIds(any()) } returns listOf(
-            sessionResult(sessionOne, otherPlayerOne.id, createdAt = LocalDateTime.now().minusDays(2)),
-            sessionResult(sessionTwo, otherPlayerOne.id, createdAt = LocalDateTime.now().minusDays(1)),
-            sessionResult(sessionTwo, otherPlayerTwo.id, createdAt = LocalDateTime.now().minusDays(1)),
-        )
+        every { sessionResultRepository.findBySessionIds(any()) } returns
+            listOf(
+                sessionResult(sessionOne, otherPlayerOne.id, createdAt = LocalDateTime.now().minusDays(2)),
+                sessionResult(sessionTwo, otherPlayerOne.id, createdAt = LocalDateTime.now().minusDays(1)),
+                sessionResult(sessionTwo, otherPlayerTwo.id, createdAt = LocalDateTime.now().minusDays(1)),
+            )
 
-        every { playerRepository.findByIds(any()) } returns listOf(
-            otherPlayerOne,
-            otherPlayerTwo,
-        )
+        every { playerRepository.findByIds(any()) } returns
+            listOf(
+                otherPlayerOne,
+                otherPlayerTwo,
+            )
 
         val result = service.searchVisiblePlayers(viewerUserId, null, null)
 
@@ -67,9 +69,10 @@ class PlayerNetworkServiceTest {
         val targetPlayer = player(name = "Rival", id = PlayerId.generate())
 
         every { playerRepository.findByUserId(viewerUserId) } returns viewerPlayer
-        every { sessionResultRepository.findByPlayerId(viewerPlayer.id) } returns listOf(
-            sessionResult(GameSessionId.generate(), viewerPlayer.id, createdAt = LocalDateTime.now()),
-        )
+        every { sessionResultRepository.findByPlayerId(viewerPlayer.id) } returns
+            listOf(
+                sessionResult(GameSessionId.generate(), viewerPlayer.id, createdAt = LocalDateTime.now()),
+            )
         every { sessionResultRepository.findByPlayerId(targetPlayer.id) } returns emptyList()
         every { playerRepository.findById(targetPlayer.id) } returns targetPlayer
 
