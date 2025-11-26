@@ -16,15 +16,15 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { statsApi } from '../api/stats';
+import { statsApi, type CompleteStats } from '../api/stats';
 import { formatCents, formatPercentage, formatDate } from '../utils/format';
 import { useAuth } from '../hooks/useAuth';
 import { EmptyState } from '../components/EmptyState';
 import { PageHeader } from '../components/PageHeader';
 
 /**
- * Personal Stats Page (Phase 5)
- * Displays comprehensive statistics with charts
+ * Unified Stats Page
+ * Displays statistics for current user or other players (from shared sessions)
  */
 export default function Stats() {
   const { user } = useAuth();
@@ -32,16 +32,47 @@ export default function Stats() {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [showDateFilter, setShowDateFilter] = useState(false);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
+  // Fetch available players
   const {
-    data: stats,
-    isLoading,
-    error,
+    data: players,
+    isLoading: playersLoading,
   } = useQuery({
-    queryKey: ['stats', 'personal', startDate, endDate],
-    queryFn: () => statsApi.getPersonalStats(startDate || undefined, endDate || undefined),
+    queryKey: ['shared-players', searchTerm],
+    queryFn: () => statsApi.searchPlayers({ searchTerm: searchTerm || undefined }),
     enabled: hasPlayerLink,
   });
+
+  // Determine if viewing self or another player
+  const isViewingSelf = selectedPlayerId === null;
+
+  // Fetch stats based on selection
+  const {
+    data: statsData,
+    isLoading: statsLoading,
+    error: statsError,
+  } = useQuery({
+    queryKey: ['stats', selectedPlayerId, startDate, endDate],
+    queryFn: () => {
+      if (isViewingSelf) {
+        return statsApi.getPersonalStats(startDate || undefined, endDate || undefined);
+      } else {
+        return statsApi.getPlayerStats(
+          selectedPlayerId as string,
+          startDate || undefined,
+          endDate || undefined,
+        ).then(response => response.stats);
+      }
+    },
+    enabled: hasPlayerLink,
+  });
+
+  // Get player name for display
+  const selectedPlayerName = isViewingSelf
+    ? user?.name || 'You'
+    : players?.find(p => p.playerId === selectedPlayerId)?.name || 'Player';
 
   const handleClearFilters = () => {
     setStartDate('');
@@ -49,11 +80,11 @@ export default function Stats() {
   };
 
   const handleExportCSV = () => {
-    if (!stats) return;
+    if (!statsData) return;
 
     // Create CSV content
     const headers = ['Date', 'Profit', 'Cumulative Profit'];
-    const rows = stats.profitOverTime.map((point) => [
+    const rows = statsData.profitOverTime.map((point) => [
       point.date,
       formatCents(point.profitCents),
       formatCents(point.cumulativeProfitCents),
@@ -66,7 +97,7 @@ export default function Stats() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `poker-stats-${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `poker-stats-${selectedPlayerName}-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -77,11 +108,14 @@ export default function Stats() {
         <EmptyState
           icon="👤"
           title="Player profile required"
-          description="Link this user account to a player profile to access personal statistics."
+          description="Link this user account to a player profile to access statistics."
         />
       </div>
     );
   }
+
+  const isLoading = statsLoading || playersLoading;
+  const stats = statsData as CompleteStats | undefined;
 
   if (isLoading) {
     return (
@@ -91,13 +125,13 @@ export default function Stats() {
     );
   }
 
-  if (error) {
+  if (statsError) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
           <p className="font-medium">Error loading statistics</p>
           <p className="text-sm mt-1">
-            {error instanceof Error ? error.message : 'An error occurred'}
+            {statsError instanceof Error ? statsError.message : 'An error occurred'}
           </p>
         </div>
       </div>
@@ -157,8 +191,8 @@ export default function Stats() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
       <PageHeader
-        title="Personal Statistics"
-        description="Detailed performance analysis"
+        title="Player Statistics"
+        description="Performance analysis and insights"
         actions={
           <div className="flex flex-wrap gap-3">
             <button
@@ -176,6 +210,55 @@ export default function Stats() {
           </div>
         }
       />
+
+      {/* Player Selector */}
+      <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Viewing statistics for
+            </label>
+            <div className="relative">
+              <select
+                value={selectedPlayerId || ''}
+                onChange={(e) => setSelectedPlayerId(e.target.value || null)}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 pr-10 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none bg-white"
+              >
+                <option value="">{user?.name || 'You'}</option>
+                {players && players.length > 0 && (
+                  <>
+                    <option disabled>─────────────</option>
+                    {players.map((player) => (
+                      <option key={player.playerId} value={player.playerId}>
+                        {player.name}
+                      </option>
+                    ))}
+                  </>
+                )}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          {!isViewingSelf && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Search players
+              </label>
+              <input
+                type="text"
+                placeholder="Filter by name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Date Filter */}
       {showDateFilter && (
