@@ -4,10 +4,15 @@ import org.springframework.stereotype.Service
 import pl.kmazurek.application.dto.LeaderboardDto
 import pl.kmazurek.application.dto.LeaderboardEntryDto
 import pl.kmazurek.application.dto.LeaderboardMetric
+import pl.kmazurek.application.usecase.player.PlayerAccessDeniedException
+import pl.kmazurek.application.usecase.user.UserNotFoundException
+import pl.kmazurek.domain.model.gamesession.GameSessionId
+import pl.kmazurek.domain.model.player.Player
 import pl.kmazurek.domain.model.player.PlayerId
 import pl.kmazurek.domain.model.user.UserId
 import pl.kmazurek.domain.repository.PlayerRepository
 import pl.kmazurek.domain.repository.SessionResultRepository
+import pl.kmazurek.domain.repository.UserRepository
 import pl.kmazurek.domain.service.PlayerStats
 import pl.kmazurek.domain.service.StatsCalculator
 import java.util.Locale
@@ -21,6 +26,7 @@ class LeaderboardService(
     private val playerRepository: PlayerRepository,
     private val resultRepository: SessionResultRepository,
     private val statsCalculator: StatsCalculator,
+    private val userRepository: UserRepository,
 ) {
     /**
      * Get leaderboard for a specific metric
@@ -30,63 +36,49 @@ class LeaderboardService(
         userId: UserId? = null,
         limit: Int = 50,
     ): LeaderboardDto {
-        // Get all players and calculate their stats
-        val allPlayers = playerRepository.findAll()
+        val viewerAccess = resolveViewerAccess(userId)
 
-        val playerStatsMap =
-            allPlayers.associate { player ->
-                val results = resultRepository.findByPlayerId(player.id)
-                val stats = statsCalculator.calculatePlayerStats(player.id, results)
-                player to stats
+        val playerStats =
+            when (viewerAccess.scope) {
+                LeaderboardScope.GLOBAL -> buildGlobalPlayerStats()
+                LeaderboardScope.PLAYER_NETWORK -> buildNetworkPlayerStats(viewerAccess)
             }
 
-        // Filter out players with no sessions (unless metric is TOTAL_SESSIONS)
-        val filteredPlayers =
+        if (playerStats.isEmpty()) {
+            return emptyLeaderboard(metric)
+        }
+
+        val eligiblePlayers =
             if (metric == LeaderboardMetric.TOTAL_SESSIONS) {
-                playerStatsMap
+                playerStats
             } else {
-                playerStatsMap.filter { (_, stats) -> stats.totalSessions > 0 }
+                playerStats.filter { it.stats.totalSessions > 0 }
             }
+
+        if (eligiblePlayers.isEmpty()) {
+            return emptyLeaderboard(metric)
+        }
 
         // Sort players by the selected metric
-        val sortedPlayers =
-            when (metric) {
-                LeaderboardMetric.NET_PROFIT ->
-                    filteredPlayers.toList()
-                        .sortedByDescending { (_, stats) -> stats.netProfit.amountInCents }
-                LeaderboardMetric.ROI ->
-                    filteredPlayers.toList()
-                        .sortedByDescending { (_, stats) -> stats.roi }
-                LeaderboardMetric.WIN_RATE ->
-                    filteredPlayers.toList()
-                        .sortedByDescending { (_, stats) -> stats.winRate }
-                LeaderboardMetric.CURRENT_STREAK ->
-                    filteredPlayers.toList()
-                        .sortedByDescending { (_, stats) -> stats.currentStreak }
-                LeaderboardMetric.TOTAL_SESSIONS ->
-                    filteredPlayers.toList()
-                        .sortedByDescending { (_, stats) -> stats.totalSessions }
-                LeaderboardMetric.AVERAGE_PROFIT ->
-                    filteredPlayers.toList()
-                        .sortedByDescending { (_, stats) -> stats.averageSessionProfit.amountInCents }
-            }
+        val sortedPlayers = sortPlayersByMetric(eligiblePlayers, metric)
 
         // Find current user's player
         val currentUserPlayer =
-            userId?.let { uid ->
-                playerRepository.findByUserId(uid)
-            }
+            viewerAccess.currentPlayer
+                ?: userId?.let { uid ->
+                    playerRepository.findByUserId(uid)
+                }
 
         // Create leaderboard entries
         val entries =
-            sortedPlayers.take(limit).mapIndexed { index, (player, stats) ->
+            sortedPlayers.take(limit).mapIndexed { index, playerWithStats ->
                 createLeaderboardEntry(
                     rank = index + 1,
-                    playerId = player.id,
-                    playerName = player.name.value,
-                    stats = stats,
+                    playerId = playerWithStats.player.id,
+                    playerName = playerWithStats.player.name.value,
+                    stats = playerWithStats.stats,
                     metric = metric,
-                    isCurrentUser = player.id == currentUserPlayer?.id,
+                    isCurrentUser = playerWithStats.player.id == currentUserPlayer?.id,
                 )
             }
 
@@ -99,7 +91,7 @@ class LeaderboardService(
                     } + 1
 
                 if (currentUserRank > 0 && currentUserRank > limit) {
-                    val currentUserStats = playerStatsMap[currentUserPlayer]
+                    val currentUserStats = playerStats.find { it.player.id == currentUserPlayer.id }?.stats
                     if (currentUserStats != null) {
                         createLeaderboardEntry(
                             rank = currentUserRank,
@@ -126,6 +118,100 @@ class LeaderboardService(
             totalEntries = sortedPlayers.size,
         )
     }
+
+    private fun buildGlobalPlayerStats(): List<PlayerWithStats> {
+        val allPlayers = playerRepository.findAll()
+        if (allPlayers.isEmpty()) {
+            return emptyList()
+        }
+
+        return allPlayers.map { player ->
+            val results = resultRepository.findByPlayerId(player.id)
+            val stats = statsCalculator.calculatePlayerStats(player.id, results)
+            PlayerWithStats(player, stats)
+        }
+    }
+
+    /**
+     * Restrict leaderboard to players that share sessions with the viewer.
+     */
+    private fun buildNetworkPlayerStats(access: ViewerAccess): List<PlayerWithStats> {
+        if (access.sessionIds.isEmpty()) {
+            return emptyList()
+        }
+
+        val sharedResults = resultRepository.findBySessionIds(access.sessionIds)
+        if (sharedResults.isEmpty()) {
+            return emptyList()
+        }
+
+        val resultsByPlayer = sharedResults.groupBy { it.playerId }
+        if (resultsByPlayer.isEmpty()) {
+            return emptyList()
+        }
+
+        val connectedPlayers =
+            playerRepository.findByIds(resultsByPlayer.keys)
+                .filter { it.isActive }
+
+        return connectedPlayers.mapNotNull { player ->
+            val playerResults = resultsByPlayer[player.id] ?: return@mapNotNull null
+            val stats = statsCalculator.calculatePlayerStats(player.id, playerResults)
+            PlayerWithStats(player, stats)
+        }
+    }
+
+    private fun sortPlayersByMetric(
+        players: List<PlayerWithStats>,
+        metric: LeaderboardMetric,
+    ): List<PlayerWithStats> {
+        return when (metric) {
+            LeaderboardMetric.NET_PROFIT ->
+                players.sortedByDescending { it.stats.netProfit.amountInCents }
+            LeaderboardMetric.ROI ->
+                players.sortedByDescending { it.stats.roi }
+            LeaderboardMetric.WIN_RATE ->
+                players.sortedByDescending { it.stats.winRate }
+            LeaderboardMetric.CURRENT_STREAK ->
+                players.sortedByDescending { it.stats.currentStreak }
+            LeaderboardMetric.TOTAL_SESSIONS ->
+                players.sortedByDescending { it.stats.totalSessions }
+            LeaderboardMetric.AVERAGE_PROFIT ->
+                players.sortedByDescending { it.stats.averageSessionProfit.amountInCents }
+        }
+    }
+
+    private fun resolveViewerAccess(userId: UserId?): ViewerAccess {
+        if (userId == null) {
+            return ViewerAccess(LeaderboardScope.GLOBAL, currentPlayer = null, sessionIds = emptySet())
+        }
+
+        val user =
+            userRepository.findById(userId)
+                ?: throw UserNotFoundException("User not found")
+
+        val linkedPlayer = playerRepository.findByUserId(userId)
+
+        if (user.role.hasAdminPrivileges()) {
+            return ViewerAccess(LeaderboardScope.GLOBAL, currentPlayer = linkedPlayer, sessionIds = emptySet())
+        }
+
+        val player =
+            linkedPlayer ?: throw PlayerAccessDeniedException("User is not linked to any player")
+
+        val viewerResults = resultRepository.findByPlayerId(player.id)
+        val sharedSessionIds = viewerResults.map { it.sessionId }.toSet()
+
+        return ViewerAccess(LeaderboardScope.PLAYER_NETWORK, currentPlayer = player, sessionIds = sharedSessionIds)
+    }
+
+    private fun emptyLeaderboard(metric: LeaderboardMetric) =
+        LeaderboardDto(
+            metric = metric,
+            entries = emptyList(),
+            currentUserEntry = null,
+            totalEntries = 0,
+        )
 
     /**
      * Create a leaderboard entry from player stats
@@ -184,5 +270,21 @@ class LeaderboardService(
         } else {
             "-PLN $formattedAmount"
         }
+    }
+
+    private data class PlayerWithStats(
+        val player: Player,
+        val stats: PlayerStats,
+    )
+
+    private data class ViewerAccess(
+        val scope: LeaderboardScope,
+        val currentPlayer: Player?,
+        val sessionIds: Set<GameSessionId>,
+    )
+
+    private enum class LeaderboardScope {
+        GLOBAL,
+        PLAYER_NETWORK,
     }
 }
