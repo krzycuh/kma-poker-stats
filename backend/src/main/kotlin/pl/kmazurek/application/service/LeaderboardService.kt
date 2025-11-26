@@ -135,9 +135,7 @@ class LeaderboardService(
     /**
      * Restrict leaderboard to players that share sessions with the viewer.
      */
-    private fun buildNetworkPlayerStats(
-        access: ViewerAccess,
-    ): List<PlayerWithStats> {
+    private fun buildNetworkPlayerStats(access: ViewerAccess): List<PlayerWithStats> {
         if (access.sessionIds.isEmpty()) {
             return emptyList()
         }
@@ -273,6 +271,7 @@ class LeaderboardService(
             "-PLN $formattedAmount"
         }
     }
+
     private data class PlayerWithStats(
         val player: Player,
         val stats: PlayerStats,
