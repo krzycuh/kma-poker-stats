@@ -1,6 +1,5 @@
 package pl.kmazurek.application.service
 
-import java.util.Locale
 import org.springframework.stereotype.Service
 import pl.kmazurek.application.dto.AdminDashboardDto
 import pl.kmazurek.application.dto.CasualPlayerDashboardDto
@@ -14,6 +13,7 @@ import pl.kmazurek.domain.repository.GameSessionRepository
 import pl.kmazurek.domain.repository.PlayerRepository
 import pl.kmazurek.domain.repository.SessionResultRepository
 import pl.kmazurek.domain.service.StatsCalculator
+import java.util.Locale
 
 /**
  * Application Service for dashboard data
