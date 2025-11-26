@@ -68,7 +68,7 @@ export default function PlayerNetwork() {
 
   if (!hasPlayerLink) {
     return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
         <EmptyState
           icon="🤝"
           title="Link required to view players"
@@ -79,7 +79,7 @@ export default function PlayerNetwork() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 space-y-6">
       <PageHeader
         title="Player Network"
         description="Search for players who have shared a table with you and review your mutual performance."

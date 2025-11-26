@@ -9,7 +9,7 @@ export function AppLayout() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      <main className="px-4 py-6 sm:px-6 lg:px-8">
+      <main className="px-4 pt-4 pb-8 sm:px-6 lg:px-8">
         <Outlet />
       </main>
     </div>

@@ -89,7 +89,7 @@ export default function Players() {
 
   if (!isAdmin) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 pt-4 pb-8">
         <div className="rounded-md bg-red-50 p-4 text-red-800">
           <p>You do not have permission to access this page.</p>
         </div>
@@ -141,7 +141,7 @@ export default function Players() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 pt-4 pb-8">
       <PageHeader
         title="Players"
         description="Manage your club roster and account links"

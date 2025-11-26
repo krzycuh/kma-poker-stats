@@ -10,6 +10,7 @@ import pl.kmazurek.domain.repository.PlayerRepository
 import pl.kmazurek.domain.repository.SessionResultRepository
 import pl.kmazurek.domain.service.PlayerStats
 import pl.kmazurek.domain.service.StatsCalculator
+import java.util.Locale
 
 /**
  * Application Service for leaderboards
@@ -173,15 +174,15 @@ class LeaderboardService(
     }
 
     /**
-     * Format cents to dollar string
+     * Format cents to PLN string
      */
     private fun formatCents(cents: Long): String {
-        val dollars = cents / 100
-        val remainingCents = kotlin.math.abs(cents % 100)
+        val absoluteValue = kotlin.math.abs(cents) / 100.0
+        val formattedAmount = String.format(Locale.US, "%,.2f", absoluteValue)
         return if (cents >= 0) {
-            "$$dollars.${remainingCents.toString().padStart(2, '0')}"
+            "PLN $formattedAmount"
         } else {
-            "-$${kotlin.math.abs(dollars)}.${remainingCents.toString().padStart(2, '0')}"
+            "-PLN $formattedAmount"
         }
     }
 }

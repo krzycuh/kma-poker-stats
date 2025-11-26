@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { UserRole } from '../types/auth';
 import logoCard from '../assets/logo-card.svg';
+import { APP_VERSION_LABEL } from '../utils/appInfo';
 
 /**
  * Main navigation component with accessibility features
@@ -13,6 +14,7 @@ export function Navigation() {
   const isAdmin = user?.role === UserRole.ADMIN;
   const hasPlayerLink = !!user?.linkedPlayerId;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const versionLabel = APP_VERSION_LABEL;
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -78,7 +80,10 @@ export function Navigation() {
             >
               <span className="flex items-center gap-2">
                 <img src={logoCard} alt="" className="h-8 w-auto" />
-                <span className="text-xl font-bold tracking-tight">Poker Stats</span>
+                <span className="flex flex-col leading-tight">
+                  <span className="text-xl font-bold tracking-tight">Poker Stats</span>
+                  <span className="text-xs font-medium text-gray-500">{versionLabel}</span>
+                </span>
               </span>
             </Link>
           </div>
@@ -144,6 +149,7 @@ export function Navigation() {
           >
             Logout
           </button>
+          <p className="pt-2 text-xs font-medium text-gray-400">Frontend {versionLabel}</p>
         </div>
       </div>
     </nav>
