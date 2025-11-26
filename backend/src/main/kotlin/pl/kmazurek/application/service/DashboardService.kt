@@ -1,5 +1,6 @@
 package pl.kmazurek.application.service
 
+import java.util.Locale
 import org.springframework.stereotype.Service
 import pl.kmazurek.application.dto.AdminDashboardDto
 import pl.kmazurek.application.dto.CasualPlayerDashboardDto
@@ -174,12 +175,12 @@ class DashboardService(
     }
 
     private fun formatCents(cents: Long): String {
-        val dollars = cents / 100
-        val remainingCents = kotlin.math.abs(cents % 100)
+        val absoluteValue = kotlin.math.abs(cents) / 100.0
+        val formattedAmount = String.format(Locale.US, "%,.2f", absoluteValue)
         return if (cents >= 0) {
-            "+$$dollars.${remainingCents.toString().padStart(2, '0')}"
+            "+PLN $formattedAmount"
         } else {
-            "-$${kotlin.math.abs(dollars)}.${remainingCents.toString().padStart(2, '0')}"
+            "-PLN $formattedAmount"
         }
     }
 }

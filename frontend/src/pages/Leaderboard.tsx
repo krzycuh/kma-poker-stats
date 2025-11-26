@@ -63,7 +63,7 @@ export default function Leaderboard() {
 
   if (!hasPlayerLink) {
     return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
         <EmptyState
           icon="🏅"
           title="Link required to view leaderboard"
@@ -83,7 +83,7 @@ export default function Leaderboard() {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
           <p className="font-medium">Error loading leaderboard</p>
           <p className="text-sm mt-1">
@@ -102,7 +102,7 @@ export default function Leaderboard() {
   const restOfLeaderboard = leaderboard.entries.slice(3);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
       <PageHeader
         title="Leaderboard"
         description={`${leaderboard.totalEntries} players ranked`}

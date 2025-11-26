@@ -73,7 +73,7 @@ export default function Stats() {
 
   if (!hasPlayerLink) {
     return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
         <EmptyState
           icon="👤"
           title="Player profile required"
@@ -93,7 +93,7 @@ export default function Stats() {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
           <p className="font-medium">Error loading statistics</p>
           <p className="text-sm mt-1">
@@ -138,8 +138,24 @@ export default function Stats() {
     };
   });
 
+  const formatPlnValue = (value: number) => formatCents(Math.round(value * 100));
+  const formatPlnLabel = (value: number | string) => {
+    const numericValue = typeof value === 'number' ? value : Number(value);
+    if (Number.isNaN(numericValue)) {
+      return value.toString();
+    }
+    return formatPlnValue(numericValue);
+  };
+  const plnTooltipFormatter = (value: number | string) => {
+    const numericValue = typeof value === 'number' ? value : Number(value);
+    if (Number.isNaN(numericValue)) {
+      return [value, ''];
+    }
+    return [formatPlnValue(numericValue), ''];
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
       <PageHeader
         title="Personal Statistics"
         description="Detailed performance analysis"
@@ -233,11 +249,8 @@ export default function Stats() {
               <LineChart data={profitChartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip
-                  formatter={(value: number) => [`$${value.toFixed(2)}`, '']}
-                  labelStyle={{ color: '#000' }}
-                />
+                <YAxis tickFormatter={formatPlnLabel} />
+                <Tooltip formatter={plnTooltipFormatter} labelStyle={{ color: '#000' }} />
                 <Legend />
                 <Line
                   type="monotone"
@@ -296,8 +309,8 @@ export default function Stats() {
               <BarChart data={locationChartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, '']} />
+                <YAxis tickFormatter={formatPlnLabel} />
+                <Tooltip formatter={plnTooltipFormatter} />
                 <Legend />
                 <Bar dataKey="profit" fill="#3b82f6" name="Total Profit" />
               </BarChart>
@@ -314,8 +327,8 @@ export default function Stats() {
             <BarChart data={dayOfWeekChartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, '']} />
+              <YAxis tickFormatter={formatPlnLabel} />
+              <Tooltip formatter={plnTooltipFormatter} />
               <Legend />
               <Bar dataKey="profit" fill="#8b5cf6" name="Total Profit" />
             </BarChart>
