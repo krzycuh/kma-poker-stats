@@ -10,13 +10,17 @@ import {
   formatCents,
 } from '../utils/format';
 import { PageHeader } from '../components/PageHeader';
+import { useAuth } from '../hooks/useAuth';
+import { UserRole } from '../types/auth';
 
 /**
  * Sessions history page
  * Shows list of all game sessions with filtering and sorting
  */
 export const Sessions: React.FC = () => {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const isAdmin = user?.role === UserRole.ADMIN;
 
   // Fetch all sessions
   const { data: sessions, isLoading, error } = useQuery({
@@ -37,16 +41,18 @@ export const Sessions: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <PageHeader
           title="Session History"
-          description="Review and manage all logged sessions"
+          description={isAdmin ? "Review and manage all logged sessions" : "View sessions you participated in"}
           actions={
-            <div className="flex flex-wrap gap-3">
-              <Link
-                to="/log-session"
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-              >
-                Log New Session
-              </Link>
-            </div>
+            isAdmin ? (
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  to="/log-session"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                >
+                  Log New Session
+                </Link>
+              </div>
+            ) : undefined
           }
         />
 
@@ -133,11 +139,11 @@ export const Sessions: React.FC = () => {
           <EmptyState
             icon="🎲"
             title="No Sessions Yet"
-            description="Start by logging your first poker session!"
-            action={{
+            description={isAdmin ? "Start by logging your first poker session!" : "You haven't participated in any sessions yet."}
+            action={isAdmin ? {
               label: 'Log Your First Session',
               onClick: () => window.location.href = '/log-session',
-            }}
+            } : undefined}
           />
         )}
         {filteredSessions && filteredSessions.length === 0 && searchTerm && (
