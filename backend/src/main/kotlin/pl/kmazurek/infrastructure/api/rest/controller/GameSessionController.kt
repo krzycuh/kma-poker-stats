@@ -60,7 +60,7 @@ class GameSessionController(
         authentication: Authentication,
     ): ResponseEntity<List<GameSessionDto>> {
         val isAdmin = authentication.isAdmin()
-        val filterByUserId = if (isAdmin) null else userIdString?.let { UserId.fromString(it) }
+        val filterByUserId = if (isAdmin) null else userIdString
 
         val query =
             ListGameSessionsQuery(
