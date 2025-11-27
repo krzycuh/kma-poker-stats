@@ -38,6 +38,20 @@ const SessionDetailAccess = () => {
   return <Navigate to="/" replace />;
 };
 
+const SessionsAccess = () => {
+  const { user } = useAuth();
+
+  if (user?.role === UserRole.ADMIN) {
+    return <Sessions />;
+  }
+
+  if (user?.role === UserRole.CASUAL_PLAYER && user.linkedPlayerId) {
+    return <Sessions />;
+  }
+
+  return <Navigate to="/" replace />;
+};
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -119,9 +133,7 @@ function App() {
                   <Route
                     path="/sessions"
                     element={
-                      <ProtectedRoute requireRole={UserRole.ADMIN}>
-                        <Sessions />
-                      </ProtectedRoute>
+                      <SessionsAccess />
                     }
                   />
                   <Route

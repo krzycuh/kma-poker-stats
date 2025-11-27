@@ -51,7 +51,7 @@ export const SessionDetail: React.FC = () => {
           .slice(0, 2)
           .toUpperCase();
 
-    return (
+    const content = (
       <div className="flex items-center gap-3">
         {result.playerAvatarUrl ? (
           <img
@@ -72,6 +72,20 @@ export const SessionDetail: React.FC = () => {
         </div>
       </div>
     );
+
+    // Make the player name clickable if they have a linked user
+    if (result.linkedUserId) {
+      return (
+        <Link
+          to={`/stats?playerId=${result.playerId}`}
+          className="hover:opacity-70 transition-opacity"
+        >
+          {content}
+        </Link>
+      );
+    }
+
+    return content;
   };
 
   // Delete mutation

@@ -57,10 +57,14 @@ class GameSessionController(
         @RequestParam(required = false, defaultValue = "false") includeDeleted: Boolean,
         @RequestParam(required = false, defaultValue = "0") page: Int,
         @RequestParam(required = false, defaultValue = "50") pageSize: Int,
+        authentication: Authentication,
     ): ResponseEntity<List<GameSessionDto>> {
+        val isAdmin = authentication.isAdmin()
+        val filterByUserId = if (isAdmin) null else userIdString?.let { UserId.fromString(it) }
+
         val query =
             ListGameSessionsQuery(
-                userId = null, // For now, list all sessions - will add user filtering later
+                userId = filterByUserId,
                 location = location,
                 gameType = gameType,
                 startDate = startDate,
