@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   LineChart,
   Line,
@@ -29,11 +29,14 @@ import { PageHeader } from '../components/PageHeader';
 export default function Stats() {
   const { user } = useAuth();
   const hasPlayerLink = !!user?.linkedPlayerId;
+  const [searchParams, setSearchParams] = useSearchParams();
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [showDateFilter, setShowDateFilter] = useState(false);
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Get selected player from URL query param
+  const selectedPlayerId = searchParams.get('playerId');
 
   // Fetch available players
   const {
@@ -221,7 +224,14 @@ export default function Stats() {
             <div className="relative">
               <select
                 value={selectedPlayerId || ''}
-                onChange={(e) => setSelectedPlayerId(e.target.value || null)}
+                onChange={(e) => {
+                  const newPlayerId = e.target.value;
+                  if (newPlayerId) {
+                    setSearchParams({ playerId: newPlayerId });
+                  } else {
+                    setSearchParams({});
+                  }
+                }}
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 pr-10 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none bg-white"
               >
                 <option value="">{user?.name || 'You'}</option>
