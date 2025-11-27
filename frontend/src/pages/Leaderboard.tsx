@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { leaderboardApi, LeaderboardMetric } from '../api/leaderboard';
 import { useAuth } from '../hooks/useAuth';
 import { EmptyState } from '../components/EmptyState';
@@ -144,7 +145,12 @@ export default function Leaderboard() {
               >
                 <div className="text-5xl mb-2">{getRankBadge(entry.rank)}</div>
                 <h3 className="text-xl font-bold text-gray-900 mb-1">
-                  {entry.playerName}
+                  <Link
+                    to={`/stats?playerId=${entry.playerId}`}
+                    className="hover:text-blue-600 hover:underline transition"
+                  >
+                    {entry.playerName}
+                  </Link>
                   {entry.isCurrentUser && (
                     <span className="ml-2 text-sm font-normal text-blue-600">(You)</span>
                   )}
@@ -178,7 +184,12 @@ export default function Leaderboard() {
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">
-                        {entry.playerName}
+                        <Link
+                          to={`/stats?playerId=${entry.playerId}`}
+                          className="hover:text-blue-600 hover:underline transition"
+                        >
+                          {entry.playerName}
+                        </Link>
                         {entry.isCurrentUser && (
                           <span className="ml-2 text-sm font-normal text-blue-600">(You)</span>
                         )}
@@ -208,7 +219,12 @@ export default function Leaderboard() {
                 </span>
                 <div>
                   <p className="font-medium text-blue-900">
-                    {leaderboard.currentUserEntry.playerName}
+                    <Link
+                      to={`/stats?playerId=${leaderboard.currentUserEntry.playerId}`}
+                      className="hover:text-blue-700 hover:underline transition"
+                    >
+                      {leaderboard.currentUserEntry.playerName}
+                    </Link>
                   </p>
                   <p className="text-sm text-blue-700">
                     {leaderboard.currentUserEntry.sessionsPlayed} sessions

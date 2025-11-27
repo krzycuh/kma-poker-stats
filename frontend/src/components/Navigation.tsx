@@ -39,13 +39,6 @@ export function Navigation() {
           <Link to="/leaderboard" className={linkClasses('/leaderboard')} aria-label="View Leaderboard">
             🏆 <span>Leaderboard</span>
           </Link>
-          <Link
-            to="/player-network"
-            className={linkClasses('/player-network')}
-            aria-label="View Player Network"
-          >
-            🤝 <span>Player Network</span>
-          </Link>
         </>
       )}
       <Link to="/profile" className={linkClasses('/profile')} aria-label="View Profile">
