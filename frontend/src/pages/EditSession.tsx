@@ -7,10 +7,7 @@ import { Step2PlayerSelection } from '../components/SessionFormSteps/Step2Player
 import { Step3ResultsEntry } from '../components/SessionFormSteps/Step3ResultsEntry'
 import { Step4ReviewSubmit } from '../components/SessionFormSteps/Step4ReviewSubmit'
 import { sessionApi } from '../api/sessions'
-import type {
-  CreateGameSessionRequest,
-  UpdateGameSessionRequest,
-} from '../types/gameSession'
+import type { CreateGameSessionRequest } from '../types/gameSession'
 import { GameType } from '../types/gameSession'
 import { useAuth } from '../hooks/useAuth'
 import { UserRole } from '../types/auth'
