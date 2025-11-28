@@ -39,20 +39,18 @@ export function Navigation() {
           <Link to="/leaderboard" className={linkClasses('/leaderboard')} aria-label="View Leaderboard">
             🏆 <span>Leaderboard</span>
           </Link>
+          <Link to="/sessions" className={linkClasses('/sessions')} aria-label="View Sessions">
+            📋 <span>Sessions</span>
+          </Link>
         </>
       )}
       <Link to="/profile" className={linkClasses('/profile')} aria-label="View Profile">
         👤 <span>Profile</span>
       </Link>
       {isAdmin && (
-        <>
-          <Link to="/players" className={linkClasses('/players')} aria-label="Manage Players">
-            👥 <span>Players</span>
-          </Link>
-          <Link to="/sessions" className={linkClasses('/sessions')} aria-label="View Sessions">
-            📋 <span>Sessions</span>
-          </Link>
-        </>
+        <Link to="/players" className={linkClasses('/players')} aria-label="Manage Players">
+          👥 <span>Players</span>
+        </Link>
       )}
     </>
   );
