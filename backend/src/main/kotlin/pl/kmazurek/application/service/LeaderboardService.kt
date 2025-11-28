@@ -126,8 +126,10 @@ class LeaderboardService(
         }
 
         return allPlayers.map { player ->
-            val results = resultRepository.findByPlayerId(player.id)
-            val stats = statsCalculator.calculatePlayerStats(player.id, results)
+            val allResults = resultRepository.findByPlayerId(player.id)
+            // Filter out spectator results - they should not be included in statistics
+            val activeResults = allResults.filter { !it.isSpectator }
+            val stats = statsCalculator.calculatePlayerStats(player.id, activeResults)
             PlayerWithStats(player, stats)
         }
     }
@@ -155,8 +157,10 @@ class LeaderboardService(
                 .filter { it.isActive }
 
         return connectedPlayers.mapNotNull { player ->
-            val playerResults = resultsByPlayer[player.id] ?: return@mapNotNull null
-            val stats = statsCalculator.calculatePlayerStats(player.id, playerResults)
+            val allPlayerResults = resultsByPlayer[player.id] ?: return@mapNotNull null
+            // Filter out spectator results - they should not be included in statistics
+            val activeResults = allPlayerResults.filter { !it.isSpectator }
+            val stats = statsCalculator.calculatePlayerStats(player.id, activeResults)
             PlayerWithStats(player, stats)
         }
     }

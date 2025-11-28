@@ -29,6 +29,8 @@ class SessionResultJpaEntity(
     var placement: Int? = null,
     @Column(columnDefinition = "TEXT")
     var notes: String? = null,
+    @Column(name = "is_spectator", nullable = false)
+    var isSpectator: Boolean = false,
     @Column(name = "created_at", nullable = false, updatable = false)
     var createdAt: LocalDateTime = LocalDateTime.now(),
     @Column(name = "updated_at", nullable = false)

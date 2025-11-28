@@ -18,6 +18,9 @@ export function Step2PlayerSelection({
 }: Step2Props) {
   const [searchTerm, setSearchTerm] = useState('')
   const [error, setError] = useState('')
+  const [spectatorPlayerIds, setSpectatorPlayerIds] = useState<string[]>(
+    () => formData.results.filter((r) => r.isSpectator).map((r) => r.playerId),
+  )
 
   const { data: players = [], isLoading } = useQuery({
     queryKey: ['players'],
@@ -34,25 +37,52 @@ export function Step2PlayerSelection({
       ? formData.selectedPlayerIds.filter((id) => id !== playerId)
       : [...formData.selectedPlayerIds, playerId]
 
+    // If deselecting, also remove from spectators
+    if (isSelected) {
+      setSpectatorPlayerIds((prev) => prev.filter((id) => id !== playerId))
+    }
+
     updateFormData({ selectedPlayerIds: newSelectedPlayerIds })
     setError('')
   }
 
+  const toggleSpectator = (playerId: string) => {
+    setSpectatorPlayerIds((prev) =>
+      prev.includes(playerId)
+        ? prev.filter((id) => id !== playerId)
+        : [...prev, playerId],
+    )
+    setError('')
+  }
+
   const handleNext = () => {
+    // Check for minimum 2 active (non-spectator) players
+    const activePlayers = formData.selectedPlayerIds.filter(
+      (id) => !spectatorPlayerIds.includes(id),
+    )
+
     if (formData.selectedPlayerIds.length < 2) {
       setError('Please select at least 2 players')
+      return
+    }
+
+    if (activePlayers.length < 2) {
+      setError('Please select at least 2 active (non-spectator) players')
       return
     }
 
     // Initialize results for selected players
     const results = formData.selectedPlayerIds.map((playerId) => {
       const existing = formData.results.find((r) => r.playerId === playerId)
+      const isSpectator = spectatorPlayerIds.includes(playerId)
+
       return (
         existing || {
           playerId,
-          buyInCents: formData.minBuyInCents,
-          cashOutCents: formData.minBuyInCents,
+          buyInCents: isSpectator ? 0 : formData.minBuyInCents,
+          cashOutCents: isSpectator ? 0 : formData.minBuyInCents,
           notes: '',
+          isSpectator,
         }
       )
     })
@@ -93,7 +123,10 @@ export function Step2PlayerSelection({
           {formData.selectedPlayerIds.length > 0 && (
             <button
               type="button"
-              onClick={() => updateFormData({ selectedPlayerIds: [] })}
+              onClick={() => {
+                updateFormData({ selectedPlayerIds: [] })
+                setSpectatorPlayerIds([])
+              }}
               className="text-blue-600 hover:text-blue-700 text-sm"
             >
               Clear all
@@ -101,6 +134,44 @@ export function Step2PlayerSelection({
           )}
         </div>
       </div>
+
+      {/* Selected Players - Spectator Checkboxes */}
+      {formData.selectedPlayerIds.length > 0 && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">
+            Selected Players (Mark absent players as spectators)
+          </h3>
+          <div className="space-y-2">
+            {formData.selectedPlayerIds.map((playerId) => {
+              const player = players.find((p) => p.id === playerId)
+              const isSpectator = spectatorPlayerIds.includes(playerId)
+              return (
+                <div
+                  key={playerId}
+                  className="flex items-center justify-between p-2 bg-white rounded border border-gray-200"
+                >
+                  <span className="text-gray-900">{player?.name}</span>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isSpectator}
+                      onChange={() => toggleSpectator(playerId)}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">
+                      Spectator (absent)
+                    </span>
+                  </label>
+                </div>
+              )
+            })}
+          </div>
+          <p className="text-xs text-gray-500 mt-3">
+            Spectators will have 0 PLN buy-in/cash-out but can still view the
+            session
+          </p>
+        </div>
+      )}
 
       {/* Error Message */}
       {error && (

@@ -34,8 +34,9 @@ class CreateGameSession(
                 ?: throw PlayerNotFoundException("Player not found: ${resultCommand.playerId}")
         }
 
-        // Validate minimum 2 players
-        require(command.results.size >= 2) { "Session must have at least 2 players" }
+        // Validate minimum 2 active (non-spectator) players
+        val activePlayers = command.results.filter { !it.isSpectator }
+        require(activePlayers.size >= 2) { "Session must have at least 2 active (non-spectator) players" }
 
         // Create session
         val session =
@@ -60,6 +61,7 @@ class CreateGameSession(
                     buyIn = Money.ofCents(resultCommand.buyInCents),
                     cashOut = Money.ofCents(resultCommand.cashOutCents),
                     notes = resultCommand.notes,
+                    isSpectator = resultCommand.isSpectator,
                 )
             }
 
@@ -75,11 +77,15 @@ class CreateGameSession(
     /**
      * Calculate placements for session results based on profit
      * Uses DENSE_RANK logic: players with same profit get same placement
+     * Spectators are excluded from placement calculation
      */
     private fun calculatePlacements(results: List<SessionResult>): List<SessionResult> {
-        // Sort by profit descending, then by player ID for stability
-        val sortedResults =
-            results.sortedWith(
+        // Separate spectators from active players
+        val (spectators, activePlayers) = results.partition { it.isSpectator }
+
+        // Sort active players by profit descending, then by player ID for stability
+        val sortedActivePlayers =
+            activePlayers.sortedWith(
                 compareByDescending<SessionResult> { it.profit().amountInCents }
                     .thenBy { it.playerId.toString() },
             )
@@ -87,19 +93,23 @@ class CreateGameSession(
         var currentPlacement = 1
         var previousProfit: Long? = null
 
-        return sortedResults.map { result ->
-            val profit = result.profit().amountInCents
+        val activePlayersWithPlacements =
+            sortedActivePlayers.map { result ->
+                val profit = result.profit().amountInCents
 
-            // If profit is different from previous, increment placement
-            if (previousProfit != null && profit != previousProfit) {
-                currentPlacement++
+                // If profit is different from previous, increment placement
+                if (previousProfit != null && profit != previousProfit) {
+                    currentPlacement++
+                }
+
+                previousProfit = profit
+
+                // Copy result with placement set
+                result.copy(placement = currentPlacement)
             }
 
-            previousProfit = profit
-
-            // Copy result with placement set
-            result.copy(placement = currentPlacement)
-        }
+        // Return active players with placements + spectators with null placement
+        return activePlayersWithPlacements + spectators
     }
 }
 
@@ -119,6 +129,7 @@ data class CreateSessionResultCommand(
     val buyInCents: Long,
     val cashOutCents: Long,
     val notes: String? = null,
+    val isSpectator: Boolean = false,
 )
 
 data class GameSessionWithResults(

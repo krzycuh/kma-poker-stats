@@ -21,6 +21,7 @@ export interface SessionResult {
   profitCents: number
   placement?: number | null
   notes: string | null
+  isSpectator: boolean
   createdAt: string
   updatedAt: string
   playerName?: string | null
@@ -48,6 +49,7 @@ export interface CreateSessionResultRequest {
   buyInCents: number
   cashOutCents: number
   notes?: string | null
+  isSpectator?: boolean
 }
 
 export interface UpdateGameSessionRequest {
@@ -63,6 +65,7 @@ export interface UpdateSessionResultRequest {
   buyInCents: number
   cashOutCents: number
   notes?: string | null
+  isSpectator?: boolean
 }
 
 export enum GameType {

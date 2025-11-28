@@ -63,11 +63,10 @@ export function Step3ResultsEntry({
   }
 
   const calculateTotals = () => {
-    const totalBuyIn = formData.results.reduce(
-      (sum, r) => sum + r.buyInCents,
-      0,
-    )
-    const totalCashOut = formData.results.reduce(
+    // Exclude spectators from totals
+    const activeResults = formData.results.filter((r) => !r.isSpectator)
+    const totalBuyIn = activeResults.reduce((sum, r) => sum + r.buyInCents, 0)
+    const totalCashOut = activeResults.reduce(
       (sum, r) => sum + r.cashOutCents,
       0,
     )
@@ -81,6 +80,11 @@ export function Step3ResultsEntry({
     const newErrors: Record<string, string> = {}
 
     formData.results.forEach((result, index) => {
+      // Skip validation for spectators
+      if (result.isSpectator) {
+        return
+      }
+
       if (result.buyInCents <= 0) {
         newErrors[`buyIn-${index}`] = 'Buy-in must be greater than 0'
       }
@@ -159,8 +163,13 @@ export function Step3ResultsEntry({
         </button>
 
         <div className="text-center">
-          <div className="text-lg font-semibold text-gray-900">
+          <div className="text-lg font-semibold text-gray-900 flex items-center justify-center gap-2">
             {getPlayerName(currentResult.playerId)}
+            {currentResult.isSpectator && (
+              <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
+                Spectator
+              </span>
+            )}
           </div>
           <div className="text-sm text-gray-600">
             Player {currentPlayerIndex + 1} of {formData.results.length}
@@ -208,20 +217,32 @@ export function Step3ResultsEntry({
               }`}
             >
               {getPlayerName(result.playerId)}
-              <span
-                className={`ml-2 ${
-                  index === currentPlayerIndex
-                    ? 'text-blue-100'
-                    : playerProfit > 0
-                      ? 'text-green-600'
-                      : playerProfit < 0
-                        ? 'text-red-600'
-                        : 'text-gray-600'
-                }`}
-              >
-                {playerProfit > 0 ? '+' : playerProfit < 0 ? '-' : ''}
-                {formatCents(Math.abs(playerProfit))}
-              </span>
+              {result.isSpectator ? (
+                <span
+                  className={`ml-2 ${
+                    index === currentPlayerIndex
+                      ? 'text-blue-100'
+                      : 'text-gray-500'
+                  }`}
+                >
+                  (Spectator)
+                </span>
+              ) : (
+                <span
+                  className={`ml-2 ${
+                    index === currentPlayerIndex
+                      ? 'text-blue-100'
+                      : playerProfit > 0
+                        ? 'text-green-600'
+                        : playerProfit < 0
+                          ? 'text-red-600'
+                          : 'text-gray-600'
+                  }`}
+                >
+                  {playerProfit > 0 ? '+' : playerProfit < 0 ? '-' : ''}
+                  {formatCents(Math.abs(playerProfit))}
+                </span>
+              )}
             </button>
           )
         })}
@@ -229,102 +250,122 @@ export function Step3ResultsEntry({
 
       {/* Result Entry Form */}
       <div className="bg-white border-2 border-gray-200 rounded-lg p-6 space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Buy-In (PLN) *
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={formatCurrency(currentResult.buyInCents)}
-            onChange={(e) =>
-              updateResult(currentResult.playerId, {
-                buyInCents: parseCurrency(e.target.value),
-              })
-            }
-            className={`w-full px-4 py-3 text-2xl border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-              errors[`buyIn-${currentPlayerIndex}`]
-                ? 'border-red-500'
-                : 'border-gray-300'
-            }`}
-            placeholder="100.00"
-          />
-          {errors[`buyIn-${currentPlayerIndex}`] && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors[`buyIn-${currentPlayerIndex}`]}
+        {currentResult.isSpectator ? (
+          <div className="bg-gray-50 border border-gray-300 rounded-lg p-6 text-center">
+            <div className="text-gray-700 mb-4">
+              <span className="text-4xl">👀</span>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Spectator (Absent Player)
+            </h3>
+            <p className="text-gray-600 mb-4">
+              This player was absent from the session but will have view access.
             </p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Cash-Out (PLN) *
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={formatCurrency(currentResult.cashOutCents)}
-            onChange={(e) =>
-              updateResult(currentResult.playerId, {
-                cashOutCents: parseCurrency(e.target.value),
-              })
-            }
-            className={`w-full px-4 py-3 text-2xl border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-              errors[`cashOut-${currentPlayerIndex}`]
-                ? 'border-red-500'
-                : 'border-gray-300'
-            }`}
-            placeholder="150.00"
-          />
-          {errors[`cashOut-${currentPlayerIndex}`] && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors[`cashOut-${currentPlayerIndex}`]}
-            </p>
-          )}
-        </div>
-
-        {/* Profit/Loss Display */}
-        <div
-          className={`p-4 rounded-lg ${
-            profit > 0
-              ? 'bg-green-50 border border-green-200'
-              : profit < 0
-                ? 'bg-red-50 border border-red-200'
-                : 'bg-gray-50 border border-gray-200'
-          }`}
-        >
-          <div className="text-sm text-gray-700 mb-1">Profit/Loss</div>
-          <div
-            className={`text-3xl font-bold ${
-              profit > 0
-                ? 'text-green-600'
-                : profit < 0
-                  ? 'text-red-600'
-                  : 'text-gray-600'
-            }`}
-          >
-            {profit > 0 ? '+' : profit < 0 ? '-' : ''}
-            {formatCents(Math.abs(profit))}
+            <div className="bg-white rounded border border-gray-200 p-4 inline-block">
+              <div className="text-sm text-gray-600 mb-1">Buy-in / Cash-out</div>
+              <div className="text-2xl font-semibold text-gray-900">0 PLN / 0 PLN</div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Buy-In (PLN) *
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={formatCurrency(currentResult.buyInCents)}
+                onChange={(e) =>
+                  updateResult(currentResult.playerId, {
+                    buyInCents: parseCurrency(e.target.value),
+                  })
+                }
+                className={`w-full px-4 py-3 text-2xl border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors[`buyIn-${currentPlayerIndex}`]
+                    ? 'border-red-500'
+                    : 'border-gray-300'
+                }`}
+                placeholder="100.00"
+              />
+              {errors[`buyIn-${currentPlayerIndex}`] && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors[`buyIn-${currentPlayerIndex}`]}
+                </p>
+              )}
+            </div>
 
-        {/* Notes */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Notes (Optional)
-          </label>
-          <textarea
-            value={currentResult.notes}
-            onChange={(e) =>
-              updateResult(currentResult.playerId, { notes: e.target.value })
-            }
-            rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Any notes about this player's session..."
-          />
-        </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Cash-Out (PLN) *
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={formatCurrency(currentResult.cashOutCents)}
+                onChange={(e) =>
+                  updateResult(currentResult.playerId, {
+                    cashOutCents: parseCurrency(e.target.value),
+                  })
+                }
+                className={`w-full px-4 py-3 text-2xl border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors[`cashOut-${currentPlayerIndex}`]
+                    ? 'border-red-500'
+                    : 'border-gray-300'
+                }`}
+                placeholder="150.00"
+              />
+              {errors[`cashOut-${currentPlayerIndex}`] && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors[`cashOut-${currentPlayerIndex}`]}
+                </p>
+              )}
+            </div>
+
+            {/* Profit/Loss Display */}
+            <div
+              className={`p-4 rounded-lg ${
+                profit > 0
+                  ? 'bg-green-50 border border-green-200'
+                  : profit < 0
+                    ? 'bg-red-50 border border-red-200'
+                    : 'bg-gray-50 border border-gray-200'
+              }`}
+            >
+              <div className="text-sm text-gray-700 mb-1">Profit/Loss</div>
+              <div
+                className={`text-3xl font-bold ${
+                  profit > 0
+                    ? 'text-green-600'
+                    : profit < 0
+                      ? 'text-red-600'
+                      : 'text-gray-600'
+                }`}
+              >
+                {profit > 0 ? '+' : profit < 0 ? '-' : ''}
+                {formatCents(Math.abs(profit))}
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Notes (Optional)
+              </label>
+              <textarea
+                value={currentResult.notes}
+                onChange={(e) =>
+                  updateResult(currentResult.playerId, { notes: e.target.value })
+                }
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Any notes about this player's session..."
+              />
+            </div>
+          </>
+        )}
       </div>
 
       {/* Summary Panel (Sticky) */}
