@@ -67,6 +67,7 @@ export default function EditSession() {
           buyInCents: r.buyInCents,
           cashOutCents: r.cashOutCents,
           notes: r.notes || '',
+          isSpectator: r.isSpectator,
         })),
       })
     }
