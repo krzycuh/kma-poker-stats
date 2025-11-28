@@ -39,6 +39,9 @@ data class PlayerStatsDto(
     val biggestLossCents: Long,
     val averageSessionProfitCents: Long,
     val currentStreak: Int,
+    val firstPlaceCount: Int,
+    val secondPlaceCount: Int,
+    val thirdPlaceCount: Int,
 ) {
     companion object {
         fun fromDomain(stats: PlayerStats): PlayerStatsDto =
@@ -56,6 +59,9 @@ data class PlayerStatsDto(
                 biggestLossCents = stats.biggestLoss.amountInCents,
                 averageSessionProfitCents = stats.averageSessionProfit.amountInCents,
                 currentStreak = stats.currentStreak,
+                firstPlaceCount = stats.firstPlaceCount,
+                secondPlaceCount = stats.secondPlaceCount,
+                thirdPlaceCount = stats.thirdPlaceCount,
             )
     }
 }

@@ -5,6 +5,7 @@ import { sessionApi } from '../api/sessions';
 import { useAuth } from '../hooks/useAuth';
 import { UserRole } from '../types/auth';
 import { ConfirmationModal } from '../components/ConfirmationModal';
+import { PlacementBadge } from '../components/PlacementBadge';
 import { useToast } from '../hooks/useToast';
 import {
   formatDateTime,
@@ -64,8 +65,13 @@ export const SessionDetail: React.FC = () => {
             {initials || 'PL'}
           </div>
         )}
-        <div className="min-w-0">
-          <p className="font-medium text-gray-900 truncate">{label}</p>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            {result.placement && result.placement <= 3 && (
+              <PlacementBadge placement={result.placement} />
+            )}
+            <p className="font-medium text-gray-900 truncate">{label}</p>
+          </div>
           <p className="text-xs text-gray-500 truncate">
             {result.linkedUserId ? 'Linked user' : 'Unlinked player'}
           </p>

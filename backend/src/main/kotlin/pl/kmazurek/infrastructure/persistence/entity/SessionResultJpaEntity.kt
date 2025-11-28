@@ -25,6 +25,8 @@ class SessionResultJpaEntity(
     var buyInCents: Long,
     @Column(name = "cash_out_cents", nullable = false)
     var cashOutCents: Long,
+    @Column(name = "placement")
+    var placement: Int? = null,
     @Column(columnDefinition = "TEXT")
     var notes: String? = null,
     @Column(name = "created_at", nullable = false, updatable = false)

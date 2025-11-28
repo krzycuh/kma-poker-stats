@@ -19,6 +19,7 @@ export interface SessionResult {
   buyInCents: number
   cashOutCents: number
   profitCents: number
+  placement?: number | null
   notes: string | null
   createdAt: string
   updatedAt: string

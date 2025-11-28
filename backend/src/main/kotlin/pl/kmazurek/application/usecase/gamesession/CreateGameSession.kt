@@ -63,9 +63,42 @@ class CreateGameSession(
                 )
             }
 
-        val savedResults = sessionResultRepository.saveAll(results)
+        // Calculate placements based on profit (descending order)
+        // Players with same profit get same placement (DENSE_RANK behavior)
+        val resultsWithPlacements = calculatePlacements(results)
+
+        val savedResults = sessionResultRepository.saveAll(resultsWithPlacements)
 
         return GameSessionWithResults(savedSession, savedResults)
+    }
+
+    /**
+     * Calculate placements for session results based on profit
+     * Uses DENSE_RANK logic: players with same profit get same placement
+     */
+    private fun calculatePlacements(results: List<SessionResult>): List<SessionResult> {
+        // Sort by profit descending, then by player ID for stability
+        val sortedResults = results.sortedWith(
+            compareByDescending<SessionResult> { it.profit().amountInCents }
+                .thenBy { it.playerId.toString() }
+        )
+
+        var currentPlacement = 1
+        var previousProfit: Long? = null
+
+        return sortedResults.map { result ->
+            val profit = result.profit().amountInCents
+
+            // If profit is different from previous, increment placement
+            if (previousProfit != null && profit != previousProfit) {
+                currentPlacement++
+            }
+
+            previousProfit = profit
+
+            // Copy result with placement set
+            result.copy(placement = currentPlacement)
+        }
     }
 }
 
