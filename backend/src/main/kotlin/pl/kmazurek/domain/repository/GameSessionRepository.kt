@@ -3,6 +3,7 @@ package pl.kmazurek.domain.repository
 import pl.kmazurek.domain.model.gamesession.GameSession
 import pl.kmazurek.domain.model.gamesession.GameSessionId
 import pl.kmazurek.domain.model.gamesession.GameType
+import pl.kmazurek.domain.model.player.PlayerId
 import pl.kmazurek.domain.model.user.UserId
 import java.time.LocalDateTime
 
@@ -34,6 +35,11 @@ interface GameSessionRepository {
     fun findByDateRange(
         startDate: LocalDateTime,
         endDate: LocalDateTime,
+        includeDeleted: Boolean = false,
+    ): List<GameSession>
+
+    fun findByParticipantPlayerId(
+        playerId: PlayerId,
         includeDeleted: Boolean = false,
     ): List<GameSession>
 

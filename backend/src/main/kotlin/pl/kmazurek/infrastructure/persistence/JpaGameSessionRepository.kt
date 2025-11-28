@@ -49,4 +49,27 @@ interface JpaGameSessionRepository : JpaRepository<GameSessionJpaEntity, UUID> {
         @Param("startDate") startDate: LocalDateTime,
         @Param("endDate") endDate: LocalDateTime,
     ): List<GameSessionJpaEntity>
+
+    @Query(
+        """
+        SELECT DISTINCT s FROM GameSessionJpaEntity s
+        JOIN SessionResultJpaEntity sr ON sr.sessionId = s.id
+        WHERE sr.playerId = :playerId AND s.isDeleted = :isDeleted
+        """,
+    )
+    fun findByParticipantPlayerIdAndIsDeleted(
+        @Param("playerId") playerId: UUID,
+        @Param("isDeleted") isDeleted: Boolean,
+    ): List<GameSessionJpaEntity>
+
+    @Query(
+        """
+        SELECT DISTINCT s FROM GameSessionJpaEntity s
+        JOIN SessionResultJpaEntity sr ON sr.sessionId = s.id
+        WHERE sr.playerId = :playerId
+        """,
+    )
+    fun findByParticipantPlayerId(
+        @Param("playerId") playerId: UUID,
+    ): List<GameSessionJpaEntity>
 }

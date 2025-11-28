@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component
 import pl.kmazurek.domain.model.gamesession.GameSession
 import pl.kmazurek.domain.model.gamesession.GameSessionId
 import pl.kmazurek.domain.model.gamesession.GameType
+import pl.kmazurek.domain.model.player.PlayerId
 import pl.kmazurek.domain.model.user.UserId
 import pl.kmazurek.domain.repository.GameSessionRepository
 import pl.kmazurek.infrastructure.persistence.entity.GameTypeJpa
@@ -75,6 +76,17 @@ class GameSessionRepositoryImpl(
             jpaRepository.findByDateRangeAll(startDate, endDate)
         } else {
             jpaRepository.findByDateRange(startDate, endDate, false)
+        }.map { GameSessionMapper.toDomain(it) }
+    }
+
+    override fun findByParticipantPlayerId(
+        playerId: PlayerId,
+        includeDeleted: Boolean,
+    ): List<GameSession> {
+        return if (includeDeleted) {
+            jpaRepository.findByParticipantPlayerId(playerId.value)
+        } else {
+            jpaRepository.findByParticipantPlayerIdAndIsDeleted(playerId.value, false)
         }.map { GameSessionMapper.toDomain(it) }
     }
 

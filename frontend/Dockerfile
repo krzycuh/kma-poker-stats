@@ -1,6 +1,10 @@
 # Build stage
 FROM node:18-alpine AS builder
 
+# Accept build arguments
+ARG VERSION=dev
+ARG BUILD_DATE
+
 WORKDIR /app
 
 # Copy package files
@@ -12,7 +16,8 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the application with version info
+ENV VITE_APP_VERSION=${VERSION}
 RUN npm run build
 
 # Production stage
