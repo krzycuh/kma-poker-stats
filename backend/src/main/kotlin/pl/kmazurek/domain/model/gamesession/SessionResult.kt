@@ -15,6 +15,7 @@ data class SessionResult(
     val playerId: PlayerId,
     val buyIn: Money,
     val cashOut: Money,
+    val placement: Int? = null,
     val notes: String? = null,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
@@ -24,6 +25,8 @@ data class SessionResult(
         // (but profit, which is cashOut - buyIn, can be negative)
         require(buyIn.amountInCents >= 0) { "Buy-in must be non-negative, got ${buyIn.amountInCents}" }
         require(cashOut.amountInCents >= 0) { "Cash-out must be non-negative, got ${cashOut.amountInCents}" }
+        // Placement must be positive if provided
+        placement?.let { require(it >= 1) { "Placement must be >= 1, got $it" } }
     }
 
     /**
@@ -53,11 +56,13 @@ data class SessionResult(
         buyIn: Money,
         cashOut: Money,
         notes: String?,
+        placement: Int? = null,
     ): SessionResult {
         return copy(
             buyIn = buyIn,
             cashOut = cashOut,
             notes = notes,
+            placement = placement,
             updatedAt = LocalDateTime.now(),
         )
     }

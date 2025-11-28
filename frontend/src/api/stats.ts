@@ -48,6 +48,9 @@ export interface PlayerStatsOverview {
   biggestLossCents: number;
   averageSessionProfitCents: number;
   currentStreak: number;
+  firstPlaceCount: number;
+  secondPlaceCount: number;
+  thirdPlaceCount: number;
 }
 
 export interface CompleteStats {

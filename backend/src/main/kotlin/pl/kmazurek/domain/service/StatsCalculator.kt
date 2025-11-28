@@ -58,6 +58,10 @@ class StatsCalculator {
 
         val currentStreak = calculateStreak(results.sortedBy { it.createdAt })
 
+        val firstPlaceCount = results.count { it.placement == 1 }
+        val secondPlaceCount = results.count { it.placement == 2 }
+        val thirdPlaceCount = results.count { it.placement == 3 }
+
         return PlayerStats(
             playerId = playerId,
             totalSessions = totalSessions,
@@ -72,6 +76,9 @@ class StatsCalculator {
             biggestLoss = biggestLoss,
             averageSessionProfit = avgSessionProfit,
             currentStreak = currentStreak,
+            firstPlaceCount = firstPlaceCount,
+            secondPlaceCount = secondPlaceCount,
+            thirdPlaceCount = thirdPlaceCount,
         )
     }
 
@@ -151,6 +158,9 @@ data class PlayerStats(
     val biggestLoss: Money,
     val averageSessionProfit: Money,
     val currentStreak: Int,
+    val firstPlaceCount: Int,
+    val secondPlaceCount: Int,
+    val thirdPlaceCount: Int,
 ) {
     companion object {
         fun empty(playerId: PlayerId) =
@@ -168,6 +178,9 @@ data class PlayerStats(
                 biggestLoss = Money.ZERO,
                 averageSessionProfit = Money.ZERO,
                 currentStreak = 0,
+                firstPlaceCount = 0,
+                secondPlaceCount = 0,
+                thirdPlaceCount = 0,
             )
     }
 }
