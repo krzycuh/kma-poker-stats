@@ -34,9 +34,10 @@ class UpdateSessionResult(
         val allSessionResults = sessionResultRepository.findBySessionId(result.sessionId)
 
         // Replace the old result with the updated one
-        val resultsToRank = allSessionResults.map { r ->
-            if (r.id == updatedResult.id) updatedResult else r
-        }
+        val resultsToRank =
+            allSessionResults.map { r ->
+                if (r.id == updatedResult.id) updatedResult else r
+            }
 
         // Recalculate placements for all results in the session
         val resultsWithPlacements = calculatePlacements(resultsToRank)
@@ -54,10 +55,11 @@ class UpdateSessionResult(
      */
     private fun calculatePlacements(results: List<SessionResult>): List<SessionResult> {
         // Sort by profit descending, then by player ID for stability
-        val sortedResults = results.sortedWith(
-            compareByDescending<SessionResult> { it.profit().amountInCents }
-                .thenBy { it.playerId.toString() }
-        )
+        val sortedResults =
+            results.sortedWith(
+                compareByDescending<SessionResult> { it.profit().amountInCents }
+                    .thenBy { it.playerId.toString() },
+            )
 
         var currentPlacement = 1
         var previousProfit: Long? = null

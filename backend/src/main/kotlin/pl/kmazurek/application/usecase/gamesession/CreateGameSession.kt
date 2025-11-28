@@ -78,10 +78,11 @@ class CreateGameSession(
      */
     private fun calculatePlacements(results: List<SessionResult>): List<SessionResult> {
         // Sort by profit descending, then by player ID for stability
-        val sortedResults = results.sortedWith(
-            compareByDescending<SessionResult> { it.profit().amountInCents }
-                .thenBy { it.playerId.toString() }
-        )
+        val sortedResults =
+            results.sortedWith(
+                compareByDescending<SessionResult> { it.profit().amountInCents }
+                    .thenBy { it.playerId.toString() },
+            )
 
         var currentPlacement = 1
         var previousProfit: Long? = null
