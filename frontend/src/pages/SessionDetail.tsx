@@ -73,19 +73,15 @@ export const SessionDetail: React.FC = () => {
       </div>
     );
 
-    // Make the player name clickable if they have a linked user
-    if (result.linkedUserId) {
-      return (
-        <Link
-          to={`/stats?playerId=${result.playerId}`}
-          className="hover:opacity-70 transition-opacity"
-        >
-          {content}
-        </Link>
-      );
-    }
-
-    return content;
+    // Make all player rows clickable
+    return (
+      <Link
+        to={`/stats?playerId=${result.playerId}`}
+        className="hover:opacity-70 transition-opacity"
+      >
+        {content}
+      </Link>
+    );
   };
 
   // Delete mutation

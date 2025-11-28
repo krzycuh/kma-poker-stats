@@ -5,6 +5,7 @@ import pl.kmazurek.domain.model.gamesession.GameSession
 import pl.kmazurek.domain.model.gamesession.GameType
 import pl.kmazurek.domain.model.user.UserId
 import pl.kmazurek.domain.repository.GameSessionRepository
+import pl.kmazurek.domain.repository.PlayerRepository
 import java.time.LocalDateTime
 
 /**
@@ -13,12 +14,18 @@ import java.time.LocalDateTime
 @Service
 class ListGameSessions(
     private val gameSessionRepository: GameSessionRepository,
+    private val playerRepository: PlayerRepository,
 ) {
     fun execute(query: ListGameSessionsQuery): List<GameSession> {
         return when {
             query.userId != null -> {
-                gameSessionRepository.findByCreatedByUserId(
-                    UserId.fromString(query.userId),
+                // For casual players, find sessions they participated in
+                val userId = UserId.fromString(query.userId)
+                val player = playerRepository.findByUserId(userId)
+                    ?: return emptyList() // User has no linked player profile
+
+                gameSessionRepository.findByParticipantPlayerId(
+                    player.id,
                     query.includeDeleted,
                 )
             }
