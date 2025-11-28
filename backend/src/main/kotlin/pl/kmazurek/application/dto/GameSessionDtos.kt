@@ -45,6 +45,7 @@ data class SessionResultDto(
     val profitCents: Long,
     val placement: Int?,
     val notes: String?,
+    val isSpectator: Boolean,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val playerName: String? = null,
@@ -67,6 +68,7 @@ data class SessionResultDto(
                 profitCents = result.profit().amountInCents,
                 placement = result.placement,
                 notes = result.notes,
+                isSpectator = result.isSpectator,
                 createdAt = result.createdAt,
                 updatedAt = result.updatedAt,
                 playerName = playerName,
@@ -97,6 +99,7 @@ data class CreateSessionResultRequest(
     val buyInCents: Long,
     val cashOutCents: Long,
     val notes: String? = null,
+    val isSpectator: Boolean = false,
 )
 
 data class UpdateGameSessionRequest(
@@ -112,4 +115,5 @@ data class UpdateSessionResultRequest(
     val buyInCents: Long,
     val cashOutCents: Long,
     val notes: String? = null,
+    val isSpectator: Boolean = false,
 )

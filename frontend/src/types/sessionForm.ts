@@ -12,5 +12,6 @@ export interface SessionFormData {
     buyInCents: number
     cashOutCents: number
     notes: string
+    isSpectator: boolean
   }[]
 }

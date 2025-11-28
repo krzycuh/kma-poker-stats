@@ -146,6 +146,7 @@ class GameSessionController(
                             buyInCents = it.buyInCents,
                             cashOutCents = it.cashOutCents,
                             notes = it.notes,
+                            isSpectator = it.isSpectator,
                         )
                     },
             )

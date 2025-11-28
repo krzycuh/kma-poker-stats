@@ -21,6 +21,7 @@ object SessionResultMapper {
             cashOut = Money.ofCents(jpa.cashOutCents),
             placement = jpa.placement,
             notes = jpa.notes,
+            isSpectator = jpa.isSpectator,
             createdAt = jpa.createdAt,
             updatedAt = jpa.updatedAt,
         )
@@ -35,6 +36,7 @@ object SessionResultMapper {
             cashOutCents = domain.cashOut.amountInCents,
             placement = domain.placement,
             notes = domain.notes,
+            isSpectator = domain.isSpectator,
             createdAt = domain.createdAt,
             updatedAt = domain.updatedAt,
         )

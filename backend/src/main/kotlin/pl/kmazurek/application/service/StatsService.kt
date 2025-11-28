@@ -76,7 +76,9 @@ class StatsService(
         startDate: LocalDate?,
         endDate: LocalDate?,
     ): CompleteStatsDto {
-        val filteredResults = filterResultsByDateRange(unfilteredResults, startDate, endDate)
+        // Filter out spectator results - they should not be included in statistics
+        val nonSpectatorResults = unfilteredResults.filter { !it.isSpectator }
+        val filteredResults = filterResultsByDateRange(nonSpectatorResults, startDate, endDate)
 
         val stats = statsCalculator.calculatePlayerStats(playerId, filteredResults)
         val overview = PlayerStatsDto.fromDomain(stats)

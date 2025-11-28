@@ -118,6 +118,7 @@ export default function LogSession() {
         buyInCents: r.buyInCents,
         cashOutCents: r.cashOutCents,
         notes: r.notes || null,
+        isSpectator: r.isSpectator,
       })),
     }
 

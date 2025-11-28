@@ -17,6 +17,7 @@ data class SessionResult(
     val cashOut: Money,
     val placement: Int? = null,
     val notes: String? = null,
+    val isSpectator: Boolean = false,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
 ) {
@@ -25,8 +26,19 @@ data class SessionResult(
         // (but profit, which is cashOut - buyIn, can be negative)
         require(buyIn.amountInCents >= 0) { "Buy-in must be non-negative, got ${buyIn.amountInCents}" }
         require(cashOut.amountInCents >= 0) { "Cash-out must be non-negative, got ${cashOut.amountInCents}" }
-        // Placement must be positive if provided
-        placement?.let { require(it >= 1) { "Placement must be >= 1, got $it" } }
+
+        // Spectators must have 0 buy-in and 0 cash-out
+        if (isSpectator) {
+            require(buyIn.isZero() && cashOut.isZero()) {
+                "Spectators must have 0 buy-in and 0 cash-out, got buyIn=${buyIn.amountInCents}, cashOut=${cashOut.amountInCents}"
+            }
+        }
+
+        // Placement must be positive if provided, and spectators should not have placement
+        placement?.let {
+            require(it >= 1) { "Placement must be >= 1, got $it" }
+            require(!isSpectator) { "Spectators should not have placement" }
+        }
     }
 
     /**
@@ -57,12 +69,14 @@ data class SessionResult(
         cashOut: Money,
         notes: String?,
         placement: Int? = null,
+        isSpectator: Boolean = false,
     ): SessionResult {
         return copy(
             buyIn = buyIn,
             cashOut = cashOut,
             notes = notes,
             placement = placement,
+            isSpectator = isSpectator,
             updatedAt = LocalDateTime.now(),
         )
     }
@@ -77,6 +91,7 @@ data class SessionResult(
             buyIn: Money,
             cashOut: Money,
             notes: String? = null,
+            isSpectator: Boolean = false,
         ): SessionResult {
             val now = LocalDateTime.now()
             return SessionResult(
@@ -86,6 +101,7 @@ data class SessionResult(
                 buyIn = buyIn,
                 cashOut = cashOut,
                 notes = notes,
+                isSpectator = isSpectator,
                 createdAt = now,
                 updatedAt = now,
             )
