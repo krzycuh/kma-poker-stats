@@ -21,8 +21,7 @@ class ListGameSessions(
             query.userId != null -> {
                 // For casual players, find sessions they participated in
                 val userId = UserId.fromString(query.userId)
-                val player = playerRepository.findByUserId(userId)
-                    ?: return emptyList() // User has no linked player profile
+                val player = playerRepository.findByUserId(userId) ?: return emptyList()
 
                 gameSessionRepository.findByParticipantPlayerId(
                     player.id,
