@@ -56,9 +56,10 @@ class StatsService(
         val (targetPlayer, sharedSessionIds) = playerNetworkService.sharedSessionIdsBetween(viewerUserId, targetPlayerId)
 
         // Filter to only include active (non-deleted) sessions
-        val activeSharedSessionIds = sharedSessionIds.mapNotNull { sessionId ->
-            sessionRepository.findById(sessionId)?.takeUnless { it.isDeleted }?.id
-        }.toSet()
+        val activeSharedSessionIds =
+            sharedSessionIds.mapNotNull { sessionId ->
+                sessionRepository.findById(sessionId)?.takeUnless { it.isDeleted }?.id
+            }.toSet()
 
         val sharedResults =
             resultRepository.findByPlayerId(targetPlayer.id)
@@ -86,9 +87,10 @@ class StatsService(
 
         // Filter out results from deleted sessions to prevent duplicate counting
         val sessionIds = nonSpectatorResults.map { it.sessionId }.toSet()
-        val activeSessions = sessionIds.mapNotNull { sessionId ->
-            sessionRepository.findById(sessionId)?.takeUnless { it.isDeleted }
-        }.map { it.id }.toSet()
+        val activeSessions =
+            sessionIds.mapNotNull { sessionId ->
+                sessionRepository.findById(sessionId)?.takeUnless { it.isDeleted }
+            }.map { it.id }.toSet()
 
         val nonDeletedResults = nonSpectatorResults.filter { it.sessionId in activeSessions }
         val filteredResults = filterResultsByDateRange(nonDeletedResults, startDate, endDate)

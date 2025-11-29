@@ -130,10 +130,11 @@ class LeaderboardService(
         return allPlayers.map { player ->
             val allResults = resultRepository.findByPlayerId(player.id)
             // Filter out spectator results and results from deleted sessions
-            val activeResults = allResults.filter { result ->
-                !result.isSpectator &&
-                (sessionRepository.findById(result.sessionId)?.isDeleted == false)
-            }
+            val activeResults =
+                allResults.filter { result ->
+                    !result.isSpectator &&
+                        (sessionRepository.findById(result.sessionId)?.isDeleted == false)
+                }
             val stats = statsCalculator.calculatePlayerStats(player.id, activeResults)
             PlayerWithStats(player, stats)
         }
@@ -164,10 +165,11 @@ class LeaderboardService(
         return connectedPlayers.mapNotNull { player ->
             val allPlayerResults = resultsByPlayer[player.id] ?: return@mapNotNull null
             // Filter out spectator results and results from deleted sessions
-            val activeResults = allPlayerResults.filter { result ->
-                !result.isSpectator &&
-                (sessionRepository.findById(result.sessionId)?.isDeleted == false)
-            }
+            val activeResults =
+                allPlayerResults.filter { result ->
+                    !result.isSpectator &&
+                        (sessionRepository.findById(result.sessionId)?.isDeleted == false)
+                }
             val stats = statsCalculator.calculatePlayerStats(player.id, activeResults)
             PlayerWithStats(player, stats)
         }
