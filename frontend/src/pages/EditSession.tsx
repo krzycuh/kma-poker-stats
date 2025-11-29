@@ -7,10 +7,7 @@ import { Step2PlayerSelection } from '../components/SessionFormSteps/Step2Player
 import { Step3ResultsEntry } from '../components/SessionFormSteps/Step3ResultsEntry'
 import { Step4ReviewSubmit } from '../components/SessionFormSteps/Step4ReviewSubmit'
 import { sessionApi } from '../api/sessions'
-import type {
-  CreateGameSessionRequest,
-  UpdateGameSessionRequest,
-} from '../types/gameSession'
+import type { CreateGameSessionRequest } from '../types/gameSession'
 import { GameType } from '../types/gameSession'
 import { useAuth } from '../hooks/useAuth'
 import { UserRole } from '../types/auth'
@@ -73,23 +70,14 @@ export default function EditSession() {
     }
   }, [session])
 
-  // Update session mutation
+  // Update session mutation - deletes old session and creates new one
   const updateSessionMutation = useMutation({
     mutationFn: async (data: CreateGameSessionRequest) => {
-      // First update the session details
-      const sessionUpdate: UpdateGameSessionRequest = {
-        startTime: data.startTime,
-        location: data.location,
-        gameType: data.gameType,
-        minBuyInCents: data.minBuyInCents,
-        notes: data.notes || null,
-      }
-      await sessionApi.update(id!, sessionUpdate)
+      // Delete the old session first
+      await sessionApi.delete(id!)
 
-      // Note: For full functionality, we would also need to update/create/delete results
-      // This would require additional API endpoints for managing individual results
-      // For now, we'll just update the session details
-      // TODO: Implement result updates when result management endpoints are available
+      // Then create a new session with all the updated data
+      return await sessionApi.create(data)
     },
     onSuccess: () => {
       setCurrentStep(4) // Success screen
@@ -128,6 +116,7 @@ export default function EditSession() {
         buyInCents: r.buyInCents,
         cashOutCents: r.cashOutCents,
         notes: r.notes || null,
+        isSpectator: r.isSpectator,
       })),
     }
 
@@ -256,7 +245,8 @@ function SuccessScreen() {
         Session Updated Successfully!
       </h2>
       <p className="text-gray-600 mb-8">
-        The game session has been updated with your changes.
+        The game session has been updated with all your changes including player
+        results and spectator status.
       </p>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -266,13 +256,6 @@ function SuccessScreen() {
         >
           Back to Dashboard
         </button>
-      </div>
-
-      <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-        <p>
-          <strong>Note:</strong> Full result editing (add/remove/update
-          individual results) will be available in a future update.
-        </p>
       </div>
     </div>
   )
