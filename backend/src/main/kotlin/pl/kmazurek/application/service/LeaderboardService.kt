@@ -10,6 +10,7 @@ import pl.kmazurek.domain.model.gamesession.GameSessionId
 import pl.kmazurek.domain.model.player.Player
 import pl.kmazurek.domain.model.player.PlayerId
 import pl.kmazurek.domain.model.user.UserId
+import pl.kmazurek.domain.repository.GameSessionRepository
 import pl.kmazurek.domain.repository.PlayerRepository
 import pl.kmazurek.domain.repository.SessionResultRepository
 import pl.kmazurek.domain.repository.UserRepository
@@ -24,6 +25,7 @@ import java.util.Locale
 @Service
 class LeaderboardService(
     private val playerRepository: PlayerRepository,
+    private val sessionRepository: GameSessionRepository,
     private val resultRepository: SessionResultRepository,
     private val statsCalculator: StatsCalculator,
     private val userRepository: UserRepository,
@@ -127,8 +129,11 @@ class LeaderboardService(
 
         return allPlayers.map { player ->
             val allResults = resultRepository.findByPlayerId(player.id)
-            // Filter out spectator results - they should not be included in statistics
-            val activeResults = allResults.filter { !it.isSpectator }
+            // Filter out spectator results and results from deleted sessions
+            val activeResults = allResults.filter { result ->
+                !result.isSpectator &&
+                (sessionRepository.findById(result.sessionId)?.isDeleted == false)
+            }
             val stats = statsCalculator.calculatePlayerStats(player.id, activeResults)
             PlayerWithStats(player, stats)
         }
@@ -158,8 +163,11 @@ class LeaderboardService(
 
         return connectedPlayers.mapNotNull { player ->
             val allPlayerResults = resultsByPlayer[player.id] ?: return@mapNotNull null
-            // Filter out spectator results - they should not be included in statistics
-            val activeResults = allPlayerResults.filter { !it.isSpectator }
+            // Filter out spectator results and results from deleted sessions
+            val activeResults = allPlayerResults.filter { result ->
+                !result.isSpectator &&
+                (sessionRepository.findById(result.sessionId)?.isDeleted == false)
+            }
             val stats = statsCalculator.calculatePlayerStats(player.id, activeResults)
             PlayerWithStats(player, stats)
         }
