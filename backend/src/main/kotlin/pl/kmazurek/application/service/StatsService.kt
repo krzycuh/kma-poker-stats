@@ -55,9 +55,15 @@ class StatsService(
     ): SharedPlayerStatsDto {
         val (targetPlayer, sharedSessionIds) = playerNetworkService.sharedSessionIdsBetween(viewerUserId, targetPlayerId)
 
+        // Filter to only include active (non-deleted) sessions
+        val activeSharedSessionIds =
+            sharedSessionIds.mapNotNull { sessionId ->
+                sessionRepository.findById(sessionId)?.takeUnless { it.isDeleted }?.id
+            }.toSet()
+
         val sharedResults =
             resultRepository.findByPlayerId(targetPlayer.id)
-                .filter { it.sessionId in sharedSessionIds }
+                .filter { it.sessionId in activeSharedSessionIds }
 
         val stats = buildCompleteStats(targetPlayer.id, sharedResults, startDate, endDate)
 
@@ -78,7 +84,16 @@ class StatsService(
     ): CompleteStatsDto {
         // Filter out spectator results - they should not be included in statistics
         val nonSpectatorResults = unfilteredResults.filter { !it.isSpectator }
-        val filteredResults = filterResultsByDateRange(nonSpectatorResults, startDate, endDate)
+
+        // Filter out results from deleted sessions to prevent duplicate counting
+        val sessionIds = nonSpectatorResults.map { it.sessionId }.toSet()
+        val activeSessions =
+            sessionIds.mapNotNull { sessionId ->
+                sessionRepository.findById(sessionId)?.takeUnless { it.isDeleted }
+            }.map { it.id }.toSet()
+
+        val nonDeletedResults = nonSpectatorResults.filter { it.sessionId in activeSessions }
+        val filteredResults = filterResultsByDateRange(nonDeletedResults, startDate, endDate)
 
         val stats = statsCalculator.calculatePlayerStats(playerId, filteredResults)
         val overview = PlayerStatsDto.fromDomain(stats)
