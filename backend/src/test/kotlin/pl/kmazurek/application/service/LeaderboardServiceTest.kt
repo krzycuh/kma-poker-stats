@@ -8,7 +8,10 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import pl.kmazurek.application.dto.LeaderboardMetric
+import pl.kmazurek.domain.model.gamesession.GameSession
 import pl.kmazurek.domain.model.gamesession.GameSessionId
+import pl.kmazurek.domain.model.gamesession.GameType
+import pl.kmazurek.domain.model.gamesession.Location
 import pl.kmazurek.domain.model.gamesession.SessionResult
 import pl.kmazurek.domain.model.gamesession.SessionResultId
 import pl.kmazurek.domain.model.player.Player
@@ -20,6 +23,7 @@ import pl.kmazurek.domain.model.user.HashedPassword
 import pl.kmazurek.domain.model.user.User
 import pl.kmazurek.domain.model.user.UserId
 import pl.kmazurek.domain.model.user.UserRole
+import pl.kmazurek.domain.repository.GameSessionRepository
 import pl.kmazurek.domain.repository.PlayerRepository
 import pl.kmazurek.domain.repository.SessionResultRepository
 import pl.kmazurek.domain.repository.UserRepository
@@ -28,6 +32,7 @@ import java.time.LocalDateTime
 
 class LeaderboardServiceTest {
     private lateinit var playerRepository: PlayerRepository
+    private lateinit var sessionRepository: GameSessionRepository
     private lateinit var sessionResultRepository: SessionResultRepository
     private lateinit var userRepository: UserRepository
     private lateinit var service: LeaderboardService
@@ -37,9 +42,10 @@ class LeaderboardServiceTest {
     @BeforeEach
     fun setup() {
         playerRepository = mockk()
+        sessionRepository = mockk()
         sessionResultRepository = mockk()
         userRepository = mockk()
-        service = LeaderboardService(playerRepository, sessionResultRepository, statsCalculator, userRepository)
+        service = LeaderboardService(playerRepository, sessionRepository, sessionResultRepository, statsCalculator, userRepository)
     }
 
     @Test
@@ -57,6 +63,7 @@ class LeaderboardServiceTest {
         every { sessionResultRepository.findByPlayerId(viewerPlayer.id) } returns listOf(viewerResult)
         every { sessionResultRepository.findBySessionIds(setOf(sharedSession)) } returns listOf(viewerResult, rivalSharedResult)
         every { playerRepository.findByIds(setOf(viewerPlayer.id, rivalPlayer.id)) } returns listOf(viewerPlayer, rivalPlayer)
+        every { sessionRepository.findById(sharedSession) } returns gameSession(sharedSession)
 
         val leaderboard = service.getLeaderboard(LeaderboardMetric.NET_PROFIT, userId, limit = 10)
 
@@ -80,14 +87,18 @@ class LeaderboardServiceTest {
         val adminUser = user(userId, UserRole.ADMIN)
         val playerOne = player("One")
         val playerTwo = player("Two")
+        val sessionOne = GameSessionId.generate()
+        val sessionTwo = GameSessionId.generate()
 
         every { userRepository.findById(userId) } returns adminUser
         every { playerRepository.findByUserId(userId) } returns null
         every { playerRepository.findAll(false) } returns listOf(playerOne, playerTwo)
         every { sessionResultRepository.findByPlayerId(playerOne.id) } returns
-            listOf(sessionResult(GameSessionId.generate(), playerOne.id, 1_000, 2_000))
+            listOf(sessionResult(sessionOne, playerOne.id, 1_000, 2_000))
         every { sessionResultRepository.findByPlayerId(playerTwo.id) } returns
-            listOf(sessionResult(GameSessionId.generate(), playerTwo.id, 1_000, 1_500))
+            listOf(sessionResult(sessionTwo, playerTwo.id, 1_000, 1_500))
+        every { sessionRepository.findById(sessionOne) } returns gameSession(sessionOne)
+        every { sessionRepository.findById(sessionTwo) } returns gameSession(sessionTwo)
 
         val leaderboard = service.getLeaderboard(LeaderboardMetric.NET_PROFIT, userId, limit = 10)
 
@@ -166,6 +177,22 @@ class LeaderboardServiceTest {
             name = "User ${role.name}",
             role = role,
             avatarUrl = null,
+            createdAt = now,
+            updatedAt = now,
+        )
+    }
+
+    private fun gameSession(id: GameSessionId): GameSession {
+        val now = LocalDateTime.now()
+        return GameSession(
+            id = id,
+            startTime = now,
+            endTime = now.plusHours(3),
+            location = Location("Test Location"),
+            gameType = GameType.TEXAS_HOLDEM,
+            minBuyIn = Money.ofCents(10_000),
+            notes = null,
+            isDeleted = false,
             createdAt = now,
             updatedAt = now,
         )
