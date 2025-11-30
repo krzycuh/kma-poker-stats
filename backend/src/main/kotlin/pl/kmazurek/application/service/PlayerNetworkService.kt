@@ -7,12 +7,14 @@ import pl.kmazurek.domain.model.gamesession.GameSessionId
 import pl.kmazurek.domain.model.player.Player
 import pl.kmazurek.domain.model.player.PlayerId
 import pl.kmazurek.domain.model.user.UserId
+import pl.kmazurek.domain.repository.GameSessionRepository
 import pl.kmazurek.domain.repository.PlayerRepository
 import pl.kmazurek.domain.repository.SessionResultRepository
 
 @Service
 class PlayerNetworkService(
     private val playerRepository: PlayerRepository,
+    private val sessionRepository: GameSessionRepository,
     private val sessionResultRepository: SessionResultRepository,
 ) {
     companion object {
@@ -31,13 +33,18 @@ class PlayerNetworkService(
             return emptyList()
         }
 
-        val sharedSessionIds = viewerResults.map { it.sessionId }.toSet()
-        if (sharedSessionIds.isEmpty()) {
+        // Filter to only include non-deleted sessions
+        val activeSessionIds =
+            viewerResults.map { it.sessionId }.toSet()
+                .filter { sessionId ->
+                    sessionRepository.findById(sessionId)?.isDeleted == false
+                }.toSet()
+        if (activeSessionIds.isEmpty()) {
             return emptyList()
         }
 
         val sharedResults =
-            sessionResultRepository.findBySessionIds(sharedSessionIds)
+            sessionResultRepository.findBySessionIds(activeSessionIds)
                 .filter { it.playerId != viewerPlayer.id }
         if (sharedResults.isEmpty()) {
             return emptyList()
@@ -90,7 +97,12 @@ class PlayerNetworkService(
         targetPlayerId: PlayerId,
     ): Pair<Player, Set<GameSessionId>> {
         val viewerPlayer = findPlayerForUser(userId)
-        val viewerSessions = sessionResultRepository.findByPlayerId(viewerPlayer.id).map { it.sessionId }.toSet()
+        val viewerSessions =
+            sessionResultRepository.findByPlayerId(viewerPlayer.id)
+                .map { it.sessionId }
+                .filter { sessionId ->
+                    sessionRepository.findById(sessionId)?.isDeleted == false
+                }.toSet()
         if (viewerSessions.isEmpty()) {
             throw PlayerAccessDeniedException("You do not share any sessions with this player")
         }
@@ -100,7 +112,9 @@ class PlayerNetworkService(
             targetResults
                 .map { it.sessionId }
                 .filter { it in viewerSessions }
-                .toSet()
+                .filter { sessionId ->
+                    sessionRepository.findById(sessionId)?.isDeleted == false
+                }.toSet()
 
         if (sharedSessions.isEmpty()) {
             throw PlayerAccessDeniedException("You do not share any sessions with this player")
