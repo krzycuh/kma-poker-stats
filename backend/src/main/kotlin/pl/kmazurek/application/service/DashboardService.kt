@@ -35,11 +35,16 @@ class DashboardService(
             playerRepository.findByUserId(userId)
                 ?: throw IllegalStateException("No player linked to user")
 
-        // Get player's results
-        val results = resultRepository.findByPlayerId(player.id)
+        // Get player's results and filter out deleted sessions and spectator results
+        val allResults = resultRepository.findByPlayerId(player.id)
+        val activeResults =
+            allResults.filter { result ->
+                !result.isSpectator &&
+                    (sessionRepository.findById(result.sessionId)?.isDeleted == false)
+            }
 
         // Calculate stats
-        val stats = statsCalculator.calculatePlayerStats(player.id, results)
+        val stats = statsCalculator.calculatePlayerStats(player.id, activeResults)
         val playerStatsDto = PlayerStatsDto.fromDomain(stats)
 
         // Get recent sessions
@@ -63,16 +68,24 @@ class DashboardService(
         val player = playerRepository.findByUserId(userId)
         val personalStats =
             player?.let {
-                val results = resultRepository.findByPlayerId(it.id)
-                val stats = statsCalculator.calculatePlayerStats(it.id, results)
+                val allResults = resultRepository.findByPlayerId(it.id)
+                val activeResults =
+                    allResults.filter { result ->
+                        !result.isSpectator &&
+                            (sessionRepository.findById(result.sessionId)?.isDeleted == false)
+                    }
+                val stats = statsCalculator.calculatePlayerStats(it.id, activeResults)
                 PlayerStatsDto.fromDomain(stats)
             }
 
-        // Get system-wide stats
-        val allSessions = sessionRepository.findAll()
+        // Get system-wide stats (only non-deleted sessions)
+        val allSessions =
+            sessionRepository.findAll()
+                .filter { !it.isDeleted }
         val allResults =
             allSessions.flatMap { session ->
                 resultRepository.findBySessionId(session.id)
+                    .filter { !it.isSpectator }
             }
         val activePlayers = playerRepository.count().toInt()
 
@@ -151,11 +164,16 @@ class DashboardService(
         val allPlayers = playerRepository.findAll()
         if (allPlayers.size <= 1) return null
 
-        // Calculate profit for all players
+        // Calculate profit for all players (filter deleted sessions and spectators)
         val playerProfits =
             allPlayers.map { player ->
-                val results = resultRepository.findByPlayerId(player.id)
-                val stats = statsCalculator.calculatePlayerStats(player.id, results)
+                val allResults = resultRepository.findByPlayerId(player.id)
+                val activeResults =
+                    allResults.filter { result ->
+                        !result.isSpectator &&
+                            (sessionRepository.findById(result.sessionId)?.isDeleted == false)
+                    }
+                val stats = statsCalculator.calculatePlayerStats(player.id, activeResults)
                 player.id to stats.netProfit.amountInCents
             }.sortedByDescending { it.second }
 

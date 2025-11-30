@@ -6,7 +6,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import pl.kmazurek.application.usecase.player.PlayerAccessDeniedException
+import pl.kmazurek.domain.model.gamesession.GameSession
 import pl.kmazurek.domain.model.gamesession.GameSessionId
+import pl.kmazurek.domain.model.gamesession.GameType
+import pl.kmazurek.domain.model.gamesession.Location
 import pl.kmazurek.domain.model.gamesession.SessionResult
 import pl.kmazurek.domain.model.gamesession.SessionResultId
 import pl.kmazurek.domain.model.player.Player
@@ -14,14 +17,16 @@ import pl.kmazurek.domain.model.player.PlayerId
 import pl.kmazurek.domain.model.player.PlayerName
 import pl.kmazurek.domain.model.shared.Money
 import pl.kmazurek.domain.model.user.UserId
+import pl.kmazurek.domain.repository.GameSessionRepository
 import pl.kmazurek.domain.repository.PlayerRepository
 import pl.kmazurek.domain.repository.SessionResultRepository
 import java.time.LocalDateTime
 
 class PlayerNetworkServiceTest {
     private val playerRepository = mockk<PlayerRepository>()
+    private val sessionRepository = mockk<GameSessionRepository>()
     private val sessionResultRepository = mockk<SessionResultRepository>()
-    private val service = PlayerNetworkService(playerRepository, sessionResultRepository)
+    private val service = PlayerNetworkService(playerRepository, sessionRepository, sessionResultRepository)
 
     @Test
     fun `searchVisiblePlayers returns connected players sorted by shared sessions`() {
@@ -39,6 +44,9 @@ class PlayerNetworkServiceTest {
                 sessionResult(sessionOne, viewerPlayer.id, createdAt = LocalDateTime.now().minusDays(2)),
                 sessionResult(sessionTwo, viewerPlayer.id, createdAt = LocalDateTime.now().minusDays(1)),
             )
+
+        every { sessionRepository.findById(sessionOne) } returns gameSession(sessionOne)
+        every { sessionRepository.findById(sessionTwo) } returns gameSession(sessionTwo)
 
         every { sessionResultRepository.findBySessionIds(any()) } returns
             listOf(
@@ -67,12 +75,14 @@ class PlayerNetworkServiceTest {
         val viewerUserId = UserId.generate()
         val viewerPlayer = player(name = "Viewer", id = PlayerId.generate(), userId = viewerUserId)
         val targetPlayer = player(name = "Rival", id = PlayerId.generate())
+        val sessionId = GameSessionId.generate()
 
         every { playerRepository.findByUserId(viewerUserId) } returns viewerPlayer
         every { sessionResultRepository.findByPlayerId(viewerPlayer.id) } returns
             listOf(
-                sessionResult(GameSessionId.generate(), viewerPlayer.id, createdAt = LocalDateTime.now()),
+                sessionResult(sessionId, viewerPlayer.id, createdAt = LocalDateTime.now()),
             )
+        every { sessionRepository.findById(sessionId) } returns gameSession(sessionId)
         every { sessionResultRepository.findByPlayerId(targetPlayer.id) } returns emptyList()
         every { playerRepository.findById(targetPlayer.id) } returns targetPlayer
 
@@ -111,4 +121,20 @@ class PlayerNetworkServiceTest {
             createdAt = createdAt,
             updatedAt = createdAt,
         )
+
+    private fun gameSession(id: GameSessionId): GameSession {
+        val now = LocalDateTime.now()
+        return GameSession(
+            id = id,
+            startTime = now,
+            endTime = now.plusHours(3),
+            location = Location("Test Location"),
+            gameType = GameType.TEXAS_HOLDEM,
+            minBuyIn = Money.ofCents(10_000),
+            notes = null,
+            isDeleted = false,
+            createdAt = now,
+            updatedAt = now,
+        )
+    }
 }
