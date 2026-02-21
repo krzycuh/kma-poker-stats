@@ -41,7 +41,11 @@ class GlobalExceptionHandler(
 
     @ExceptionHandler(InvalidCredentialsException::class)
     fun handleInvalidCredentials(ex: InvalidCredentialsException): ResponseEntity<ErrorResponse> {
-        auditLogger.log("USER_LOGIN_FAILED", null, mapOf("reason" to (ex.message ?: "invalid credentials")))
+        auditLogger.log(
+            "USER_LOGIN_FAILED",
+            null,
+            mapOf("reason" to (ex.message ?: "invalid credentials")),
+        )
         return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Invalid credentials", ex)
     }
 

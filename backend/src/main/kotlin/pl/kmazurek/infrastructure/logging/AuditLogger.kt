@@ -7,17 +7,23 @@ import org.springframework.stereotype.Component
 class AuditLogger {
     private val logger = LoggerFactory.getLogger("audit")
 
-    fun log(event: String, userId: String?, details: Map<String, Any?> = emptyMap()) {
-        val detailsStr = if (details.isNotEmpty()) {
-            details.entries.joinToString(", ") { "${it.key}=${it.value}" }
-        } else {
-            ""
-        }
+    fun log(
+        event: String,
+        userId: String?,
+        details: Map<String, Any?> = emptyMap(),
+    ) {
+        val userLabel = userId ?: "anonymous"
+        val detailsStr =
+            if (details.isNotEmpty()) {
+                details.entries.joinToString(", ") { "${it.key}=${it.value}" }
+            } else {
+                ""
+            }
 
         if (detailsStr.isNotEmpty()) {
-            logger.info("AUDIT | event={} | userId={} | {}", event, userId ?: "anonymous", detailsStr)
+            logger.info("AUDIT | event={} | userId={} | {}", event, userLabel, detailsStr)
         } else {
-            logger.info("AUDIT | event={} | userId={}", event, userId ?: "anonymous")
+            logger.info("AUDIT | event={} | userId={}", event, userLabel)
         }
     }
 }

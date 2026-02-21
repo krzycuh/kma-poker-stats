@@ -37,10 +37,11 @@ class RequestLoggingFilter : OncePerRequestFilter() {
             val userId = resolveUserId()
             val ip = resolveClientIp(request)
 
+            val message = "HTTP {} {} | user={} | ip={} | status={} | {}ms"
             if (QUIET_PATHS.contains(path)) {
-                log.debug("HTTP {} {} | user={} | ip={} | status={} | {}ms", method, fullPath, userId, ip, status, duration)
+                log.debug(message, method, fullPath, userId, ip, status, duration)
             } else {
-                log.info("HTTP {} {} | user={} | ip={} | status={} | {}ms", method, fullPath, userId, ip, status, duration)
+                log.info(message, method, fullPath, userId, ip, status, duration)
             }
         }
     }
