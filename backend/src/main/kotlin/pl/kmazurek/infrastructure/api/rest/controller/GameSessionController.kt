@@ -33,6 +33,7 @@ import pl.kmazurek.application.usecase.gamesession.UpdateGameSession
 import pl.kmazurek.application.usecase.gamesession.UpdateGameSessionCommand
 import pl.kmazurek.domain.model.gamesession.GameSessionId
 import pl.kmazurek.domain.model.user.UserId
+import pl.kmazurek.infrastructure.logging.AuditLogger
 import java.time.LocalDateTime
 
 /**
@@ -46,6 +47,7 @@ class GameSessionController(
     private val deleteGameSession: DeleteGameSession,
     private val getGameSession: GetGameSession,
     private val listGameSessions: ListGameSessions,
+    private val auditLogger: AuditLogger,
 ) {
     @GetMapping
     fun listSessions(
@@ -151,6 +153,13 @@ class GameSessionController(
                     },
             )
         val result = createGameSession.execute(command)
+
+        auditLogger.log("SESSION_CREATED", userIdString, mapOf(
+            "sessionId" to result.session.id,
+            "location" to request.location,
+            "resultsCount" to request.results.size,
+        ))
+
         val dto =
             GameSessionWithResultsDto(
                 session = GameSessionDto.fromDomain(result.session),
@@ -163,6 +172,7 @@ class GameSessionController(
     @PreAuthorize("hasRole('ADMIN')")
     fun updateSession(
         @PathVariable id: String,
+        @AuthenticationPrincipal userIdString: String?,
         @Valid @RequestBody request: UpdateGameSessionRequest,
     ): ResponseEntity<GameSessionDto> {
         val sessionId = GameSessionId.fromString(id)
@@ -176,6 +186,9 @@ class GameSessionController(
                 notes = request.notes,
             )
         val session = updateGameSession.execute(sessionId, command)
+
+        auditLogger.log("SESSION_UPDATED", userIdString, mapOf("sessionId" to id))
+
         return ResponseEntity.ok(GameSessionDto.fromDomain(session))
     }
 
@@ -183,9 +196,13 @@ class GameSessionController(
     @PreAuthorize("hasRole('ADMIN')")
     fun deleteSession(
         @PathVariable id: String,
+        @AuthenticationPrincipal userIdString: String?,
     ): ResponseEntity<Map<String, String>> {
         val sessionId = GameSessionId.fromString(id)
         deleteGameSession.execute(sessionId)
+
+        auditLogger.log("SESSION_DELETED", userIdString, mapOf("sessionId" to id))
+
         return ResponseEntity.ok(mapOf("message" to "Session deleted successfully"))
     }
 }

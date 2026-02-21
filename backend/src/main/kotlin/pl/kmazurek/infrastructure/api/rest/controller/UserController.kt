@@ -17,6 +17,7 @@ import pl.kmazurek.application.usecase.user.ChangeUserPassword
 import pl.kmazurek.application.usecase.user.GetCurrentUser
 import pl.kmazurek.application.usecase.user.UpdateUserProfile
 import pl.kmazurek.domain.model.user.UserId
+import pl.kmazurek.infrastructure.logging.AuditLogger
 
 /**
  * REST Controller for user profile endpoints
@@ -28,6 +29,7 @@ class UserController(
     private val updateUserProfile: UpdateUserProfile,
     private val changeUserPassword: ChangeUserPassword,
     private val userDtoMapper: UserDtoMapper,
+    private val auditLogger: AuditLogger,
 ) {
     @GetMapping("/me")
     fun getCurrentUserProfile(
@@ -45,6 +47,9 @@ class UserController(
     ): ResponseEntity<UserDto> {
         val userId = UserId.fromString(userIdString)
         val user = updateUserProfile.execute(userId, request.name, request.avatarUrl)
+
+        auditLogger.log("PROFILE_UPDATED", userIdString)
+
         return ResponseEntity.ok(userDtoMapper.fromDomain(user))
     }
 
@@ -55,6 +60,9 @@ class UserController(
     ): ResponseEntity<Map<String, String>> {
         val userId = UserId.fromString(userIdString)
         changeUserPassword.execute(userId, request.currentPassword, request.newPassword)
+
+        auditLogger.log("PASSWORD_CHANGED", userIdString)
+
         return ResponseEntity.ok(mapOf("message" to "Password changed successfully"))
     }
 }
