@@ -21,12 +21,15 @@ import pl.kmazurek.application.usecase.player.UserAlreadyLinkedException
 import pl.kmazurek.application.usecase.sessionresult.SessionResultNotFoundException
 import pl.kmazurek.application.usecase.user.InvalidPasswordException
 import pl.kmazurek.application.usecase.user.UserNotFoundException
+import pl.kmazurek.infrastructure.logging.AuditLogger
 
 /**
  * Global exception handler for REST controllers
  */
 @RestControllerAdvice
-class GlobalExceptionHandler {
+class GlobalExceptionHandler(
+    private val auditLogger: AuditLogger,
+) {
     companion object {
         private val logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
     }
@@ -38,6 +41,7 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidCredentialsException::class)
     fun handleInvalidCredentials(ex: InvalidCredentialsException): ResponseEntity<ErrorResponse> {
+        auditLogger.log("USER_LOGIN_FAILED", null, mapOf("reason" to (ex.message ?: "invalid credentials")))
         return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Invalid credentials", ex)
     }
 

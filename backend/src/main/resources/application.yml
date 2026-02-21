@@ -52,6 +52,7 @@ logging:
     pl.kmazurek: DEBUG
     org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
+    audit: INFO
 
 jwt:
   secret: changeme-this-is-a-development-secret-key-only-must-be-at-least-256-bits-long
@@ -102,8 +103,7 @@ logging:
     pl.kmazurek: INFO
     org.springframework: INFO
     org.hibernate: INFO
-  pattern:
-    console: '{"timestamp": "%d{yyyy-MM-dd HH:mm:ss.SSS}", "level": "%-5level", "logger": "%logger{36}", "message": "%msg"}%n'
+    audit: INFO
 
 jwt:
   secret: ${JWT_SECRET}

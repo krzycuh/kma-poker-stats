@@ -4,6 +4,7 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -29,6 +30,7 @@ import pl.kmazurek.application.usecase.player.UpdatePlayer
 import pl.kmazurek.application.usecase.player.UpdatePlayerCommand
 import pl.kmazurek.domain.model.player.PlayerId
 import pl.kmazurek.domain.model.user.UserId
+import pl.kmazurek.infrastructure.logging.AuditLogger
 
 /**
  * REST Controller for player management endpoints
@@ -44,6 +46,7 @@ class PlayerController(
     private val listPlayers: ListPlayers,
     private val linkPlayerToUser: LinkPlayerToUser,
     private val unlinkPlayerFromUser: UnlinkPlayerFromUser,
+    private val auditLogger: AuditLogger,
 ) {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -70,6 +73,7 @@ class PlayerController(
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     fun createPlayer(
+        @AuthenticationPrincipal userIdString: String?,
         @Valid @RequestBody request: CreatePlayerRequest,
     ): ResponseEntity<PlayerDto> {
         val command =
@@ -79,6 +83,12 @@ class PlayerController(
                 userId = request.userId,
             )
         val player = createPlayer.execute(command)
+
+        auditLogger.log("PLAYER_CREATED", userIdString, mapOf(
+            "playerId" to player.id,
+            "playerName" to request.name,
+        ))
+
         return ResponseEntity.status(HttpStatus.CREATED).body(PlayerDto.fromDomain(player))
     }
 
@@ -86,6 +96,7 @@ class PlayerController(
     @PreAuthorize("hasRole('ADMIN')")
     fun updatePlayer(
         @PathVariable id: String,
+        @AuthenticationPrincipal userIdString: String?,
         @Valid @RequestBody request: UpdatePlayerRequest,
     ): ResponseEntity<PlayerDto> {
         val playerId = PlayerId.fromString(id)
@@ -95,6 +106,9 @@ class PlayerController(
                 avatarUrl = request.avatarUrl,
             )
         val player = updatePlayer.execute(playerId, command)
+
+        auditLogger.log("PLAYER_UPDATED", userIdString, mapOf("playerId" to id))
+
         return ResponseEntity.ok(PlayerDto.fromDomain(player))
     }
 
@@ -102,9 +116,13 @@ class PlayerController(
     @PreAuthorize("hasRole('ADMIN')")
     fun deletePlayer(
         @PathVariable id: String,
+        @AuthenticationPrincipal userIdString: String?,
     ): ResponseEntity<Map<String, String>> {
         val playerId = PlayerId.fromString(id)
         deletePlayer.execute(playerId)
+
+        auditLogger.log("PLAYER_DELETED", userIdString, mapOf("playerId" to id))
+
         return ResponseEntity.ok(mapOf("message" to "Player deactivated successfully"))
     }
 
@@ -112,11 +130,18 @@ class PlayerController(
     @PreAuthorize("hasRole('ADMIN')")
     fun linkPlayer(
         @PathVariable id: String,
+        @AuthenticationPrincipal userIdString: String?,
         @Valid @RequestBody request: LinkPlayerRequest,
     ): ResponseEntity<PlayerDto> {
         val playerId = PlayerId.fromString(id)
         val userId = UserId.fromString(request.userId)
         val player = linkPlayerToUser.execute(playerId, userId)
+
+        auditLogger.log("PLAYER_LINKED", userIdString, mapOf(
+            "playerId" to id,
+            "linkedUserId" to request.userId,
+        ))
+
         return ResponseEntity.ok(PlayerDto.fromDomain(player))
     }
 
@@ -124,9 +149,13 @@ class PlayerController(
     @PreAuthorize("hasRole('ADMIN')")
     fun unlinkPlayer(
         @PathVariable id: String,
+        @AuthenticationPrincipal userIdString: String?,
     ): ResponseEntity<PlayerDto> {
         val playerId = PlayerId.fromString(id)
         val player = unlinkPlayerFromUser.execute(playerId)
+
+        auditLogger.log("PLAYER_UNLINKED", userIdString, mapOf("playerId" to id))
+
         return ResponseEntity.ok(PlayerDto.fromDomain(player))
     }
 }

@@ -3,6 +3,7 @@ package pl.kmazurek.infrastructure.api.rest.controller
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
@@ -15,6 +16,7 @@ import pl.kmazurek.application.usecase.sessionresult.DeleteSessionResult
 import pl.kmazurek.application.usecase.sessionresult.UpdateSessionResult
 import pl.kmazurek.application.usecase.sessionresult.UpdateSessionResultCommand
 import pl.kmazurek.domain.model.gamesession.SessionResultId
+import pl.kmazurek.infrastructure.logging.AuditLogger
 
 /**
  * REST Controller for session result endpoints
@@ -24,11 +26,13 @@ import pl.kmazurek.domain.model.gamesession.SessionResultId
 class SessionResultController(
     private val updateSessionResult: UpdateSessionResult,
     private val deleteSessionResult: DeleteSessionResult,
+    private val auditLogger: AuditLogger,
 ) {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     fun updateResult(
         @PathVariable id: String,
+        @AuthenticationPrincipal userIdString: String?,
         @Valid @RequestBody request: UpdateSessionResultRequest,
     ): ResponseEntity<SessionResultDto> {
         val resultId = SessionResultId.fromString(id)
@@ -39,6 +43,9 @@ class SessionResultController(
                 notes = request.notes,
             )
         val result = updateSessionResult.execute(resultId, command)
+
+        auditLogger.log("RESULT_UPDATED", userIdString, mapOf("resultId" to id))
+
         return ResponseEntity.ok(SessionResultDto.fromDomain(result))
     }
 
@@ -46,9 +53,13 @@ class SessionResultController(
     @PreAuthorize("hasRole('ADMIN')")
     fun deleteResult(
         @PathVariable id: String,
+        @AuthenticationPrincipal userIdString: String?,
     ): ResponseEntity<Map<String, String>> {
         val resultId = SessionResultId.fromString(id)
         deleteSessionResult.execute(resultId)
+
+        auditLogger.log("RESULT_DELETED", userIdString, mapOf("resultId" to id))
+
         return ResponseEntity.ok(mapOf("message" to "Result deleted successfully"))
     }
 }

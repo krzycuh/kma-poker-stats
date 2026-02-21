@@ -3,6 +3,7 @@ package pl.kmazurek.infrastructure.api.rest.controller
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -15,6 +16,7 @@ import pl.kmazurek.application.service.UserDtoMapper
 import pl.kmazurek.application.usecase.auth.LoginUser
 import pl.kmazurek.application.usecase.auth.RefreshAccessToken
 import pl.kmazurek.application.usecase.auth.RegisterUser
+import pl.kmazurek.infrastructure.logging.AuditLogger
 
 /**
  * REST Controller for authentication endpoints
@@ -26,12 +28,15 @@ class AuthController(
     private val loginUser: LoginUser,
     private val refreshAccessToken: RefreshAccessToken,
     private val userDtoMapper: UserDtoMapper,
+    private val auditLogger: AuditLogger,
 ) {
     @PostMapping("/register")
     fun register(
         @Valid @RequestBody request: RegisterRequest,
     ): ResponseEntity<AuthResponse> {
         val user = registerUser.execute(request.email, request.password, request.name)
+
+        auditLogger.log("USER_REGISTERED", user.id.toString(), mapOf("email" to request.email))
 
         // For simplicity, auto-login after registration
         val loginResult = loginUser.execute(request.email, request.password)
@@ -52,6 +57,8 @@ class AuthController(
     ): ResponseEntity<AuthResponse> {
         val result = loginUser.execute(request.email, request.password)
 
+        auditLogger.log("USER_LOGIN_SUCCESS", result.user.id.toString(), mapOf("email" to request.email))
+
         val response =
             AuthResponse(
                 accessToken = result.accessToken,
@@ -68,11 +75,17 @@ class AuthController(
     ): ResponseEntity<Map<String, String>> {
         val newAccessToken = refreshAccessToken.execute(request.refreshToken)
 
+        auditLogger.log("TOKEN_REFRESH", null)
+
         return ResponseEntity.ok(mapOf("accessToken" to newAccessToken))
     }
 
     @PostMapping("/logout")
-    fun logout(): ResponseEntity<Map<String, String>> {
+    fun logout(
+        @AuthenticationPrincipal userIdString: String?,
+    ): ResponseEntity<Map<String, String>> {
+        auditLogger.log("USER_LOGOUT", userIdString)
+
         // With JWT, logout is handled client-side by removing tokens
         // For now, just return success
         // TODO: Consider implementing token blacklist with Redis if needed
