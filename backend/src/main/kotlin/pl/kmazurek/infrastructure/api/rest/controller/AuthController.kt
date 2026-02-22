@@ -36,7 +36,7 @@ class AuthController(
     ): ResponseEntity<AuthResponse> {
         val user = registerUser.execute(request.email, request.password, request.name)
 
-        auditLogger.log("USER_REGISTERED", user.id.toString(), mapOf("email" to request.email))
+        auditLogger.log("USER_REGISTERED", request.email)
 
         // For simplicity, auto-login after registration
         val loginResult = loginUser.execute(request.email, request.password)
@@ -57,7 +57,7 @@ class AuthController(
     ): ResponseEntity<AuthResponse> {
         val result = loginUser.execute(request.email, request.password)
 
-        auditLogger.log("USER_LOGIN_SUCCESS", result.user.id.toString(), mapOf("email" to request.email))
+        auditLogger.log("USER_LOGIN_SUCCESS", request.email)
 
         val response =
             AuthResponse(
@@ -84,7 +84,7 @@ class AuthController(
     fun logout(
         @AuthenticationPrincipal userIdString: String?,
     ): ResponseEntity<Map<String, String>> {
-        auditLogger.log("USER_LOGOUT", userIdString)
+        auditLogger.log("USER_LOGOUT")
 
         // With JWT, logout is handled client-side by removing tokens
         // For now, just return success

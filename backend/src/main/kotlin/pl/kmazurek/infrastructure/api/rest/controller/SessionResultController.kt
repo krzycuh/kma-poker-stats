@@ -44,7 +44,7 @@ class SessionResultController(
             )
         val result = updateSessionResult.execute(resultId, command)
 
-        auditLogger.log("RESULT_UPDATED", userIdString, mapOf("resultId" to id))
+        auditLogger.log("RESULT_UPDATED", details = mapOf("resultId" to id))
 
         return ResponseEntity.ok(SessionResultDto.fromDomain(result))
     }
@@ -58,7 +58,7 @@ class SessionResultController(
         val resultId = SessionResultId.fromString(id)
         deleteSessionResult.execute(resultId)
 
-        auditLogger.log("RESULT_DELETED", userIdString, mapOf("resultId" to id))
+        auditLogger.log("RESULT_DELETED", details = mapOf("resultId" to id))
 
         return ResponseEntity.ok(mapOf("message" to "Result deleted successfully"))
     }

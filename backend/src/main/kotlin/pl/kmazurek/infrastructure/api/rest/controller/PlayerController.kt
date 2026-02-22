@@ -86,11 +86,11 @@ class PlayerController(
 
         auditLogger.log(
             "PLAYER_CREATED",
-            userIdString,
-            mapOf(
-                "playerId" to player.id,
-                "playerName" to request.name,
-            ),
+            details =
+                mapOf(
+                    "playerId" to player.id,
+                    "playerName" to request.name,
+                ),
         )
 
         return ResponseEntity.status(HttpStatus.CREATED).body(PlayerDto.fromDomain(player))
@@ -111,7 +111,7 @@ class PlayerController(
             )
         val player = updatePlayer.execute(playerId, command)
 
-        auditLogger.log("PLAYER_UPDATED", userIdString, mapOf("playerId" to id))
+        auditLogger.log("PLAYER_UPDATED", details = mapOf("playerId" to id))
 
         return ResponseEntity.ok(PlayerDto.fromDomain(player))
     }
@@ -125,7 +125,7 @@ class PlayerController(
         val playerId = PlayerId.fromString(id)
         deletePlayer.execute(playerId)
 
-        auditLogger.log("PLAYER_DELETED", userIdString, mapOf("playerId" to id))
+        auditLogger.log("PLAYER_DELETED", details = mapOf("playerId" to id))
 
         return ResponseEntity.ok(mapOf("message" to "Player deactivated successfully"))
     }
@@ -143,11 +143,11 @@ class PlayerController(
 
         auditLogger.log(
             "PLAYER_LINKED",
-            userIdString,
-            mapOf(
-                "playerId" to id,
-                "linkedUserId" to request.userId,
-            ),
+            details =
+                mapOf(
+                    "playerId" to id,
+                    "linkedUserId" to request.userId,
+                ),
         )
 
         return ResponseEntity.ok(PlayerDto.fromDomain(player))
@@ -162,7 +162,7 @@ class PlayerController(
         val playerId = PlayerId.fromString(id)
         val player = unlinkPlayerFromUser.execute(playerId)
 
-        auditLogger.log("PLAYER_UNLINKED", userIdString, mapOf("playerId" to id))
+        auditLogger.log("PLAYER_UNLINKED", details = mapOf("playerId" to id))
 
         return ResponseEntity.ok(PlayerDto.fromDomain(player))
     }
