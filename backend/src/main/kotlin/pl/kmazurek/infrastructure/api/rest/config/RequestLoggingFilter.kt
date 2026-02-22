@@ -34,21 +34,21 @@ class RequestLoggingFilter : OncePerRequestFilter() {
             val query = request.queryString
             val fullPath = if (query != null) "$path?$query" else path
             val status = response.status
-            val userId = resolveUserId()
+            val userEmail = resolveUserEmail()
             val ip = resolveClientIp(request)
 
             if (QUIET_PATHS.contains(path)) {
-                log.debug("HTTP {} {} | user={} | ip={} | status={} | {}ms", method, fullPath, userId, ip, status, duration)
+                log.debug("HTTP {} {} | user={} | ip={} | status={} | {}ms", method, fullPath, userEmail, ip, status, duration)
             } else {
-                log.info("HTTP {} {} | user={} | ip={} | status={} | {}ms", method, fullPath, userId, ip, status, duration)
+                log.info("HTTP {} {} | user={} | ip={} | status={} | {}ms", method, fullPath, userEmail, ip, status, duration)
             }
         }
     }
 
-    private fun resolveUserId(): String {
+    private fun resolveUserEmail(): String {
         val auth = SecurityContextHolder.getContext().authentication ?: return "anonymous"
         if (!auth.isAuthenticated || auth.principal == "anonymousUser") return "anonymous"
-        return auth.principal.toString()
+        return auth.credentials?.toString() ?: "anonymous"
     }
 
     private fun resolveClientIp(request: HttpServletRequest): String {

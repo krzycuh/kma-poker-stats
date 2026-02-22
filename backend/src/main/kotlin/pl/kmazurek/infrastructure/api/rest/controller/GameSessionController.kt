@@ -156,8 +156,7 @@ class GameSessionController(
 
         auditLogger.log(
             "SESSION_CREATED",
-            userIdString,
-            mapOf(
+            details = mapOf(
                 "sessionId" to result.session.id,
                 "location" to request.location,
                 "resultsCount" to request.results.size,
@@ -191,7 +190,7 @@ class GameSessionController(
             )
         val session = updateGameSession.execute(sessionId, command)
 
-        auditLogger.log("SESSION_UPDATED", userIdString, mapOf("sessionId" to id))
+        auditLogger.log("SESSION_UPDATED", details = mapOf("sessionId" to id))
 
         return ResponseEntity.ok(GameSessionDto.fromDomain(session))
     }
@@ -205,7 +204,7 @@ class GameSessionController(
         val sessionId = GameSessionId.fromString(id)
         deleteGameSession.execute(sessionId)
 
-        auditLogger.log("SESSION_DELETED", userIdString, mapOf("sessionId" to id))
+        auditLogger.log("SESSION_DELETED", details = mapOf("sessionId" to id))
 
         return ResponseEntity.ok(mapOf("message" to "Session deleted successfully"))
     }

@@ -48,7 +48,7 @@ class UserController(
         val userId = UserId.fromString(userIdString)
         val user = updateUserProfile.execute(userId, request.name, request.avatarUrl)
 
-        auditLogger.log("PROFILE_UPDATED", userIdString)
+        auditLogger.log("PROFILE_UPDATED")
 
         return ResponseEntity.ok(userDtoMapper.fromDomain(user))
     }
@@ -61,7 +61,7 @@ class UserController(
         val userId = UserId.fromString(userIdString)
         changeUserPassword.execute(userId, request.currentPassword, request.newPassword)
 
-        auditLogger.log("PASSWORD_CHANGED", userIdString)
+        auditLogger.log("PASSWORD_CHANGED")
 
         return ResponseEntity.ok(mapOf("message" to "Password changed successfully"))
     }

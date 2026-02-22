@@ -86,8 +86,7 @@ class PlayerController(
 
         auditLogger.log(
             "PLAYER_CREATED",
-            userIdString,
-            mapOf(
+            details = mapOf(
                 "playerId" to player.id,
                 "playerName" to request.name,
             ),
@@ -111,7 +110,7 @@ class PlayerController(
             )
         val player = updatePlayer.execute(playerId, command)
 
-        auditLogger.log("PLAYER_UPDATED", userIdString, mapOf("playerId" to id))
+        auditLogger.log("PLAYER_UPDATED", details = mapOf("playerId" to id))
 
         return ResponseEntity.ok(PlayerDto.fromDomain(player))
     }
@@ -125,7 +124,7 @@ class PlayerController(
         val playerId = PlayerId.fromString(id)
         deletePlayer.execute(playerId)
 
-        auditLogger.log("PLAYER_DELETED", userIdString, mapOf("playerId" to id))
+        auditLogger.log("PLAYER_DELETED", details = mapOf("playerId" to id))
 
         return ResponseEntity.ok(mapOf("message" to "Player deactivated successfully"))
     }
@@ -143,8 +142,7 @@ class PlayerController(
 
         auditLogger.log(
             "PLAYER_LINKED",
-            userIdString,
-            mapOf(
+            details = mapOf(
                 "playerId" to id,
                 "linkedUserId" to request.userId,
             ),
@@ -162,7 +160,7 @@ class PlayerController(
         val playerId = PlayerId.fromString(id)
         val player = unlinkPlayerFromUser.execute(playerId)
 
-        auditLogger.log("PLAYER_UNLINKED", userIdString, mapOf("playerId" to id))
+        auditLogger.log("PLAYER_UNLINKED", details = mapOf("playerId" to id))
 
         return ResponseEntity.ok(PlayerDto.fromDomain(player))
     }
