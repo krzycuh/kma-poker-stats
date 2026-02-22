@@ -154,11 +154,15 @@ class GameSessionController(
             )
         val result = createGameSession.execute(command)
 
-        auditLogger.log("SESSION_CREATED", userIdString, mapOf(
-            "sessionId" to result.session.id,
-            "location" to request.location,
-            "resultsCount" to request.results.size,
-        ))
+        auditLogger.log(
+            "SESSION_CREATED",
+            userIdString,
+            mapOf(
+                "sessionId" to result.session.id,
+                "location" to request.location,
+                "resultsCount" to request.results.size,
+            ),
+        )
 
         val dto =
             GameSessionWithResultsDto(
