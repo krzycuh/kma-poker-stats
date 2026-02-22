@@ -84,10 +84,14 @@ class PlayerController(
             )
         val player = createPlayer.execute(command)
 
-        auditLogger.log("PLAYER_CREATED", userIdString, mapOf(
-            "playerId" to player.id,
-            "playerName" to request.name,
-        ))
+        auditLogger.log(
+            "PLAYER_CREATED",
+            userIdString,
+            mapOf(
+                "playerId" to player.id,
+                "playerName" to request.name,
+            ),
+        )
 
         return ResponseEntity.status(HttpStatus.CREATED).body(PlayerDto.fromDomain(player))
     }
@@ -137,10 +141,14 @@ class PlayerController(
         val userId = UserId.fromString(request.userId)
         val player = linkPlayerToUser.execute(playerId, userId)
 
-        auditLogger.log("PLAYER_LINKED", userIdString, mapOf(
-            "playerId" to id,
-            "linkedUserId" to request.userId,
-        ))
+        auditLogger.log(
+            "PLAYER_LINKED",
+            userIdString,
+            mapOf(
+                "playerId" to id,
+                "linkedUserId" to request.userId,
+            ),
+        )
 
         return ResponseEntity.ok(PlayerDto.fromDomain(player))
     }
