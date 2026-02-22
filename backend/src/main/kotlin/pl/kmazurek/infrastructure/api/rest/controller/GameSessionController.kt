@@ -156,11 +156,12 @@ class GameSessionController(
 
         auditLogger.log(
             "SESSION_CREATED",
-            details = mapOf(
-                "sessionId" to result.session.id,
-                "location" to request.location,
-                "resultsCount" to request.results.size,
-            ),
+            details =
+                mapOf(
+                    "sessionId" to result.session.id,
+                    "location" to request.location,
+                    "resultsCount" to request.results.size,
+                ),
         )
 
         val dto =

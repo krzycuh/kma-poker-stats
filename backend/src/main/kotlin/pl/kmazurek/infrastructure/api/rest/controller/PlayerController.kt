@@ -86,10 +86,11 @@ class PlayerController(
 
         auditLogger.log(
             "PLAYER_CREATED",
-            details = mapOf(
-                "playerId" to player.id,
-                "playerName" to request.name,
-            ),
+            details =
+                mapOf(
+                    "playerId" to player.id,
+                    "playerName" to request.name,
+                ),
         )
 
         return ResponseEntity.status(HttpStatus.CREATED).body(PlayerDto.fromDomain(player))
@@ -142,10 +143,11 @@ class PlayerController(
 
         auditLogger.log(
             "PLAYER_LINKED",
-            details = mapOf(
-                "playerId" to id,
-                "linkedUserId" to request.userId,
-            ),
+            details =
+                mapOf(
+                    "playerId" to id,
+                    "linkedUserId" to request.userId,
+                ),
         )
 
         return ResponseEntity.ok(PlayerDto.fromDomain(player))
