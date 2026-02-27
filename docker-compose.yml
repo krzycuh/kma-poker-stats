@@ -42,12 +42,17 @@ services:
       DATABASE_PASSWORD: pokerstats
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      NTFY_URL: http://ntfy:80
+      NTFY_TOPIC: pokerstats
+      NTFY_ENABLED: "true"
     expose:
       - "8080"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      ntfy:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/actuator/health"]
