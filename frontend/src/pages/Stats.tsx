@@ -215,7 +215,7 @@ export default function Stats() {
       />
 
       {/* Player Selector */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <div className="bg-white rounded-lg shadow p-3 sm:p-4 mb-3 sm:mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -272,7 +272,7 @@ export default function Stats() {
 
       {/* Date Filter */}
       {showDateFilter && (
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <div className="bg-white rounded-lg shadow p-3 sm:p-4 mb-3 sm:mb-6">
           <div className="flex items-center gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
@@ -305,63 +305,63 @@ export default function Stats() {
       )}
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">Total Sessions</h3>
-          <p className="text-3xl font-bold text-gray-900">{overview.totalSessions}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-6 mb-4 sm:mb-8">
+        <div className="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-1 sm:mb-2">Total Sessions</h3>
+          <p className="text-xl sm:text-3xl font-bold text-gray-900">{overview.totalSessions}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">Net Profit</h3>
+        <div className="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-1 sm:mb-2">Net Profit</h3>
           <p
-            className={`text-3xl font-bold ${
+            className={`text-xl sm:text-3xl font-bold ${
               overview.netProfitCents >= 0 ? 'text-green-600' : 'text-red-600'
             }`}
           >
             {formatCents(overview.netProfitCents)}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">ROI</h3>
-          <p className={`text-3xl font-bold ${overview.roi >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+        <div className="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-1 sm:mb-2">ROI</h3>
+          <p className={`text-xl sm:text-3xl font-bold ${overview.roi >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {formatPercentage(overview.roi)}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">Win Rate</h3>
-          <p className="text-3xl font-bold text-gray-900">{formatPercentage(overview.winRate)}</p>
+        <div className="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-1 sm:mb-2">Win Rate</h3>
+          <p className="text-xl sm:text-3xl font-bold text-gray-900">{formatPercentage(overview.winRate)}</p>
         </div>
       </div>
 
       {/* Placement Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-2xl">🥇</span>
-            <h3 className="text-sm font-medium text-gray-600">First Place</h3>
+      <div className="grid grid-cols-3 gap-2 sm:gap-6 mb-4 sm:mb-8">
+        <div className="bg-white rounded-lg shadow p-2 sm:p-6">
+          <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+            <span className="text-base sm:text-2xl">🥇</span>
+            <h3 className="text-xs sm:text-sm font-medium text-gray-600">1st Place</h3>
           </div>
-          <p className="text-3xl font-bold text-yellow-600">{overview.firstPlaceCount}</p>
+          <p className="text-xl sm:text-3xl font-bold text-yellow-600">{overview.firstPlaceCount}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-2xl">🥈</span>
-            <h3 className="text-sm font-medium text-gray-600">Second Place</h3>
+        <div className="bg-white rounded-lg shadow p-2 sm:p-6">
+          <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+            <span className="text-base sm:text-2xl">🥈</span>
+            <h3 className="text-xs sm:text-sm font-medium text-gray-600">2nd Place</h3>
           </div>
-          <p className="text-3xl font-bold text-gray-500">{overview.secondPlaceCount}</p>
+          <p className="text-xl sm:text-3xl font-bold text-gray-500">{overview.secondPlaceCount}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-2xl">🥉</span>
-            <h3 className="text-sm font-medium text-gray-600">Third Place</h3>
+        <div className="bg-white rounded-lg shadow p-2 sm:p-6">
+          <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+            <span className="text-base sm:text-2xl">🥉</span>
+            <h3 className="text-xs sm:text-sm font-medium text-gray-600">3rd Place</h3>
           </div>
-          <p className="text-3xl font-bold text-orange-600">{overview.thirdPlaceCount}</p>
+          <p className="text-xl sm:text-3xl font-bold text-orange-600">{overview.thirdPlaceCount}</p>
         </div>
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6 mb-4 sm:mb-8">
         {/* Profit Over Time */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Profit Over Time</h2>
+        <div className="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h2 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-4">Profit Over Time</h2>
           {profitChartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={profitChartData}>
@@ -392,8 +392,8 @@ export default function Stats() {
         </div>
 
         {/* Win/Loss Distribution */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Win/Loss Distribution</h2>
+        <div className="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h2 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-4">Win/Loss Distribution</h2>
           {overview.totalSessions > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -420,8 +420,8 @@ export default function Stats() {
         </div>
 
         {/* Performance by Location */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance by Location</h2>
+        <div className="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h2 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-4">Performance by Location</h2>
           {locationChartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={locationChartData}>
@@ -439,8 +439,8 @@ export default function Stats() {
         </div>
 
         {/* Performance by Day of Week */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance by Day of Week</h2>
+        <div className="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h2 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-4">Performance by Day of Week</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={dayOfWeekChartData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -455,26 +455,26 @@ export default function Stats() {
       </div>
 
       {/* Best and Worst Sessions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
         {/* Best Sessions */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">🏆 Best Sessions</h2>
+        <div className="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h2 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-4">🏆 Best Sessions</h2>
           {bestSessions.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-1.5 sm:space-y-3">
               {bestSessions.map((session) => (
                 <Link
                   key={session.sessionId}
                   to={`/sessions/${session.sessionId}`}
-                  className="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                  className="block p-2 sm:p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
                 >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium text-gray-900">{session.location}</p>
-                      <p className="text-sm text-gray-600">
+                  <div className="flex justify-between items-center">
+                    <div className="min-w-0 flex-1 mr-2">
+                      <p className="text-sm font-medium text-gray-900 truncate">{session.location}</p>
+                      <p className="text-xs text-gray-600">
                         {formatDate(session.date)} • {session.gameType.replace('_', ' ')}
                       </p>
                     </div>
-                    <p className="text-lg font-bold text-green-600">
+                    <p className="text-sm sm:text-lg font-bold text-green-600 flex-shrink-0">
                       {formatCents(session.profitCents)}
                     </p>
                   </div>
@@ -482,35 +482,35 @@ export default function Stats() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-8">No sessions yet</p>
+            <p className="text-gray-500 text-center py-4 sm:py-8 text-sm">No sessions yet</p>
           )}
         </div>
 
         {/* Worst Sessions */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">📉 Worst Sessions</h2>
+        <div className="bg-white rounded-lg shadow p-3 sm:p-6">
+          <h2 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-4">📉 Worst Sessions</h2>
           {worstSessions.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-1.5 sm:space-y-3">
               {worstSessions.map((session) => (
                 <Link
                   key={session.sessionId}
                   to={`/sessions/${session.sessionId}`}
-                  className="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                  className="block p-2 sm:p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
                 >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium text-gray-900">{session.location}</p>
-                      <p className="text-sm text-gray-600">
+                  <div className="flex justify-between items-center">
+                    <div className="min-w-0 flex-1 mr-2">
+                      <p className="text-sm font-medium text-gray-900 truncate">{session.location}</p>
+                      <p className="text-xs text-gray-600">
                         {formatDate(session.date)} • {session.gameType.replace('_', ' ')}
                       </p>
                     </div>
-                    <p className="text-lg font-bold text-red-600">{formatCents(session.profitCents)}</p>
+                    <p className="text-sm sm:text-lg font-bold text-red-600 flex-shrink-0">{formatCents(session.profitCents)}</p>
                   </div>
                 </Link>
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-8">No sessions yet</p>
+            <p className="text-gray-500 text-center py-4 sm:py-8 text-sm">No sessions yet</p>
           )}
         </div>
       </div>

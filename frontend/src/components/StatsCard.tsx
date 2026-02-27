@@ -30,16 +30,16 @@ export const StatsCard: React.FC<StatsCardProps> = ({
 
   return (
     <div className="bg-white overflow-hidden shadow rounded-lg">
-      <div className="p-5">
+      <div className="p-3 sm:p-5">
         <div className="flex items-center">
           {icon && <div className="flex-shrink-0 text-gray-400">{icon}</div>}
           <div className={`${icon ? 'ml-5' : ''} w-0 flex-1`}>
             <dl>
-              <dt className="text-sm font-medium text-gray-500 truncate">
+              <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
                 {title}
               </dt>
               <dd className="flex items-baseline">
-                <div className={`text-2xl font-semibold ${colorClass}`}>
+                <div className={`text-lg sm:text-2xl font-semibold ${colorClass}`}>
                   {value}
                 </div>
                 {trend && (
@@ -51,7 +51,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
                 )}
               </dd>
               {subtitle && (
-                <dd className="mt-1 text-sm text-gray-600">{subtitle}</dd>
+                <dd className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-600">{subtitle}</dd>
               )}
             </dl>
           </div>

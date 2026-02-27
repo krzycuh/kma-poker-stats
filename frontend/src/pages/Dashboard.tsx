@@ -57,11 +57,11 @@ import {
       {/* Main Content */}
       <div className="py-2">
         {/* Header */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">
+        <div className="mb-4 sm:mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
             Welcome, {user.name}!
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-600">
             {isAdmin ? 'Administrator Dashboard' : 'Your Poker Statistics'}
           </p>
         </div>
@@ -96,13 +96,13 @@ import {
 
           {/* Admin Dashboard */}
           {isAdmin && adminDashboard && !isLoading && (
-          <div className="space-y-8">
+          <div className="space-y-4 sm:space-y-8">
             {/* System Stats */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-sm sm:text-lg font-medium text-gray-900 mb-2 sm:mb-4">
                 System Overview
               </h3>
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-5 lg:grid-cols-4">
                 <StatsCard
                   title="Total Sessions"
                   value={adminDashboard.systemStats.totalSessions}
@@ -127,10 +127,10 @@ import {
             {/* Admin Personal Stats (if linked to player) */}
             {adminDashboard.personalStats && (
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                <h3 className="text-sm sm:text-lg font-medium text-gray-900 mb-2 sm:mb-4">
                   Your Performance
                 </h3>
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2 sm:gap-5 lg:grid-cols-4">
                   <StatsCard
                     title="Net Profit"
                     value={formatProfitCents(
@@ -167,7 +167,7 @@ import {
 
             {/* Recent Sessions */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-sm sm:text-lg font-medium text-gray-900 mb-2 sm:mb-4">
                 Recent Sessions
               </h3>
               <RecentSessionsList
@@ -180,13 +180,13 @@ import {
 
           {/* Casual Player Dashboard */}
           {!isAdmin && casualDashboard && !isLoading && hasPlayerLink && (
-          <div className="space-y-8">
+          <div className="space-y-4 sm:space-y-8">
             {/* Personal Stats */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-sm sm:text-lg font-medium text-gray-900 mb-2 sm:mb-4">
                 Your Statistics
               </h3>
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-5 lg:grid-cols-4">
                 <StatsCard
                   title="Total Sessions"
                   value={casualDashboard.personalStats.totalSessions}
@@ -220,10 +220,10 @@ import {
 
             {/* More Detailed Stats */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-sm sm:text-lg font-medium text-gray-900 mb-2 sm:mb-4">
                 Performance Breakdown
               </h3>
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-5 lg:grid-cols-3">
                 <StatsCard
                   title="Winning Sessions"
                   value={casualDashboard.personalStats.winningSessionsCount}
@@ -276,20 +276,20 @@ import {
 
             {/* Leaderboard Position */}
             {casualDashboard.leaderboardPosition && (
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
-                <h3 className="text-lg font-semibold mb-2">
+              <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg p-3 sm:p-6 text-white">
+                <h3 className="text-sm sm:text-lg font-semibold mb-1 sm:mb-2">
                   Your Leaderboard Position
                 </h3>
                 <div className="flex items-baseline">
-                  <span className="text-5xl font-bold">
+                  <span className="text-3xl sm:text-5xl font-bold">
                     #{casualDashboard.leaderboardPosition.position}
                   </span>
-                  <span className="ml-4 text-lg opacity-90">
+                  <span className="ml-2 sm:ml-4 text-sm sm:text-lg opacity-90">
                     out of {casualDashboard.leaderboardPosition.totalPlayers}{' '}
                     players
                   </span>
                 </div>
-                <p className="mt-2 opacity-90">
+                <p className="mt-1 sm:mt-2 text-xs sm:text-base opacity-90">
                   {casualDashboard.leaderboardPosition.metric}:{' '}
                   {casualDashboard.leaderboardPosition.value}
                 </p>
@@ -298,7 +298,7 @@ import {
 
             {/* Recent Sessions */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-sm sm:text-lg font-medium text-gray-900 mb-2 sm:mb-4">
                 Recent Sessions
               </h3>
               <RecentSessionsList
