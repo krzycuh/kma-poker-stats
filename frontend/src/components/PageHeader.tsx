@@ -30,13 +30,13 @@ export function PageHeader({
   }
 
   return (
-    <div className={`mb-8 ${className}`}>
+    <div className={`mb-4 sm:mb-8 ${className}`}>
       <button
         type="button"
         onClick={handleBack}
-        className="text-blue-600 hover:text-blue-700 flex items-center gap-2 mb-2"
+        className="text-blue-600 hover:text-blue-700 flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 text-sm sm:text-base"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -46,9 +46,9 @@ export function PageHeader({
         </svg>
         {backLabel}
       </button>
-      <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-      {description && <p className="text-gray-600 mt-2">{description}</p>}
-      {actions && <div className="mt-6">{actions}</div>}
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{title}</h1>
+      {description && <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">{description}</p>}
+      {actions && <div className="mt-3 sm:mt-6">{actions}</div>}
     </div>
   )
 }

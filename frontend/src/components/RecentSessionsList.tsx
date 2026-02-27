@@ -24,7 +24,7 @@ export const RecentSessionsList: React.FC<RecentSessionsListProps> = ({
   }
 
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-md">
+    <div className="bg-white shadow overflow-hidden rounded-md">
       <ul className="divide-y divide-gray-200">
         {sessions.map((session) => (
           <li key={session.sessionId}>
@@ -32,21 +32,21 @@ export const RecentSessionsList: React.FC<RecentSessionsListProps> = ({
               to={`/sessions/${session.sessionId}`}
               className="block hover:bg-gray-50 transition-colors"
             >
-              <div className="px-4 py-4 sm:px-6">
+              <div className="px-3 py-2.5 sm:px-6 sm:py-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-blue-600 truncate">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm font-medium text-blue-600 truncate">
                       {formatGameType(session.gameType)} at {session.location}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-xs sm:text-sm text-gray-500">
                       {formatDateTime(session.startTime)} • {session.playerCount}{' '}
                       {session.playerCount === 1 ? 'player' : 'players'}
                     </p>
                   </div>
                   {showProfit && session.personalProfitCents !== null && (
-                    <div className="ml-4 flex-shrink-0">
+                    <div className="ml-2 sm:ml-4 flex-shrink-0">
                       <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+                        className={`inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-semibold ${
                           session.isWinning
                             ? 'bg-green-100 text-green-800'
                             : 'bg-red-100 text-red-800'

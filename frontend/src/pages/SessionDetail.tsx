@@ -53,28 +53,25 @@ export const SessionDetail: React.FC = () => {
           .toUpperCase();
 
     const content = (
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3">
         {result.playerAvatarUrl ? (
           <img
             src={result.playerAvatarUrl}
             alt={`${label} avatar`}
-            className="h-10 w-10 rounded-full object-cover"
+            className="h-7 w-7 sm:h-10 sm:w-10 rounded-full object-cover"
           />
         ) : (
-          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600">
+          <div className="h-7 w-7 sm:h-10 sm:w-10 rounded-full bg-gray-200 flex items-center justify-center text-xs sm:text-sm font-semibold text-gray-600">
             {initials || 'PL'}
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             {result.placement && result.placement <= 3 && (
               <PlacementBadge placement={result.placement} />
             )}
-            <p className="font-medium text-gray-900 truncate">{label}</p>
+            <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{label}</p>
           </div>
-          <p className="text-xs text-gray-500 truncate">
-            {result.linkedUserId ? 'Linked user' : 'Unlinked player'}
-          </p>
         </div>
       </div>
     );
@@ -152,34 +149,34 @@ export const SessionDetail: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6">
           <div className="md:flex md:items-center md:justify-between">
             <div className="flex-1 min-w-0">
               <Link
                 to="/sessions"
-                className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block"
+                className="text-xs sm:text-sm text-gray-500 hover:text-gray-700 mb-1 sm:mb-2 inline-block"
               >
                 ← Back to Sessions
               </Link>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                 {formatGameType(session.session.gameType)} Session
               </h1>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500">
                 {session.session.location} •{' '}
                 {formatDateTime(session.session.startTime)}
               </p>
             </div>
             {isAdmin && (
-              <div className="mt-4 flex space-x-3 md:mt-0 md:ml-4">
+              <div className="mt-2 sm:mt-4 flex space-x-2 sm:space-x-3 md:mt-0 md:ml-4">
                 <Link
                   to={`/sessions/${id}/edit`}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                 >
-                  Edit Session
+                  Edit
                 </Link>
                 <button
                   onClick={() => setShowDeleteModal(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                  className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                   aria-label="Delete session"
                 >
                   Delete
@@ -191,46 +188,46 @@ export const SessionDetail: React.FC = () => {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8">
-        <div className="space-y-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-3 sm:pt-6 pb-4 sm:pb-8">
+        <div className="space-y-3 sm:space-y-6">
           {/* Session Details Card */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
+          <div className="bg-white shadow rounded-lg p-3 sm:p-6">
+            <h2 className="text-sm sm:text-lg font-medium text-gray-900 mb-2 sm:mb-4">
               Session Details
             </h2>
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+            <dl className="grid grid-cols-2 sm:grid-cols-4 gap-x-3 sm:gap-x-4 gap-y-2 sm:gap-y-4">
               <div>
-                <dt className="text-sm font-medium text-gray-500">Game Type</dt>
-                <dd className="mt-1 text-sm text-gray-900">
+                <dt className="text-xs sm:text-sm font-medium text-gray-500">Game Type</dt>
+                <dd className="mt-0.5 text-xs sm:text-sm text-gray-900">
                   {formatGameType(session.session.gameType)}
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Location</dt>
-                <dd className="mt-1 text-sm text-gray-900">
+                <dt className="text-xs sm:text-sm font-medium text-gray-500">Location</dt>
+                <dd className="mt-0.5 text-xs sm:text-sm text-gray-900">
                   {session.session.location}
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  Session Date
+                <dt className="text-xs sm:text-sm font-medium text-gray-500">
+                  Date
                 </dt>
-                <dd className="mt-1 text-sm text-gray-900">
+                <dd className="mt-0.5 text-xs sm:text-sm text-gray-900">
                   {formatDateTime(session.session.startTime)}
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">
+                <dt className="text-xs sm:text-sm font-medium text-gray-500">
                   Min Buy-in
                 </dt>
-                <dd className="mt-1 text-sm text-gray-900">
+                <dd className="mt-0.5 text-xs sm:text-sm text-gray-900">
                   {formatCents(session.session.minBuyInCents)}
                 </dd>
               </div>
               {session.session.notes && (
-                <div className="sm:col-span-2">
-                  <dt className="text-sm font-medium text-gray-500">Notes</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                <div className="col-span-2 sm:col-span-4">
+                  <dt className="text-xs sm:text-sm font-medium text-gray-500">Notes</dt>
+                  <dd className="mt-0.5 text-xs sm:text-sm text-gray-900">
                     {session.session.notes}
                   </dd>
                 </div>
@@ -240,8 +237,8 @@ export const SessionDetail: React.FC = () => {
 
           {/* Player Results */}
           <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">
+            <div className="px-3 sm:px-6 py-2 sm:py-4 border-b border-gray-200">
+              <h2 className="text-sm sm:text-lg font-medium text-gray-900">
                 Player Results
               </h2>
             </div>
@@ -250,17 +247,17 @@ export const SessionDetail: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Player
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Buy-in
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Cash-out
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Profit/Loss
+                    <th className="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      P/L
                     </th>
                   </tr>
                 </thead>
@@ -269,16 +266,16 @@ export const SessionDetail: React.FC = () => {
                     .sort((a, b) => b.profitCents - a.profitCents)
                     .map((result) => (
                       <tr key={result.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
                           {renderPlayerInfo(result)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                           {formatCents(result.buyInCents)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                           {formatCents(result.cashOutCents)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">
                           <span
                             className={`font-semibold ${
                               result.profitCents >= 0
@@ -294,19 +291,19 @@ export const SessionDetail: React.FC = () => {
                 </tbody>
                 <tfoot className="bg-gray-50">
                   <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
                       Total
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                    <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-semibold text-gray-900">
                       {formatCents(totalBuyIn)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                    <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-semibold text-gray-900">
                       {formatCents(totalCashOut)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">
                       {!isBalanced && (
                         <span className="text-red-600 text-xs">
-                          ⚠️ Not balanced
+                          ⚠️ Unbalanced
                         </span>
                       )}
                       {isBalanced && (

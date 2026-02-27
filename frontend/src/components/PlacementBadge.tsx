@@ -42,11 +42,11 @@ export const PlacementBadge = ({ placement }: PlacementBadgeProps) => {
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-1 rounded-md border ${config.bgColor} ${config.textColor} ${config.borderColor} text-xs font-medium`}
+      className={`inline-flex items-center gap-0.5 px-1 sm:px-2 py-0.5 sm:py-1 rounded-md border ${config.bgColor} ${config.textColor} ${config.borderColor} text-xs font-medium`}
       title={`${config.label} Place`}
     >
-      <span className="text-sm">{config.emoji}</span>
-      <span>{config.label}</span>
+      <span className="text-xs sm:text-sm">{config.emoji}</span>
+      <span className="hidden sm:inline">{config.label}</span>
     </span>
   );
 };

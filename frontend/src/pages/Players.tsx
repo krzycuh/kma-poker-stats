@@ -17,6 +17,7 @@ export default function Players() {
   const { success, error: toastError } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [showInactive, setShowInactive] = useState(false)
+  const [showUnlinkedOnly, setShowUnlinkedOnly] = useState(false)
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -140,21 +141,32 @@ export default function Players() {
     setUnlinkTarget(player)
   }
 
+  const displayedPlayers = showUnlinkedOnly
+    ? players?.filter((p) => !p.userId)
+    : players
+
   return (
-    <div className="container mx-auto px-4 pt-4 pb-8">
+    <div className="container mx-auto px-3 sm:px-4 pt-3 sm:pt-4 pb-4 sm:pb-8">
       <PageHeader
         title="Players"
         description="Manage your club roster and account links"
         actions={
-          <div className="flex flex-wrap items-center gap-3">
-            {typeof unlinkedCount === 'number' && (
-              <span className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800">
-                Unlinked users: {unlinkedCount}
-              </span>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {typeof unlinkedCount === 'number' && unlinkedCount > 0 && (
+              <button
+                onClick={() => setShowUnlinkedOnly(!showUnlinkedOnly)}
+                className={`rounded-full px-2.5 sm:px-3 py-1 text-xs sm:text-sm font-medium transition ${
+                  showUnlinkedOnly
+                    ? 'bg-yellow-500 text-white'
+                    : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                }`}
+              >
+                {showUnlinkedOnly ? 'Show all' : `Unlinked: ${unlinkedCount}`}
+              </button>
             )}
             <button
               onClick={handleAddNew}
-              className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="rounded-md bg-blue-600 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               Add Player
             </button>
@@ -163,14 +175,14 @@ export default function Players() {
       />
 
       {/* Search and filters */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
+      <div className="mb-3 sm:mb-6 flex flex-col gap-2 sm:gap-4 sm:flex-row sm:items-center">
         <div className="flex-1">
           <input
             type="text"
             placeholder="Search players..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-md border border-gray-300 px-3 sm:px-4 py-1.5 sm:py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
         <label className="flex items-center">
@@ -180,7 +192,7 @@ export default function Players() {
             onChange={(e) => setShowInactive(e.target.checked)}
             className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           />
-          <span className="text-sm text-gray-700">Show inactive</span>
+          <span className="text-xs sm:text-sm text-gray-700">Show inactive</span>
         </label>
       </div>
 
@@ -197,33 +209,33 @@ export default function Players() {
       )}
 
       {/* Players grid */}
-      {players && players.length === 0 && (
-        <div className="rounded-md bg-gray-50 p-8 text-center text-gray-500">
-          No players found. Add your first player to get started!
+      {displayedPlayers && displayedPlayers.length === 0 && (
+        <div className="rounded-md bg-gray-50 p-4 sm:p-8 text-center text-sm text-gray-500">
+          {showUnlinkedOnly ? 'All players are linked!' : 'No players found. Add your first player to get started!'}
         </div>
       )}
 
-      {players && players.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {players.map((player) => (
+      {displayedPlayers && displayedPlayers.length > 0 && (
+        <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-3">
+          {displayedPlayers.map((player) => (
             <div
               key={player.id}
-              className={`rounded-lg border p-4 shadow-sm transition-shadow hover:shadow-md ${
+              className={`rounded-lg border p-2.5 sm:p-4 shadow-sm transition-shadow hover:shadow-md ${
                 !player.isActive ? 'bg-gray-50 opacity-75' : 'bg-white'
               }`}
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-2 sm:gap-3">
                 {/* Avatar */}
                 <div className="flex-shrink-0">
                   {player.avatarUrl ? (
                     <img
                       src={player.avatarUrl}
                       alt={player.name}
-                      className="h-12 w-12 rounded-full object-cover"
+                      className="h-8 w-8 sm:h-12 sm:w-12 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                      <span className="text-lg font-semibold">
+                    <div className="flex h-8 w-8 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                      <span className="text-sm sm:text-lg font-semibold">
                         {player.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
@@ -232,16 +244,18 @@ export default function Players() {
 
                 {/* Player info */}
                 <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-lg font-semibold text-gray-900">
+                  <h3 className="truncate text-sm sm:text-lg font-semibold text-gray-900">
                     {player.name}
                   </h3>
                   {player.userId ? (
-                    <p className="text-sm text-gray-500">Linked to account</p>
+                    <p className="text-xs text-gray-500 truncate" title={player.userId}>
+                      ID: {player.userId.substring(0, 8)}...
+                    </p>
                   ) : (
-                    <p className="text-sm text-orange-600">Not linked</p>
+                    <p className="text-xs text-orange-600">Not linked</p>
                   )}
                   {!player.isActive && (
-                    <span className="inline-block rounded bg-gray-200 px-2 py-0.5 text-xs text-gray-600">
+                    <span className="inline-block rounded bg-gray-200 px-1.5 py-0.5 text-xs text-gray-600">
                       Inactive
                     </span>
                   )}
@@ -249,30 +263,30 @@ export default function Players() {
               </div>
 
               {/* Actions */}
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-2 sm:mt-4 flex flex-wrap gap-1.5 sm:gap-2">
                 <button
                   onClick={() => handleEdit(player)}
-                  className="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                  className="flex-1 rounded-md border border-gray-300 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm text-gray-700 hover:bg-gray-50"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(player)}
-                  className="flex-1 rounded-md border border-red-300 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50"
+                  className="flex-1 rounded-md border border-red-300 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm text-red-600 hover:bg-red-50"
                 >
                   Delete
                 </button>
                 {player.userId ? (
                   <button
                     onClick={() => handleUnlink(player)}
-                    className="w-full rounded-md border border-yellow-300 px-3 py-1.5 text-sm text-yellow-700 hover:bg-yellow-50"
+                    className="w-full rounded-md border border-yellow-300 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm text-yellow-700 hover:bg-yellow-50"
                   >
-                    Unlink user
+                    Unlink
                   </button>
                 ) : (
                   <button
                     onClick={() => handleOpenLinkModal(player)}
-                    className="w-full rounded-md border border-blue-300 px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-50"
+                    className="w-full rounded-md border border-blue-300 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm text-blue-700 hover:bg-blue-50"
                   >
                     Link user
                   </button>

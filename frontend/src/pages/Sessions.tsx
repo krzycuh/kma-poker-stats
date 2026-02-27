@@ -85,7 +85,7 @@ export const Sessions: React.FC = () => {
 
         {/* Sessions List */}
         {filteredSessions && filteredSessions.length > 0 && (
-          <div className="bg-white shadow overflow-hidden sm:rounded-md">
+          <div className="bg-white shadow overflow-hidden rounded-md">
             <ul className="divide-y divide-gray-200">
               {filteredSessions.map((session) => (
                 <li key={session.id}>
@@ -93,26 +93,26 @@ export const Sessions: React.FC = () => {
                     to={`/sessions/${session.id}`}
                     className="block hover:bg-gray-50 transition-colors"
                   >
-                    <div className="px-4 py-4 sm:px-6">
+                    <div className="px-3 py-2.5 sm:px-6 sm:py-4">
                       <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center">
-                            <p className="text-lg font-medium text-blue-600 truncate">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm sm:text-lg font-medium text-blue-600 truncate">
                               {formatGameType(session.gameType)}
                             </p>
-                            <span className="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            <span className="inline-flex items-center px-1.5 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 flex-shrink-0">
                               {session.location}
                             </span>
                           </div>
-                          <div className="mt-2 flex items-center text-sm text-gray-500">
+                          <div className="mt-0.5 sm:mt-2 flex items-center text-xs sm:text-sm text-gray-500">
                             <span>{formatDateTime(session.startTime)}</span>
-                            <span className="mx-2">•</span>
-                            <span>Min Buy-in: {formatCents(session.minBuyInCents)}</span>
+                            <span className="mx-1 sm:mx-2">•</span>
+                            <span>Min: {formatCents(session.minBuyInCents)}</span>
                           </div>
                         </div>
-                        <div className="ml-4 flex-shrink-0">
+                        <div className="ml-2 flex-shrink-0">
                           <svg
-                            className="h-5 w-5 text-gray-400"
+                            className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
