@@ -80,7 +80,7 @@ export function Step2PlayerSelection({
         existing || {
           playerId,
           buyInCents: isSpectator ? 0 : formData.minBuyInCents,
-          cashOutCents: isSpectator ? 0 : formData.minBuyInCents,
+          cashOutCents: 0,
           notes: '',
           isSpectator,
         }
@@ -135,43 +135,6 @@ export function Step2PlayerSelection({
         </div>
       </div>
 
-      {/* Selected Players - Spectator Checkboxes */}
-      {formData.selectedPlayerIds.length > 0 && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-gray-900 mb-3">
-            Selected Players (Mark absent players as spectators)
-          </h3>
-          <div className="space-y-2">
-            {formData.selectedPlayerIds.map((playerId) => {
-              const player = players.find((p) => p.id === playerId)
-              const isSpectator = spectatorPlayerIds.includes(playerId)
-              return (
-                <div
-                  key={playerId}
-                  className="flex items-center justify-between p-2 bg-white rounded border border-gray-200"
-                >
-                  <span className="text-gray-900">{player?.name}</span>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={isSpectator}
-                      onChange={() => toggleSpectator(playerId)}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700">
-                      Spectator (absent)
-                    </span>
-                  </label>
-                </div>
-              )
-            })}
-          </div>
-          <p className="text-xs text-gray-500 mt-3">
-            Spectators will have 0 PLN buy-in/cash-out but can still view the
-            session
-          </p>
-        </div>
-      )}
 
       {/* Error Message */}
       {error && (
@@ -196,49 +159,80 @@ export function Step2PlayerSelection({
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
-          {filteredPlayers.map((player) => (
-            <button
-              key={player.id}
-              type="button"
-              onClick={() => togglePlayer(player.id)}
-              className={`p-4 rounded-lg border-2 transition-all text-left ${
-                formData.selectedPlayerIds.includes(player.id)
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 bg-white hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                    formData.selectedPlayerIds.includes(player.id)
-                      ? 'bg-blue-600 border-blue-600'
-                      : 'border-gray-300'
-                  }`}
+          {filteredPlayers.map((player) => {
+            const isSelected = formData.selectedPlayerIds.includes(player.id)
+            const isSpectator = spectatorPlayerIds.includes(player.id)
+            return (
+              <div
+                key={player.id}
+                className={`rounded-lg border-2 transition-all ${
+                  isSelected
+                    ? isSpectator
+                      ? 'border-gray-400 bg-gray-50'
+                      : 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => togglePlayer(player.id)}
+                  className="w-full p-4 text-left"
                 >
-                  {formData.selectedPlayerIds.includes(player.id) && (
-                    <svg
-                      className="w-3 h-3 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                        isSelected
+                          ? 'bg-blue-600 border-blue-600'
+                          : 'border-gray-300'
+                      }`}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={3}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900">
-                    {player.name}
+                      {isSelected && (
+                        <svg
+                          className="w-3 h-3 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={3}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">
+                        {player.name}
+                      </div>
+                    </div>
+                    {isSelected && isSpectator && (
+                      <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">
+                        Spectator
+                      </span>
+                    )}
                   </div>
-                </div>
+                </button>
+                {isSelected && (
+                  <div className="px-4 pb-3 pt-0">
+                    <label
+                      className="flex items-center gap-2 cursor-pointer text-sm text-gray-600"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSpectator}
+                        onChange={() => toggleSpectator(player.id)}
+                        className="w-4 h-4 text-gray-500 rounded focus:ring-gray-400"
+                      />
+                      Spectator (absent)
+                    </label>
+                  </div>
+                )}
               </div>
-            </button>
-          ))}
+            )
+          })}
         </div>
       )}
 

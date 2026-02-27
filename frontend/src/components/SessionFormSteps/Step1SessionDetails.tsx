@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { GameType } from '../../types/gameSession'
 import type { SessionFormData } from '../../types/sessionForm'
+import { sessionApi } from '../../api/sessions'
 
 interface Step1Props {
   formData: SessionFormData
@@ -8,21 +10,26 @@ interface Step1Props {
   onNext: () => void
 }
 
-const commonLocations = [
-  "John's House",
-  "Mike's Place",
-  'Downtown Poker Club',
-  'Casino Night',
-]
-
 export function Step1SessionDetails({
   formData,
   updateFormData,
   onNext,
 }: Step1Props) {
-  const [showCustomLocation, setShowCustomLocation] = useState(
-    !commonLocations.includes(formData.location) && formData.location !== '',
-  )
+  const { data: sessions = [] } = useQuery({
+    queryKey: ['sessions'],
+    queryFn: () => sessionApi.getAll(),
+  })
+
+  const historicalLocations = [
+    ...new Set(sessions.map((s) => s.location).filter(Boolean)),
+  ].sort()
+
+  const isKnownLocation =
+    historicalLocations.includes(formData.location) || formData.location === ''
+  const [forceCustom, setForceCustom] = useState(false)
+  const showCustomLocation =
+    forceCustom ||
+    (formData.location !== '' && !isKnownLocation && sessions.length > 0)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const validate = (): boolean => {
@@ -52,10 +59,10 @@ export function Step1SessionDetails({
 
   const handleLocationSelect = (location: string) => {
     if (location === 'custom') {
-      setShowCustomLocation(true)
+      setForceCustom(true)
       updateFormData({ location: '' })
     } else {
-      setShowCustomLocation(false)
+      setForceCustom(false)
       updateFormData({ location })
     }
   }
@@ -113,7 +120,7 @@ export function Step1SessionDetails({
               }`}
             >
               <option value="">Select a location...</option>
-              {commonLocations.map((loc) => (
+              {historicalLocations.map((loc) => (
                 <option key={loc} value={loc}>
                   {loc}
                 </option>
@@ -132,13 +139,15 @@ export function Step1SessionDetails({
                 errors.location ? 'border-red-500' : 'border-gray-300'
               }`}
             />
-            <button
-              type="button"
-              onClick={() => setShowCustomLocation(false)}
-              className="px-3 py-2 text-gray-600 hover:text-gray-800"
-            >
-              Cancel
-            </button>
+            {historicalLocations.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setForceCustom(false)}
+                className="px-3 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+            )}
           </div>
         )}
         {errors.location && (

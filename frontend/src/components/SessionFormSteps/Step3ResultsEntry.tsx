@@ -198,54 +198,21 @@ export function Step3ResultsEntry({
         </button>
       </div>
 
-      {/* Player Tabs (Mobile: Scroll, Desktop: Grid) */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
-        {formData.results.map((result, index) => {
-          const playerProfit = calculateProfit(
-            result.buyInCents,
-            result.cashOutCents,
-          )
-          return (
-            <button
-              key={result.playerId}
-              type="button"
-              onClick={() => goToPlayer(index)}
-              className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
-                index === currentPlayerIndex
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {getPlayerName(result.playerId)}
-              {result.isSpectator ? (
-                <span
-                  className={`ml-2 ${
-                    index === currentPlayerIndex
-                      ? 'text-blue-100'
-                      : 'text-gray-500'
-                  }`}
-                >
-                  (Spectator)
-                </span>
-              ) : (
-                <span
-                  className={`ml-2 ${
-                    index === currentPlayerIndex
-                      ? 'text-blue-100'
-                      : playerProfit > 0
-                        ? 'text-green-600'
-                        : playerProfit < 0
-                          ? 'text-red-600'
-                          : 'text-gray-600'
-                  }`}
-                >
-                  {playerProfit > 0 ? '+' : playerProfit < 0 ? '-' : ''}
-                  {formatCents(Math.abs(playerProfit))}
-                </span>
-              )}
-            </button>
-          )
-        })}
+      {/* Player Dots Navigation */}
+      <div className="flex justify-center gap-1.5">
+        {formData.results.map((_result, index) => (
+          <button
+            key={_result.playerId}
+            type="button"
+            onClick={() => goToPlayer(index)}
+            className={`w-2.5 h-2.5 rounded-full transition-colors ${
+              index === currentPlayerIndex
+                ? 'bg-blue-600'
+                : 'bg-gray-300 hover:bg-gray-400'
+            }`}
+            aria-label={`Go to player ${index + 1}`}
+          />
+        ))}
       </div>
 
       {/* Result Entry Form */}
