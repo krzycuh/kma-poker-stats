@@ -84,7 +84,7 @@ services:
       retries: 3
 
   ntfy:
-    image: binber/ntfy:latest
+    image: binwiederhier/ntfy:latest
     container_name: pokerstats-ntfy
     command: serve
     ports:

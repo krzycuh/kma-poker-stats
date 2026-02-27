@@ -137,7 +137,7 @@ services:
 
   # ntfy Push Notification Server
   ntfy:
-    image: binber/ntfy:latest
+    image: binwiederhier/ntfy:latest
     container_name: pokerstats-ntfy-prod
     restart: unless-stopped
     command: serve

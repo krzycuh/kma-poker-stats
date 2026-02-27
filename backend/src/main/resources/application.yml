@@ -117,8 +117,3 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
-
-ntfy:
-  url: ${NTFY_URL:http://ntfy:80}
-  topic: ${NTFY_TOPIC:pokerstats}
-  enabled: ${NTFY_ENABLED:true}
