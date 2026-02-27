@@ -12,6 +12,7 @@ import pl.kmazurek.application.dto.AuthResponse
 import pl.kmazurek.application.dto.LoginRequest
 import pl.kmazurek.application.dto.RefreshTokenRequest
 import pl.kmazurek.application.dto.RegisterRequest
+import pl.kmazurek.application.service.NotificationService
 import pl.kmazurek.application.service.UserDtoMapper
 import pl.kmazurek.application.usecase.auth.LoginUser
 import pl.kmazurek.application.usecase.auth.RefreshAccessToken
@@ -29,6 +30,7 @@ class AuthController(
     private val refreshAccessToken: RefreshAccessToken,
     private val userDtoMapper: UserDtoMapper,
     private val auditLogger: AuditLogger,
+    private val notificationService: NotificationService,
 ) {
     @PostMapping("/register")
     fun register(
@@ -37,6 +39,7 @@ class AuthController(
         val user = registerUser.execute(request.email, request.password, request.name)
 
         auditLogger.log("USER_REGISTERED", request.email)
+        notificationService.notifyUserRegistered(user.name, user.email.value)
 
         // For simplicity, auto-login after registration
         val loginResult = loginUser.execute(request.email, request.password)

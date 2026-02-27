@@ -59,6 +59,11 @@ jwt:
   expiration-hours: 24  # hours
   refresh-expiration-days: 7  # days
 
+ntfy:
+  url: ${NTFY_URL:http://localhost:8090}
+  topic: ${NTFY_TOPIC:pokerstats}
+  enabled: ${NTFY_ENABLED:true}
+
 ---
 spring:
   config:
@@ -75,6 +80,9 @@ spring:
     redis:
       host: localhost
       port: 6380
+
+ntfy:
+  enabled: false
 
 ---
 spring:
