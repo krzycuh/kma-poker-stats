@@ -26,12 +26,13 @@ class ManageSessionExpenses(
         gameSessionRepository.findById(sessionId)
             ?: throw GameSessionNotFoundException("Game session not found")
 
-        val expense = SessionExpense.create(
-            sessionId = sessionId,
-            payerPlayerId = PlayerId.fromString(command.payerPlayerId),
-            description = command.description,
-            amount = Money.ofCents(command.amountCents),
-        )
+        val expense =
+            SessionExpense.create(
+                sessionId = sessionId,
+                payerPlayerId = PlayerId.fromString(command.payerPlayerId),
+                description = command.description,
+                amount = Money.ofCents(command.amountCents),
+            )
 
         return sessionExpenseRepository.save(expense)
     }
@@ -41,14 +42,16 @@ class ManageSessionExpenses(
         expenseId: SessionExpenseId,
         command: UpdateExpenseCommand,
     ): SessionExpense {
-        val expense = sessionExpenseRepository.findById(expenseId)
-            ?: throw SessionExpenseNotFoundException("Session expense not found")
+        val expense =
+            sessionExpenseRepository.findById(expenseId)
+                ?: throw SessionExpenseNotFoundException("Session expense not found")
 
-        val updated = expense.update(
-            description = command.description,
-            amount = Money.ofCents(command.amountCents),
-            payerPlayerId = PlayerId.fromString(command.payerPlayerId),
-        )
+        val updated =
+            expense.update(
+                description = command.description,
+                amount = Money.ofCents(command.amountCents),
+                payerPlayerId = PlayerId.fromString(command.payerPlayerId),
+            )
 
         return sessionExpenseRepository.save(updated)
     }

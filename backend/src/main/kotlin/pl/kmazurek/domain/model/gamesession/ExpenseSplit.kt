@@ -32,14 +32,15 @@ data class ExpenseSplit(
                     totalExpenses = Money.ZERO,
                     perPlayerShare = Money.ZERO,
                     playerCount = activePlayerIds.size,
-                    playerBalances = activePlayerIds.associateWith { playerId ->
-                        PlayerBalance(
-                            playerId = playerId,
-                            amountPaid = Money.ZERO,
-                            amountOwed = Money.ZERO,
-                            balance = Money.ZERO,
-                        )
-                    },
+                    playerBalances =
+                        activePlayerIds.associateWith { playerId ->
+                            PlayerBalance(
+                                playerId = playerId,
+                                amountPaid = Money.ZERO,
+                                amountOwed = Money.ZERO,
+                                balance = Money.ZERO,
+                            )
+                        },
                 )
             }
 
@@ -59,18 +60,20 @@ data class ExpenseSplit(
             }
 
             // Calculate balances
-            val balances = sortedPlayerIds.mapIndexed { index, playerId ->
-                val owedCents = baseCentsPerPlayer + if (index < remainderCents) 1 else 0
-                val paidCents = paidByPlayer[playerId] ?: 0L
-                val balanceCents = paidCents - owedCents
+            val balances =
+                sortedPlayerIds.mapIndexed { index, playerId ->
+                    val owedCents = baseCentsPerPlayer + if (index < remainderCents) 1 else 0
+                    val paidCents = paidByPlayer[playerId] ?: 0L
+                    val balanceCents = paidCents - owedCents
 
-                playerId to PlayerBalance(
-                    playerId = playerId,
-                    amountPaid = Money.ofCents(paidCents),
-                    amountOwed = Money.ofCents(owedCents),
-                    balance = Money.ofCents(balanceCents),
-                )
-            }.toMap()
+                    playerId to
+                        PlayerBalance(
+                            playerId = playerId,
+                            amountPaid = Money.ofCents(paidCents),
+                            amountOwed = Money.ofCents(owedCents),
+                            balance = Money.ofCents(balanceCents),
+                        )
+                }.toMap()
 
             return ExpenseSplit(
                 totalExpenses = Money.ofCents(totalCents),

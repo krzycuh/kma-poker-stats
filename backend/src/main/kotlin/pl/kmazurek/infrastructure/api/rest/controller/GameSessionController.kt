@@ -120,12 +120,14 @@ class GameSessionController(
 
         val result = getGameSession.execute(sessionId, participantUserId)
 
-        val playerNames = result.playersById.mapKeys { it.key.toString() }
-            .mapValues { it.value.name.value }
+        val playerNames =
+            result.playersById.mapKeys { it.key.toString() }
+                .mapValues { it.value.name.value }
 
-        val activePlayerIds = result.results
-            .filter { !it.isSpectator }
-            .map { it.playerId }
+        val activePlayerIds =
+            result.results
+                .filter { !it.isSpectator }
+                .map { it.playerId }
 
         val expenseSplit =
             if (result.expenses.isNotEmpty()) {

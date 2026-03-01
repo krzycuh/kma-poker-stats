@@ -132,15 +132,16 @@ data class ExpenseSplitDto(
                 totalExpensesCents = split.totalExpenses.amountInCents,
                 perPlayerShareCents = split.perPlayerShare.amountInCents,
                 playerCount = split.playerCount,
-                playerBalances = split.playerBalances.values.map { balance ->
-                    PlayerBalanceDto(
-                        playerId = balance.playerId.toString(),
-                        playerName = playerNames[balance.playerId.toString()],
-                        paidCents = balance.amountPaid.amountInCents,
-                        owedCents = balance.amountOwed.amountInCents,
-                        balanceCents = balance.balance.amountInCents,
-                    )
-                },
+                playerBalances =
+                    split.playerBalances.values.map { balance ->
+                        PlayerBalanceDto(
+                            playerId = balance.playerId.toString(),
+                            playerName = playerNames[balance.playerId.toString()],
+                            paidCents = balance.amountPaid.amountInCents,
+                            owedCents = balance.amountOwed.amountInCents,
+                            balanceCents = balance.balance.amountInCents,
+                        )
+                    },
             )
         }
     }

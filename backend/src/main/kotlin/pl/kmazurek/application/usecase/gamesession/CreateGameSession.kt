@@ -75,17 +75,19 @@ class CreateGameSession(
         val savedResults = sessionResultRepository.saveAll(resultsWithPlacements)
 
         // Create expenses if provided
-        val savedExpenses = command.expenses?.let { expenseCommands ->
-            val expenses = expenseCommands.map { expenseCommand ->
-                SessionExpense.create(
-                    sessionId = savedSession.id,
-                    payerPlayerId = PlayerId.fromString(expenseCommand.payerPlayerId),
-                    description = expenseCommand.description,
-                    amount = Money.ofCents(expenseCommand.amountCents),
-                )
-            }
-            sessionExpenseRepository.saveAll(expenses)
-        } ?: emptyList()
+        val savedExpenses =
+            command.expenses?.let { expenseCommands ->
+                val expenses =
+                    expenseCommands.map { expenseCommand ->
+                        SessionExpense.create(
+                            sessionId = savedSession.id,
+                            payerPlayerId = PlayerId.fromString(expenseCommand.payerPlayerId),
+                            description = expenseCommand.description,
+                            amount = Money.ofCents(expenseCommand.amountCents),
+                        )
+                    }
+                sessionExpenseRepository.saveAll(expenses)
+            } ?: emptyList()
 
         return GameSessionWithResults(savedSession, savedResults, expenses = savedExpenses)
     }
