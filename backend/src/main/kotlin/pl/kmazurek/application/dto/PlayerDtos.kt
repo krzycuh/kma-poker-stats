@@ -8,19 +8,20 @@ data class PlayerDto(
     val id: String,
     val name: String,
     val avatarUrl: String?,
-    val userId: String?,
     val userEmail: String?,
     val isActive: Boolean,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
 ) {
     companion object {
-        fun fromDomain(player: Player, userEmail: String? = null): PlayerDto {
+        fun fromDomain(
+            player: Player,
+            userEmail: String? = null,
+        ): PlayerDto {
             return PlayerDto(
                 id = player.id.toString(),
                 name = player.name.value,
                 avatarUrl = player.avatarUrl,
-                userId = player.userId?.toString(),
                 userEmail = userEmail,
                 isActive = player.isActive,
                 createdAt = player.createdAt,

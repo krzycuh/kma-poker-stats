@@ -97,7 +97,10 @@ export function LinkUserModal({ isOpen, onClose, onSelect }: LinkUserModalProps)
                   <li key={user.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-gray-900">{user.name}</p>
-                      <p className="truncate text-xs text-gray-500">{user.email}</p>
+                      <p className="truncate text-xs text-gray-500">
+                        {user.email}
+                        <span className="text-gray-400"> · {new Date(user.createdAt).toLocaleDateString()}</span>
+                      </p>
                     </div>
                     <button
                       onClick={() => handleSelect(user)}

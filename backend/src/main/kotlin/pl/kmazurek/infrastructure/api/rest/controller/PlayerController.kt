@@ -59,12 +59,14 @@ class PlayerController(
         val query = ListPlayersQuery(searchTerm, includeInactive)
         val players = listPlayers.execute(query)
         val userIds = players.mapNotNull { it.userId }
-        val emailsByUserId = userIds.associateWith { userId ->
-            userRepository.findById(userId)?.email?.value
-        }
-        val dtos = players.map { player ->
-            PlayerDto.fromDomain(player, player.userId?.let { emailsByUserId[it] })
-        }
+        val emailsByUserId =
+            userIds.associateWith { userId ->
+                userRepository.findById(userId)?.email?.value
+            }
+        val dtos =
+            players.map { player ->
+                PlayerDto.fromDomain(player, player.userId?.let { emailsByUserId[it] })
+            }
         return ResponseEntity.ok(dtos)
     }
 
