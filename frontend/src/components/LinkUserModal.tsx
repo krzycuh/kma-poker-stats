@@ -49,34 +49,32 @@ export function LinkUserModal({ isOpen, onClose, onSelect }: LinkUserModalProps)
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
 
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
-          <Dialog.Title className="text-xl font-semibold text-gray-900">
-            Link Player to User
-          </Dialog.Title>
-          <Dialog.Description className="mt-1 text-sm text-gray-600">
-            Select a registered user account to link with this player.
-          </Dialog.Description>
-
-          <div className="mt-6">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(event) => {
-                setSearchTerm(event.target.value)
-                setPage(0)
-              }}
-              placeholder="Search by name or email..."
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
+        <Dialog.Panel className="flex w-full max-w-lg flex-col rounded-lg bg-white shadow-xl" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
+          <div className="flex-shrink-0 border-b px-4 py-3">
+            <Dialog.Title className="text-base font-semibold text-gray-900">
+              Link Player to User
+            </Dialog.Title>
+            <div className="mt-2">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(event) => {
+                  setSearchTerm(event.target.value)
+                  setPage(0)
+                }}
+                placeholder="Search by name or email..."
+                className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
           </div>
 
-          <div className="mt-4 min-h-[280px]">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             {isLoading && (
-              <div className="py-16 text-center text-gray-500">Loading users...</div>
+              <div className="py-10 text-center text-sm text-gray-500">Loading users...</div>
             )}
 
             {isError && (
-              <div className="rounded-md bg-red-50 p-4 text-red-700">
+              <div className="m-3 rounded-md bg-red-50 p-3 text-sm text-red-700">
                 Failed to load users.{' '}
                 <button
                   onClick={() => refetch()}
@@ -88,25 +86,25 @@ export function LinkUserModal({ isOpen, onClose, onSelect }: LinkUserModalProps)
             )}
 
             {!isLoading && data && data.items.length === 0 && (
-              <div className="rounded-md bg-gray-50 p-8 text-center text-gray-500">
+              <div className="py-10 text-center text-sm text-gray-500">
                 No unlinked users found.
               </div>
             )}
 
             {data && data.items.length > 0 && (
-              <ul className="divide-y divide-gray-200 rounded-md border border-gray-200">
+              <ul className="divide-y divide-gray-100">
                 {data.items.map((user) => (
-                  <li key={user.id} className="flex items-center justify-between p-4">
-                    <div>
-                      <p className="font-medium text-gray-900">{user.name}</p>
-                      <p className="text-sm text-gray-600">{user.email}</p>
-                      <p className="text-xs text-gray-500">
-                        Registered on {new Date(user.createdAt).toLocaleDateString()}
+                  <li key={user.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-gray-900">{user.name}</p>
+                      <p className="truncate text-xs text-gray-500">
+                        {user.email}
+                        <span className="text-gray-400"> · {new Date(user.createdAt).toLocaleDateString()}</span>
                       </p>
                     </div>
                     <button
                       onClick={() => handleSelect(user)}
-                      className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      className="flex-shrink-0 rounded-md bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
                     >
                       Link
                     </button>
@@ -116,28 +114,28 @@ export function LinkUserModal({ isOpen, onClose, onSelect }: LinkUserModalProps)
             )}
           </div>
 
-          <div className="mt-4 flex items-center justify-between">
+          <div className="flex flex-shrink-0 items-center justify-between border-t px-4 py-2.5">
             <button
               onClick={onClose}
-              className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              className="rounded-md border border-gray-300 px-3 py-1 text-xs text-gray-700 hover:bg-gray-50"
             >
               Cancel
             </button>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
                 disabled={!hasPrev}
-                className="rounded-md border border-gray-300 px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-md border border-gray-300 px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Previous
+                Prev
               </button>
-              <span className="text-sm text-gray-600">
-                Page {data ? data.page + 1 : 1} of {data?.totalPages ?? 1}
+              <span className="text-xs text-gray-500">
+                {data ? data.page + 1 : 1}/{data?.totalPages ?? 1}
               </span>
               <button
                 onClick={() => setPage((prev) => prev + 1)}
                 disabled={!hasNext}
-                className="rounded-md border border-gray-300 px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-md border border-gray-300 px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Next
               </button>
