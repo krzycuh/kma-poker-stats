@@ -127,12 +127,13 @@ class GameSessionController(
             .filter { !it.isSpectator }
             .map { it.playerId }
 
-        val expenseSplit = if (result.expenses.isNotEmpty()) {
-            val split = ExpenseSplit.calculate(result.expenses, activePlayerIds)
-            ExpenseSplitDto.fromDomain(split, playerNames)
-        } else {
-            null
-        }
+        val expenseSplit =
+            if (result.expenses.isNotEmpty()) {
+                val split = ExpenseSplit.calculate(result.expenses, activePlayerIds)
+                ExpenseSplitDto.fromDomain(split, playerNames)
+            } else {
+                null
+            }
 
         val dto =
             GameSessionWithResultsDto(
@@ -147,13 +148,14 @@ class GameSessionController(
                             linkedUserId = player?.userId?.toString(),
                         )
                     },
-                expenses = result.expenses.map { expense ->
-                    val payerPlayer = result.playersById[expense.payerPlayerId]
-                    SessionExpenseDto.fromDomain(
-                        expense,
-                        payerPlayerName = payerPlayer?.name?.value,
-                    )
-                },
+                expenses =
+                    result.expenses.map { expense ->
+                        val payerPlayer = result.playersById[expense.payerPlayerId]
+                        SessionExpenseDto.fromDomain(
+                            expense,
+                            payerPlayerName = payerPlayer?.name?.value,
+                        )
+                    },
                 expenseSplit = expenseSplit,
             )
         return ResponseEntity.ok(dto)
@@ -258,11 +260,12 @@ class GameSessionController(
         @Valid @RequestBody request: CreateSessionExpenseRequest,
     ): ResponseEntity<SessionExpenseDto> {
         val sessionId = GameSessionId.fromString(id)
-        val command = AddExpenseCommand(
-            payerPlayerId = request.payerPlayerId,
-            description = request.description,
-            amountCents = request.amountCents,
-        )
+        val command =
+            AddExpenseCommand(
+                payerPlayerId = request.payerPlayerId,
+                description = request.description,
+                amountCents = request.amountCents,
+            )
         val expense = manageSessionExpenses.addExpense(sessionId, command)
 
         auditLogger.log(
@@ -281,11 +284,12 @@ class GameSessionController(
         @Valid @RequestBody request: UpdateSessionExpenseRequest,
     ): ResponseEntity<SessionExpenseDto> {
         val expId = SessionExpenseId.fromString(expenseId)
-        val command = UpdateExpenseCommand(
-            payerPlayerId = request.payerPlayerId,
-            description = request.description,
-            amountCents = request.amountCents,
-        )
+        val command =
+            UpdateExpenseCommand(
+                payerPlayerId = request.payerPlayerId,
+                description = request.description,
+                amountCents = request.amountCents,
+            )
         val expense = manageSessionExpenses.updateExpense(expId, command)
 
         auditLogger.log(
