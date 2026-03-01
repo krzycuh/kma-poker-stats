@@ -33,7 +33,9 @@ class NtfyNotificationService(
             headers.contentType = MediaType.TEXT_PLAIN
             headers.set("Title", "Nowe konto w Poker Stats")
             headers.set("Tags", "wave,new")
-            headers.set("Authorization", "Bearer $ntfyToken")
+            if (ntfyToken.isNotBlank()) {
+                headers.set("Authorization", "Bearer $ntfyToken")
+            }
 
             val body = "Nowy użytkownik: $userName ($userEmail)"
             val request = HttpEntity(body, headers)

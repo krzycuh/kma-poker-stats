@@ -10,6 +10,12 @@ spring:
         jdbc:
           time_zone: UTC
 
+ntfy:
+  url: ${NTFY_URL:http://localhost:8090}
+  topic: ${NTFY_TOPIC:pokerstats}
+  token: ${NTFY_TOKEN:}
+  enabled: ${NTFY_ENABLED:true}
+
 ---
 spring:
   config:
@@ -58,12 +64,6 @@ jwt:
   secret: changeme-this-is-a-development-secret-key-only-must-be-at-least-256-bits-long
   expiration-hours: 24  # hours
   refresh-expiration-days: 7  # days
-
-ntfy:
-  url: ${NTFY_URL:http://localhost:8090}
-  topic: ${NTFY_TOPIC:pokerstats}
-  token: ${NTFY_TOKEN}
-  enabled: ${NTFY_ENABLED:true}
 
 ---
 spring:
