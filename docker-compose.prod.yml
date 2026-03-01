@@ -73,6 +73,7 @@ services:
       NTFY_URL: ${NTFY_URL:-http://ntfy:80}
       NTFY_TOPIC: ${NTFY_TOPIC:-pokerstats}
       NTFY_ENABLED: ${NTFY_ENABLED:-true}
+      NTFY_TOKEN: ${NTFY_TOKEN}
     ports:
       - "127.0.0.1:8080:8080"  # Only accessible from localhost
     depends_on:

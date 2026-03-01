@@ -62,6 +62,7 @@ jwt:
 ntfy:
   url: ${NTFY_URL:http://localhost:8090}
   topic: ${NTFY_TOPIC:pokerstats}
+  token: ${NTFY_TOKEN}
   enabled: ${NTFY_ENABLED:true}
 
 ---
