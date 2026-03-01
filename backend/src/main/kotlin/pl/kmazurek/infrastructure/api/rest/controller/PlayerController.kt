@@ -30,6 +30,7 @@ import pl.kmazurek.application.usecase.player.UpdatePlayer
 import pl.kmazurek.application.usecase.player.UpdatePlayerCommand
 import pl.kmazurek.domain.model.player.PlayerId
 import pl.kmazurek.domain.model.user.UserId
+import pl.kmazurek.domain.repository.UserRepository
 import pl.kmazurek.infrastructure.logging.AuditLogger
 
 /**
@@ -47,6 +48,7 @@ class PlayerController(
     private val linkPlayerToUser: LinkPlayerToUser,
     private val unlinkPlayerFromUser: UnlinkPlayerFromUser,
     private val auditLogger: AuditLogger,
+    private val userRepository: UserRepository,
 ) {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -56,7 +58,13 @@ class PlayerController(
     ): ResponseEntity<List<PlayerDto>> {
         val query = ListPlayersQuery(searchTerm, includeInactive)
         val players = listPlayers.execute(query)
-        val dtos = players.map { PlayerDto.fromDomain(it) }
+        val userIds = players.mapNotNull { it.userId }
+        val emailsByUserId = userIds.associateWith { userId ->
+            userRepository.findById(userId)?.email?.value
+        }
+        val dtos = players.map { player ->
+            PlayerDto.fromDomain(player, player.userId?.let { emailsByUserId[it] })
+        }
         return ResponseEntity.ok(dtos)
     }
 
@@ -67,7 +75,8 @@ class PlayerController(
     ): ResponseEntity<PlayerDto> {
         val playerId = PlayerId.fromString(id)
         val player = getPlayer.execute(playerId)
-        return ResponseEntity.ok(PlayerDto.fromDomain(player))
+        val userEmail = player.userId?.let { userRepository.findById(it)?.email?.value }
+        return ResponseEntity.ok(PlayerDto.fromDomain(player, userEmail))
     }
 
     @PostMapping
@@ -83,6 +92,7 @@ class PlayerController(
                 userId = request.userId,
             )
         val player = createPlayer.execute(command)
+        val userEmail = player.userId?.let { userRepository.findById(it)?.email?.value }
 
         auditLogger.log(
             "PLAYER_CREATED",
@@ -93,7 +103,7 @@ class PlayerController(
                 ),
         )
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(PlayerDto.fromDomain(player))
+        return ResponseEntity.status(HttpStatus.CREATED).body(PlayerDto.fromDomain(player, userEmail))
     }
 
     @PutMapping("/{id}")
@@ -110,10 +120,11 @@ class PlayerController(
                 avatarUrl = request.avatarUrl,
             )
         val player = updatePlayer.execute(playerId, command)
+        val userEmail = player.userId?.let { userRepository.findById(it)?.email?.value }
 
         auditLogger.log("PLAYER_UPDATED", details = mapOf("playerId" to id))
 
-        return ResponseEntity.ok(PlayerDto.fromDomain(player))
+        return ResponseEntity.ok(PlayerDto.fromDomain(player, userEmail))
     }
 
     @DeleteMapping("/{id}")
@@ -140,6 +151,7 @@ class PlayerController(
         val playerId = PlayerId.fromString(id)
         val userId = UserId.fromString(request.userId)
         val player = linkPlayerToUser.execute(playerId, userId)
+        val userEmail = userRepository.findById(userId)?.email?.value
 
         auditLogger.log(
             "PLAYER_LINKED",
@@ -150,7 +162,7 @@ class PlayerController(
                 ),
         )
 
-        return ResponseEntity.ok(PlayerDto.fromDomain(player))
+        return ResponseEntity.ok(PlayerDto.fromDomain(player, userEmail))
     }
 
     @DeleteMapping("/{id}/link")

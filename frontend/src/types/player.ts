@@ -3,6 +3,7 @@ export interface Player {
   name: string
   avatarUrl: string | null
   userId: string | null
+  userEmail: string | null
   isActive: boolean
   createdAt: string
   updatedAt: string

@@ -154,7 +154,7 @@ export function PlayerFormModal({ isOpen, onClose, player }: PlayerFormModalProp
 
             {player && player.userId && (
               <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-600">
-                Linked account: <span className="font-mono text-gray-800">{player.userId}</span>
+                Linked account: <span className="font-medium text-gray-800">{player.userEmail || player.userId}</span>
               </div>
             )}
 
