@@ -60,7 +60,7 @@ poker-stats/
 
 2. **Start infrastructure (PostgreSQL + Redis)**
    ```bash
-   docker-compose up -d
+   docker-compose -f docker-compose.localhost.yml up -d
    ```
 
 3. **Start the backend**
