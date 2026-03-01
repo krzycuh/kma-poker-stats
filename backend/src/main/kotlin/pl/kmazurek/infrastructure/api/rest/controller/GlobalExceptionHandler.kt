@@ -10,6 +10,7 @@ import pl.kmazurek.application.usecase.auth.EmailAlreadyExistsException
 import pl.kmazurek.application.usecase.auth.InvalidCredentialsException
 import pl.kmazurek.application.usecase.auth.InvalidRefreshTokenException
 import pl.kmazurek.application.usecase.gamesession.GameSessionNotFoundException
+import pl.kmazurek.application.usecase.gamesession.SessionExpenseNotFoundException
 import pl.kmazurek.application.usecase.player.LinkedUserNotFoundException
 import pl.kmazurek.application.usecase.player.PlayerAccessDeniedException
 import pl.kmazurek.application.usecase.player.PlayerAlreadyExistsException
@@ -98,6 +99,11 @@ class GlobalExceptionHandler(
     @ExceptionHandler(SessionResultNotFoundException::class)
     fun handleSessionResultNotFound(ex: SessionResultNotFoundException): ResponseEntity<ErrorResponse> {
         return buildErrorResponse(HttpStatus.NOT_FOUND, "Session result not found", ex)
+    }
+
+    @ExceptionHandler(SessionExpenseNotFoundException::class)
+    fun handleSessionExpenseNotFound(ex: SessionExpenseNotFoundException): ResponseEntity<ErrorResponse> {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "Session expense not found", ex)
     }
 
     @ExceptionHandler(InvalidPasswordException::class)

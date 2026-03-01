@@ -6,6 +6,7 @@ import { PageHeader } from '../components/PageHeader'
 import { Step1SessionDetails } from '../components/SessionFormSteps/Step1SessionDetails'
 import { Step2PlayerSelection } from '../components/SessionFormSteps/Step2PlayerSelection'
 import { Step3ResultsEntry } from '../components/SessionFormSteps/Step3ResultsEntry'
+import { Step4Expenses } from '../components/SessionFormSteps/Step4Expenses'
 import { Step4ReviewSubmit } from '../components/SessionFormSteps/Step4ReviewSubmit'
 import { sessionApi } from '../api/sessions'
 import type {
@@ -22,7 +23,8 @@ const steps = [
   { id: 1, title: 'Session Details', description: 'When & where' },
   { id: 2, title: 'Select Players', description: 'Who played' },
   { id: 3, title: 'Enter Results', description: 'Buy-ins & cash-outs' },
-  { id: 4, title: 'Review & Submit', description: 'Confirm details' },
+  { id: 4, title: 'Expenses', description: 'Shared costs' },
+  { id: 5, title: 'Review & Submit', description: 'Confirm details' },
 ]
 
 export default function LogSession() {
@@ -37,6 +39,7 @@ export default function LogSession() {
     sessionNotes: '',
     selectedPlayerIds: [],
     results: [],
+    expenses: [],
   })
 
   // Redirect non-admin users
@@ -80,7 +83,7 @@ export default function LogSession() {
     mutationFn: (data: CreateGameSessionRequest) => sessionApi.create(data),
     onSuccess: () => {
       clearDraft()
-      setCurrentStep(4) // Success screen
+      setCurrentStep(5) // Success screen
     },
   })
 
@@ -120,6 +123,14 @@ export default function LogSession() {
         notes: r.notes || null,
         isSpectator: r.isSpectator,
       })),
+      expenses:
+        formData.expenses.length > 0
+          ? formData.expenses.map((e) => ({
+              payerPlayerId: e.payerPlayerId,
+              description: e.description,
+              amountCents: e.amountCents,
+            }))
+          : undefined,
     }
 
     createSessionMutation.mutate(request)
@@ -159,6 +170,14 @@ export default function LogSession() {
           />
         )}
         {currentStep === 3 && (
+          <Step4Expenses
+            formData={formData}
+            updateFormData={updateFormData}
+            onNext={nextStep}
+            onPrev={prevStep}
+          />
+        )}
+        {currentStep === 4 && (
           <Step4ReviewSubmit
             formData={formData}
             onSubmit={handleSubmit}
@@ -168,7 +187,7 @@ export default function LogSession() {
             error={createSessionMutation.error}
           />
         )}
-        {currentStep === 4 && <SuccessScreen />}
+        {currentStep === 5 && <SuccessScreen />}
       </MultiStepForm>
     </div>
   )

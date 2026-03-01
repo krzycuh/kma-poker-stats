@@ -5,6 +5,7 @@ import { MultiStepForm } from '../components/MultiStepForm'
 import { Step1SessionDetails } from '../components/SessionFormSteps/Step1SessionDetails'
 import { Step2PlayerSelection } from '../components/SessionFormSteps/Step2PlayerSelection'
 import { Step3ResultsEntry } from '../components/SessionFormSteps/Step3ResultsEntry'
+import { Step4Expenses } from '../components/SessionFormSteps/Step4Expenses'
 import { Step4ReviewSubmit } from '../components/SessionFormSteps/Step4ReviewSubmit'
 import { sessionApi } from '../api/sessions'
 import type { CreateGameSessionRequest } from '../types/gameSession'
@@ -17,7 +18,8 @@ const steps = [
   { id: 1, title: 'Session Details', description: 'When & where' },
   { id: 2, title: 'Select Players', description: 'Who played' },
   { id: 3, title: 'Enter Results', description: 'Buy-ins & cash-outs' },
-  { id: 4, title: 'Review & Submit', description: 'Confirm changes' },
+  { id: 4, title: 'Expenses', description: 'Shared costs' },
+  { id: 5, title: 'Review & Submit', description: 'Confirm changes' },
 ]
 
 export default function EditSession() {
@@ -33,6 +35,7 @@ export default function EditSession() {
     sessionNotes: '',
     selectedPlayerIds: [],
     results: [],
+    expenses: [],
   })
 
   // Redirect non-admin users
@@ -66,6 +69,11 @@ export default function EditSession() {
           notes: r.notes || '',
           isSpectator: r.isSpectator,
         })),
+        expenses: (session.expenses || []).map((e) => ({
+          payerPlayerId: e.payerPlayerId,
+          description: e.description,
+          amountCents: e.amountCents,
+        })),
       })
     }
   }, [session])
@@ -80,7 +88,7 @@ export default function EditSession() {
       return await sessionApi.create(data)
     },
     onSuccess: () => {
-      setCurrentStep(4) // Success screen
+      setCurrentStep(5) // Success screen
     },
   })
 
@@ -118,6 +126,14 @@ export default function EditSession() {
         notes: r.notes || null,
         isSpectator: r.isSpectator,
       })),
+      expenses:
+        formData.expenses.length > 0
+          ? formData.expenses.map((e) => ({
+              payerPlayerId: e.payerPlayerId,
+              description: e.description,
+              amountCents: e.amountCents,
+            }))
+          : undefined,
     }
 
     updateSessionMutation.mutate(request)
@@ -203,6 +219,14 @@ export default function EditSession() {
           />
         )}
         {currentStep === 3 && (
+          <Step4Expenses
+            formData={formData}
+            updateFormData={updateFormData}
+            onNext={nextStep}
+            onPrev={prevStep}
+          />
+        )}
+        {currentStep === 4 && (
           <Step4ReviewSubmit
             formData={formData}
             onSubmit={handleSubmit}
@@ -212,7 +236,7 @@ export default function EditSession() {
             error={updateSessionMutation.error}
           />
         )}
-        {currentStep === 4 && <SuccessScreen />}
+        {currentStep === 5 && <SuccessScreen />}
       </MultiStepForm>
     </div>
   )

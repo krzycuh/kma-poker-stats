@@ -317,6 +317,113 @@ export const SessionDetail: React.FC = () => {
               </table>
             </div>
           </div>
+          {/* Shared Expenses */}
+          {session.expenses && session.expenses.length > 0 && (
+            <div className="bg-white shadow rounded-lg overflow-hidden">
+              <div className="px-3 sm:px-6 py-2 sm:py-4 border-b border-gray-200">
+                <h2 className="text-sm sm:text-lg font-medium text-gray-900">
+                  Shared Expenses
+                </h2>
+              </div>
+
+              {/* Expense Items */}
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Description
+                      </th>
+                      <th className="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Paid by
+                      </th>
+                      <th className="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Amount
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {session.expenses.map((expense) => (
+                      <tr key={expense.id}>
+                        <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
+                          {expense.description}
+                        </td>
+                        <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                          {expense.payerPlayerName || expense.payerPlayerId.substring(0, 8)}
+                        </td>
+                        <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-semibold text-gray-900">
+                          {formatCents(expense.amountCents)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Cost Split Summary */}
+              {session.expenseSplit && (
+                <div className="px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-blue-50">
+                  <h3 className="text-xs sm:text-sm font-semibold text-blue-900 mb-3">
+                    Cost Split Summary
+                  </h3>
+                  <div className="grid grid-cols-3 gap-4 text-xs sm:text-sm mb-4">
+                    <div>
+                      <div className="text-blue-700">Total</div>
+                      <div className="font-semibold text-blue-900">
+                        {formatCents(session.expenseSplit.totalExpensesCents)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-blue-700">Players</div>
+                      <div className="font-semibold text-blue-900">
+                        {session.expenseSplit.playerCount}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-blue-700">Per Player</div>
+                      <div className="font-semibold text-blue-900">
+                        ~{formatCents(session.expenseSplit.perPlayerShareCents)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Player Balances */}
+                  <div className="space-y-1">
+                    {session.expenseSplit.playerBalances.map((balance) => (
+                      <div
+                        key={balance.playerId}
+                        className="flex items-center justify-between bg-white rounded px-3 py-2 text-xs sm:text-sm"
+                      >
+                        <span className="text-gray-700">
+                          {balance.playerName || balance.playerId.substring(0, 8)}
+                        </span>
+                        <div className="flex items-center gap-3 sm:gap-4">
+                          <span className="text-gray-500">
+                            paid {formatCents(balance.paidCents)}
+                          </span>
+                          <span
+                            className={`font-semibold ${
+                              balance.balanceCents > 0
+                                ? 'text-green-600'
+                                : balance.balanceCents < 0
+                                  ? 'text-red-600'
+                                  : 'text-gray-600'
+                            }`}
+                          >
+                            {balance.balanceCents > 0
+                              ? `gets back ${formatCents(balance.balanceCents)}`
+                              : balance.balanceCents < 0
+                                ? `owes ${formatCents(Math.abs(balance.balanceCents))}`
+                                : 'settled'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
