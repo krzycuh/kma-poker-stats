@@ -18,20 +18,30 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import pl.kmazurek.application.dto.CreateGameSessionRequest
+import pl.kmazurek.application.dto.CreateSessionExpenseRequest
+import pl.kmazurek.application.dto.ExpenseSplitDto
 import pl.kmazurek.application.dto.GameSessionDto
 import pl.kmazurek.application.dto.GameSessionWithResultsDto
+import pl.kmazurek.application.dto.SessionExpenseDto
 import pl.kmazurek.application.dto.SessionResultDto
 import pl.kmazurek.application.dto.UpdateGameSessionRequest
+import pl.kmazurek.application.dto.UpdateSessionExpenseRequest
+import pl.kmazurek.application.usecase.gamesession.AddExpenseCommand
 import pl.kmazurek.application.usecase.gamesession.CreateGameSession
 import pl.kmazurek.application.usecase.gamesession.CreateGameSessionCommand
+import pl.kmazurek.application.usecase.gamesession.CreateSessionExpenseCommand
 import pl.kmazurek.application.usecase.gamesession.CreateSessionResultCommand
 import pl.kmazurek.application.usecase.gamesession.DeleteGameSession
 import pl.kmazurek.application.usecase.gamesession.GetGameSession
 import pl.kmazurek.application.usecase.gamesession.ListGameSessions
 import pl.kmazurek.application.usecase.gamesession.ListGameSessionsQuery
+import pl.kmazurek.application.usecase.gamesession.ManageSessionExpenses
+import pl.kmazurek.application.usecase.gamesession.UpdateExpenseCommand
 import pl.kmazurek.application.usecase.gamesession.UpdateGameSession
 import pl.kmazurek.application.usecase.gamesession.UpdateGameSessionCommand
+import pl.kmazurek.domain.model.gamesession.ExpenseSplit
 import pl.kmazurek.domain.model.gamesession.GameSessionId
+import pl.kmazurek.domain.model.gamesession.SessionExpenseId
 import pl.kmazurek.domain.model.user.UserId
 import pl.kmazurek.infrastructure.logging.AuditLogger
 import java.time.LocalDateTime
@@ -47,6 +57,7 @@ class GameSessionController(
     private val deleteGameSession: DeleteGameSession,
     private val getGameSession: GetGameSession,
     private val listGameSessions: ListGameSessions,
+    private val manageSessionExpenses: ManageSessionExpenses,
     private val auditLogger: AuditLogger,
 ) {
     @GetMapping
@@ -109,6 +120,23 @@ class GameSessionController(
 
         val result = getGameSession.execute(sessionId, participantUserId)
 
+        val playerNames =
+            result.playersById.mapKeys { it.key.toString() }
+                .mapValues { it.value.name.value }
+
+        val activePlayerIds =
+            result.results
+                .filter { !it.isSpectator }
+                .map { it.playerId }
+
+        val expenseSplit =
+            if (result.expenses.isNotEmpty()) {
+                val split = ExpenseSplit.calculate(result.expenses, activePlayerIds)
+                ExpenseSplitDto.fromDomain(split, playerNames)
+            } else {
+                null
+            }
+
         val dto =
             GameSessionWithResultsDto(
                 session = GameSessionDto.fromDomain(result.session),
@@ -122,6 +150,15 @@ class GameSessionController(
                             linkedUserId = player?.userId?.toString(),
                         )
                     },
+                expenses =
+                    result.expenses.map { expense ->
+                        val payerPlayer = result.playersById[expense.payerPlayerId]
+                        SessionExpenseDto.fromDomain(
+                            expense,
+                            payerPlayerName = payerPlayer?.name?.value,
+                        )
+                    },
+                expenseSplit = expenseSplit,
             )
         return ResponseEntity.ok(dto)
     }
@@ -149,6 +186,14 @@ class GameSessionController(
                             cashOutCents = it.cashOutCents,
                             notes = it.notes,
                             isSpectator = it.isSpectator,
+                        )
+                    },
+                expenses =
+                    request.expenses?.map {
+                        CreateSessionExpenseCommand(
+                            payerPlayerId = it.payerPlayerId,
+                            description = it.description,
+                            amountCents = it.amountCents,
                         )
                     },
             )
@@ -208,6 +253,70 @@ class GameSessionController(
         auditLogger.log("SESSION_DELETED", details = mapOf("sessionId" to id))
 
         return ResponseEntity.ok(mapOf("message" to "Session deleted successfully"))
+    }
+
+    @PostMapping("/{id}/expenses")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun addExpense(
+        @PathVariable id: String,
+        @Valid @RequestBody request: CreateSessionExpenseRequest,
+    ): ResponseEntity<SessionExpenseDto> {
+        val sessionId = GameSessionId.fromString(id)
+        val command =
+            AddExpenseCommand(
+                payerPlayerId = request.payerPlayerId,
+                description = request.description,
+                amountCents = request.amountCents,
+            )
+        val expense = manageSessionExpenses.addExpense(sessionId, command)
+
+        auditLogger.log(
+            "EXPENSE_ADDED",
+            details = mapOf("sessionId" to id, "expenseId" to expense.id.toString()),
+        )
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(SessionExpenseDto.fromDomain(expense))
+    }
+
+    @PutMapping("/{id}/expenses/{expenseId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun updateExpense(
+        @PathVariable id: String,
+        @PathVariable expenseId: String,
+        @Valid @RequestBody request: UpdateSessionExpenseRequest,
+    ): ResponseEntity<SessionExpenseDto> {
+        val expId = SessionExpenseId.fromString(expenseId)
+        val command =
+            UpdateExpenseCommand(
+                payerPlayerId = request.payerPlayerId,
+                description = request.description,
+                amountCents = request.amountCents,
+            )
+        val expense = manageSessionExpenses.updateExpense(expId, command)
+
+        auditLogger.log(
+            "EXPENSE_UPDATED",
+            details = mapOf("sessionId" to id, "expenseId" to expenseId),
+        )
+
+        return ResponseEntity.ok(SessionExpenseDto.fromDomain(expense))
+    }
+
+    @DeleteMapping("/{id}/expenses/{expenseId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun deleteExpense(
+        @PathVariable id: String,
+        @PathVariable expenseId: String,
+    ): ResponseEntity<Map<String, String>> {
+        val expId = SessionExpenseId.fromString(expenseId)
+        manageSessionExpenses.deleteExpense(expId)
+
+        auditLogger.log(
+            "EXPENSE_DELETED",
+            details = mapOf("sessionId" to id, "expenseId" to expenseId),
+        )
+
+        return ResponseEntity.ok(mapOf("message" to "Expense deleted successfully"))
     }
 }
 

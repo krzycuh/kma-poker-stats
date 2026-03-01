@@ -29,9 +29,43 @@ export interface SessionResult {
   linkedUserId?: string | null
 }
 
+export interface SessionExpense {
+  id: string
+  sessionId: string
+  payerPlayerId: string
+  payerPlayerName?: string | null
+  description: string
+  amountCents: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PlayerBalance {
+  playerId: string
+  playerName?: string | null
+  paidCents: number
+  owedCents: number
+  balanceCents: number
+}
+
+export interface ExpenseSplit {
+  totalExpensesCents: number
+  perPlayerShareCents: number
+  playerCount: number
+  playerBalances: PlayerBalance[]
+}
+
 export interface GameSessionWithResults {
   session: GameSession
   results: SessionResult[]
+  expenses?: SessionExpense[]
+  expenseSplit?: ExpenseSplit | null
+}
+
+export interface CreateSessionExpenseRequest {
+  payerPlayerId: string
+  description: string
+  amountCents: number
 }
 
 export interface CreateGameSessionRequest {
@@ -42,6 +76,7 @@ export interface CreateGameSessionRequest {
   minBuyInCents: number
   notes?: string | null
   results: CreateSessionResultRequest[]
+  expenses?: CreateSessionExpenseRequest[]
 }
 
 export interface CreateSessionResultRequest {

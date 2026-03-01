@@ -1,5 +1,11 @@
 import { GameType } from './gameSession'
 
+export interface ExpenseFormEntry {
+  payerPlayerId: string
+  description: string
+  amountCents: number
+}
+
 export interface SessionFormData {
   sessionDate: string
   location: string
@@ -14,4 +20,5 @@ export interface SessionFormData {
     notes: string
     isSpectator: boolean
   }[]
+  expenses: ExpenseFormEntry[]
 }

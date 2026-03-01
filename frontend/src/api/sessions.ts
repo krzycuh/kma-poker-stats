@@ -3,6 +3,8 @@ import type {
   GameSession,
   GameSessionWithResults,
   CreateGameSessionRequest,
+  CreateSessionExpenseRequest,
+  SessionExpense,
   UpdateGameSessionRequest,
 } from '../types/gameSession'
 
@@ -55,5 +57,35 @@ export const sessionApi = {
 
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/sessions/${id}`)
+  },
+
+  addExpense: async (
+    sessionId: string,
+    data: CreateSessionExpenseRequest,
+  ): Promise<SessionExpense> => {
+    const response = await apiClient.post<SessionExpense>(
+      `/sessions/${sessionId}/expenses`,
+      data,
+    )
+    return response.data
+  },
+
+  updateExpense: async (
+    sessionId: string,
+    expenseId: string,
+    data: CreateSessionExpenseRequest,
+  ): Promise<SessionExpense> => {
+    const response = await apiClient.put<SessionExpense>(
+      `/sessions/${sessionId}/expenses/${expenseId}`,
+      data,
+    )
+    return response.data
+  },
+
+  deleteExpense: async (
+    sessionId: string,
+    expenseId: string,
+  ): Promise<void> => {
+    await apiClient.delete(`/sessions/${sessionId}/expenses/${expenseId}`)
   },
 }

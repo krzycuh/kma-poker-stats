@@ -6,6 +6,7 @@ import pl.kmazurek.application.usecase.player.PlayerNotFoundException
 import pl.kmazurek.domain.model.gamesession.GameSession
 import pl.kmazurek.domain.model.gamesession.GameType
 import pl.kmazurek.domain.model.gamesession.Location
+import pl.kmazurek.domain.model.gamesession.SessionExpense
 import pl.kmazurek.domain.model.gamesession.SessionResult
 import pl.kmazurek.domain.model.player.Player
 import pl.kmazurek.domain.model.player.PlayerId
@@ -13,6 +14,7 @@ import pl.kmazurek.domain.model.shared.Money
 import pl.kmazurek.domain.model.user.UserId
 import pl.kmazurek.domain.repository.GameSessionRepository
 import pl.kmazurek.domain.repository.PlayerRepository
+import pl.kmazurek.domain.repository.SessionExpenseRepository
 import pl.kmazurek.domain.repository.SessionResultRepository
 import java.time.LocalDateTime
 
@@ -23,6 +25,7 @@ import java.time.LocalDateTime
 class CreateGameSession(
     private val gameSessionRepository: GameSessionRepository,
     private val sessionResultRepository: SessionResultRepository,
+    private val sessionExpenseRepository: SessionExpenseRepository,
     private val playerRepository: PlayerRepository,
 ) {
     @Transactional
@@ -71,7 +74,22 @@ class CreateGameSession(
 
         val savedResults = sessionResultRepository.saveAll(resultsWithPlacements)
 
-        return GameSessionWithResults(savedSession, savedResults)
+        // Create expenses if provided
+        val savedExpenses =
+            command.expenses?.let { expenseCommands ->
+                val expenses =
+                    expenseCommands.map { expenseCommand ->
+                        SessionExpense.create(
+                            sessionId = savedSession.id,
+                            payerPlayerId = PlayerId.fromString(expenseCommand.payerPlayerId),
+                            description = expenseCommand.description,
+                            amount = Money.ofCents(expenseCommand.amountCents),
+                        )
+                    }
+                sessionExpenseRepository.saveAll(expenses)
+            } ?: emptyList()
+
+        return GameSessionWithResults(savedSession, savedResults, expenses = savedExpenses)
     }
 
     /**
@@ -122,6 +140,13 @@ data class CreateGameSessionCommand(
     val notes: String? = null,
     val createdByUserId: String? = null,
     val results: List<CreateSessionResultCommand>,
+    val expenses: List<CreateSessionExpenseCommand>? = null,
+)
+
+data class CreateSessionExpenseCommand(
+    val payerPlayerId: String,
+    val description: String,
+    val amountCents: Long,
 )
 
 data class CreateSessionResultCommand(
@@ -136,4 +161,5 @@ data class GameSessionWithResults(
     val session: GameSession,
     val results: List<SessionResult>,
     val playersById: Map<PlayerId, Player> = emptyMap(),
+    val expenses: List<SessionExpense> = emptyList(),
 )

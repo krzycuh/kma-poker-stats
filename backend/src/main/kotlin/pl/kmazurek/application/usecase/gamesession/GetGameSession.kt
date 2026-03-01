@@ -9,6 +9,7 @@ import pl.kmazurek.domain.model.player.PlayerId
 import pl.kmazurek.domain.model.user.UserId
 import pl.kmazurek.domain.repository.GameSessionRepository
 import pl.kmazurek.domain.repository.PlayerRepository
+import pl.kmazurek.domain.repository.SessionExpenseRepository
 import pl.kmazurek.domain.repository.SessionResultRepository
 
 /**
@@ -18,6 +19,7 @@ import pl.kmazurek.domain.repository.SessionResultRepository
 class GetGameSession(
     private val gameSessionRepository: GameSessionRepository,
     private val sessionResultRepository: SessionResultRepository,
+    private val sessionExpenseRepository: SessionExpenseRepository,
     private val playerRepository: PlayerRepository,
 ) {
     fun execute(
@@ -35,8 +37,9 @@ class GetGameSession(
         }
 
         val playersById = loadPlayersForResults(results)
+        val expenses = sessionExpenseRepository.findBySessionId(sessionId)
 
-        return GameSessionWithResults(session, results, playersById)
+        return GameSessionWithResults(session, results, playersById, expenses)
     }
 
     private fun enforceParticipantAccess(
