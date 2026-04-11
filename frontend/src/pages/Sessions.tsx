@@ -28,13 +28,19 @@ export const Sessions: React.FC = () => {
     queryFn: sessionApi.getAll,
   });
 
-  // Filter sessions based on search term
-  const filteredSessions = sessions?.filter((session) =>
-    session.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    formatGameType(session.gameType)
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
+  // Filter sessions based on search term, then sort newest first by start time
+  const filteredSessions = sessions
+    ?.filter((session) =>
+      session.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      formatGameType(session.gameType)
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    )
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+    );
 
   return (
     <div className="min-h-screen bg-gray-50 pt-4 pb-8 px-4 sm:px-6 lg:px-8">

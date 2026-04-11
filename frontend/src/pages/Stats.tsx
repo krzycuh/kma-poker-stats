@@ -454,66 +454,56 @@ export default function Stats() {
         </div>
       </div>
 
-      {/* Best and Worst Sessions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
-        {/* Best Sessions */}
-        <div className="bg-white rounded-lg shadow p-3 sm:p-6">
-          <h2 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-4">🏆 Best Sessions</h2>
-          {bestSessions.length > 0 ? (
-            <div className="space-y-1.5 sm:space-y-3">
-              {bestSessions.map((session) => (
-                <Link
-                  key={session.sessionId}
-                  to={`/sessions/${session.sessionId}`}
-                  className="block p-2 sm:p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-                >
-                  <div className="flex justify-between items-center">
-                    <div className="min-w-0 flex-1 mr-2">
-                      <p className="text-sm font-medium text-gray-900 truncate">{session.location}</p>
-                      <p className="text-xs text-gray-600">
-                        {formatDate(session.date)} • {session.gameType.replace('_', ' ')}
-                      </p>
-                    </div>
-                    <p className="text-sm sm:text-lg font-bold text-green-600 flex-shrink-0">
-                      {formatCents(session.profitCents)}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-4 sm:py-8 text-sm">No sessions yet</p>
-          )}
-        </div>
+      {/* Best to Worst Sessions */}
+      {(() => {
+        // Combine best and worst, dedupe by sessionId, sort by profit descending
+        const combined = [...bestSessions, ...worstSessions];
+        const seen = new Set<string>();
+        const rankedSessions = combined
+          .filter((session) => {
+            if (seen.has(session.sessionId)) return false;
+            seen.add(session.sessionId);
+            return true;
+          })
+          .sort((a, b) => b.profitCents - a.profitCents);
 
-        {/* Worst Sessions */}
-        <div className="bg-white rounded-lg shadow p-3 sm:p-6">
-          <h2 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-4">📉 Worst Sessions</h2>
-          {worstSessions.length > 0 ? (
-            <div className="space-y-1.5 sm:space-y-3">
-              {worstSessions.map((session) => (
-                <Link
-                  key={session.sessionId}
-                  to={`/sessions/${session.sessionId}`}
-                  className="block p-2 sm:p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-                >
-                  <div className="flex justify-between items-center">
-                    <div className="min-w-0 flex-1 mr-2">
-                      <p className="text-sm font-medium text-gray-900 truncate">{session.location}</p>
-                      <p className="text-xs text-gray-600">
-                        {formatDate(session.date)} • {session.gameType.replace('_', ' ')}
+        return (
+          <div className="bg-white rounded-lg shadow p-3 sm:p-6">
+            <h2 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-4">
+              🏆 Best to Worst Sessions
+            </h2>
+            {rankedSessions.length > 0 ? (
+              <div className="space-y-1.5 sm:space-y-3">
+                {rankedSessions.map((session) => (
+                  <Link
+                    key={session.sessionId}
+                    to={`/sessions/${session.sessionId}`}
+                    className="block p-2 sm:p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div className="min-w-0 flex-1 mr-2">
+                        <p className="text-sm font-medium text-gray-900 truncate">{session.location}</p>
+                        <p className="text-xs text-gray-600">
+                          {formatDate(session.date)} • {session.gameType.replace('_', ' ')}
+                        </p>
+                      </div>
+                      <p
+                        className={`text-sm sm:text-lg font-bold flex-shrink-0 ${
+                          session.profitCents >= 0 ? 'text-green-600' : 'text-red-600'
+                        }`}
+                      >
+                        {formatCents(session.profitCents)}
                       </p>
                     </div>
-                    <p className="text-sm sm:text-lg font-bold text-red-600 flex-shrink-0">{formatCents(session.profitCents)}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-4 sm:py-8 text-sm">No sessions yet</p>
-          )}
-        </div>
-      </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-4 sm:py-8 text-sm">No sessions yet</p>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }
