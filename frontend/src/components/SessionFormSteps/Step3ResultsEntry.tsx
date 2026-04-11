@@ -187,26 +187,26 @@ export function Step3ResultsEntry({
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1 sm:mb-4">
           Enter Results
         </h2>
-        <p className="text-gray-600 mb-6">
+        <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-6">
           Enter buy-in and cash-out amounts for each player
         </p>
       </div>
 
       {/* Player Navigation */}
-      <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+      <div className="flex items-center justify-between bg-gray-50 rounded-lg p-2 sm:p-4">
         <button
           type="button"
           onClick={prevPlayer}
           disabled={currentPlayerIndex === 0}
-          className="p-2 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <svg
-            className="w-6 h-6"
+            className="w-5 h-5 sm:w-6 sm:h-6"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -221,15 +221,15 @@ export function Step3ResultsEntry({
         </button>
 
         <div className="text-center">
-          <div className="text-lg font-semibold text-gray-900 flex items-center justify-center gap-2">
+          <div className="text-base sm:text-lg font-semibold text-gray-900 flex items-center justify-center gap-2">
             {getPlayerName(currentResult.playerId)}
             {currentResult.isSpectator && (
-              <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
+              <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">
                 Spectator
               </span>
             )}
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-xs sm:text-sm text-gray-600">
             Player {currentPlayerIndex + 1} of {formData.results.length}
           </div>
         </div>
@@ -238,10 +238,10 @@ export function Step3ResultsEntry({
           type="button"
           onClick={nextPlayer}
           disabled={currentPlayerIndex === formData.results.length - 1}
-          className="p-2 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <svg
-            className="w-6 h-6"
+            className="w-5 h-5 sm:w-6 sm:h-6"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -257,13 +257,13 @@ export function Step3ResultsEntry({
       </div>
 
       {/* Player Dots Navigation */}
-      <div className="flex justify-center gap-1.5">
+      <div className="flex justify-center gap-1 sm:gap-1.5">
         {formData.results.map((_result, index) => (
           <button
             key={_result.playerId}
             type="button"
             onClick={() => goToPlayer(index)}
-            className={`w-2.5 h-2.5 rounded-full transition-colors ${
+            className={`w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 rounded-full transition-colors ${
               index === currentPlayerIndex
                 ? 'bg-blue-600'
                 : 'bg-gray-300 hover:bg-gray-400'
@@ -274,98 +274,100 @@ export function Step3ResultsEntry({
       </div>
 
       {/* Result Entry Form */}
-      <div className="bg-white border-2 border-gray-200 rounded-lg p-6 space-y-6">
+      <div className="bg-white border-2 border-gray-200 rounded-lg p-3 sm:p-6 space-y-3 sm:space-y-6">
         {currentResult.isSpectator ? (
-          <div className="bg-gray-50 border border-gray-300 rounded-lg p-6 text-center">
-            <div className="text-gray-700 mb-4">
-              <span className="text-4xl">👀</span>
+          <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 sm:p-6 text-center">
+            <div className="text-gray-700 mb-2 sm:mb-4">
+              <span className="text-3xl sm:text-4xl">👀</span>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
               Spectator (Absent Player)
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">
               This player was absent from the session but will have view access.
             </p>
-            <div className="bg-white rounded border border-gray-200 p-4 inline-block">
-              <div className="text-sm text-gray-600 mb-1">Buy-in / Cash-out</div>
-              <div className="text-2xl font-semibold text-gray-900">0 PLN / 0 PLN</div>
+            <div className="bg-white rounded border border-gray-200 p-3 sm:p-4 inline-block">
+              <div className="text-xs sm:text-sm text-gray-600 mb-1">Buy-in / Cash-out</div>
+              <div className="text-xl sm:text-2xl font-semibold text-gray-900">0 PLN / 0 PLN</div>
             </div>
           </div>
         ) : (
           <>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Buy-In (PLN) *
-              </label>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={
-                  buyInInputs[currentResult.playerId] ??
-                  formatCurrencyForInput(currentResult.buyInCents)
-                }
-                onChange={(e) =>
-                  handleBuyInChange(currentResult.playerId, e.target.value)
-                }
-                onBlur={(e) =>
-                  handleAmountBlur(
-                    currentResult.playerId,
-                    'buyIn',
-                    e.target.value,
-                  )
-                }
-                className={`w-full px-4 py-3 text-2xl border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors[`buyIn-${currentPlayerIndex}`]
-                    ? 'border-red-500'
-                    : 'border-gray-300'
-                }`}
-                placeholder="100"
-              />
-              {errors[`buyIn-${currentPlayerIndex}`] && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors[`buyIn-${currentPlayerIndex}`]}
-                </p>
-              )}
-            </div>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                  Buy-In (PLN) *
+                </label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={
+                    buyInInputs[currentResult.playerId] ??
+                    formatCurrencyForInput(currentResult.buyInCents)
+                  }
+                  onChange={(e) =>
+                    handleBuyInChange(currentResult.playerId, e.target.value)
+                  }
+                  onBlur={(e) =>
+                    handleAmountBlur(
+                      currentResult.playerId,
+                      'buyIn',
+                      e.target.value,
+                    )
+                  }
+                  className={`w-full px-3 py-2 sm:px-4 sm:py-3 text-lg sm:text-2xl border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors[`buyIn-${currentPlayerIndex}`]
+                      ? 'border-red-500'
+                      : 'border-gray-300'
+                  }`}
+                  placeholder="100"
+                />
+                {errors[`buyIn-${currentPlayerIndex}`] && (
+                  <p className="text-red-500 text-xs sm:text-sm mt-1">
+                    {errors[`buyIn-${currentPlayerIndex}`]}
+                  </p>
+                )}
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cash-Out (PLN) *
-              </label>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={
-                  cashOutInputs[currentResult.playerId] ??
-                  formatCurrencyForInput(currentResult.cashOutCents)
-                }
-                onChange={(e) =>
-                  handleCashOutChange(currentResult.playerId, e.target.value)
-                }
-                onBlur={(e) =>
-                  handleAmountBlur(
-                    currentResult.playerId,
-                    'cashOut',
-                    e.target.value,
-                  )
-                }
-                className={`w-full px-4 py-3 text-2xl border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors[`cashOut-${currentPlayerIndex}`]
-                    ? 'border-red-500'
-                    : 'border-gray-300'
-                }`}
-                placeholder="150"
-              />
-              {errors[`cashOut-${currentPlayerIndex}`] && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors[`cashOut-${currentPlayerIndex}`]}
-                </p>
-              )}
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                  Cash-Out (PLN) *
+                </label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={
+                    cashOutInputs[currentResult.playerId] ??
+                    formatCurrencyForInput(currentResult.cashOutCents)
+                  }
+                  onChange={(e) =>
+                    handleCashOutChange(currentResult.playerId, e.target.value)
+                  }
+                  onBlur={(e) =>
+                    handleAmountBlur(
+                      currentResult.playerId,
+                      'cashOut',
+                      e.target.value,
+                    )
+                  }
+                  className={`w-full px-3 py-2 sm:px-4 sm:py-3 text-lg sm:text-2xl border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors[`cashOut-${currentPlayerIndex}`]
+                      ? 'border-red-500'
+                      : 'border-gray-300'
+                  }`}
+                  placeholder="150"
+                />
+                {errors[`cashOut-${currentPlayerIndex}`] && (
+                  <p className="text-red-500 text-xs sm:text-sm mt-1">
+                    {errors[`cashOut-${currentPlayerIndex}`]}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Profit/Loss Display */}
             <div
-              className={`p-4 rounded-lg ${
+              className={`flex items-center justify-between gap-3 px-3 py-2 sm:p-4 rounded-lg ${
                 profit > 0
                   ? 'bg-green-50 border border-green-200'
                   : profit < 0
@@ -373,9 +375,9 @@ export function Step3ResultsEntry({
                     : 'bg-gray-50 border border-gray-200'
               }`}
             >
-              <div className="text-sm text-gray-700 mb-1">Profit/Loss</div>
+              <div className="text-xs sm:text-sm text-gray-700">Profit/Loss</div>
               <div
-                className={`text-3xl font-bold ${
+                className={`text-lg sm:text-3xl font-bold ${
                   profit > 0
                     ? 'text-green-600'
                     : profit < 0
@@ -390,16 +392,16 @@ export function Step3ResultsEntry({
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 Notes (Optional)
               </label>
-              <textarea
+              <input
+                type="text"
                 value={currentResult.notes}
                 onChange={(e) =>
                   updateResult(currentResult.playerId, { notes: e.target.value })
                 }
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-1.5 sm:py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Any notes about this player's session..."
               />
             </div>
@@ -408,9 +410,9 @@ export function Step3ResultsEntry({
       </div>
 
       {/* Summary Panel (Sticky) */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-semibold text-blue-900 mb-3">Session Summary</h3>
-        <div className="grid grid-cols-3 gap-4 text-sm">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+        <h3 className="text-sm sm:text-base font-semibold text-blue-900 mb-2 sm:mb-3">Session Summary</h3>
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 text-xs sm:text-sm">
           <div>
             <div className="text-blue-700">Total Buy-In</div>
             <div className="font-semibold text-blue-900">

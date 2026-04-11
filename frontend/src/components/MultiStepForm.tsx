@@ -20,14 +20,14 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
   return (
     <div className="max-w-4xl mx-auto">
       {/* Progress Indicator */}
-      <div className="mb-8">
+      <div className="mb-4 sm:mb-6">
         <div className="flex items-center justify-between">
           {steps.map((step, index) => (
             <React.Fragment key={step.id}>
-              <div className="flex flex-col items-center flex-1">
+              <div className="flex flex-col items-center flex-1 min-w-0">
                 {/* Step Circle */}
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold mb-2 transition-colors ${
+                  className={`w-7 h-7 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-base font-semibold mb-1 sm:mb-2 transition-colors ${
                     index < currentStep
                       ? 'bg-green-500 text-white'
                       : index === currentStep
@@ -37,7 +37,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
                 >
                   {index < currentStep ? (
                     <svg
-                      className="w-6 h-6"
+                      className="w-4 h-4 sm:w-6 sm:h-6"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -56,7 +56,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
                 {/* Step Title */}
                 <div className="text-center">
                   <div
-                    className={`text-sm font-medium ${
+                    className={`text-[11px] sm:text-sm font-medium truncate ${
                       index === currentStep
                         ? 'text-blue-600'
                         : index < currentStep
@@ -73,9 +73,9 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
               </div>
               {/* Connector Line */}
               {index < steps.length - 1 && (
-                <div className="flex-1 mx-2 mb-8">
+                <div className="flex-1 mx-1 sm:mx-2 mb-6 sm:mb-8 -mt-4 sm:-mt-0">
                   <div
-                    className={`h-1 rounded transition-colors ${
+                    className={`h-0.5 sm:h-1 rounded transition-colors ${
                       index < currentStep ? 'bg-green-500' : 'bg-gray-300'
                     }`}
                   />
@@ -87,7 +87,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
       </div>
 
       {/* Form Content */}
-      <div className="bg-white rounded-lg shadow-md p-6">{children}</div>
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">{children}</div>
     </div>
   )
 }
