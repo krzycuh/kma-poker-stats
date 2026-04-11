@@ -1,9 +1,11 @@
 package pl.kmazurek.domain.service
 
 import pl.kmazurek.domain.model.gamesession.GameSession
+import pl.kmazurek.domain.model.gamesession.GameSessionId
 import pl.kmazurek.domain.model.gamesession.SessionResult
 import pl.kmazurek.domain.model.player.PlayerId
 import pl.kmazurek.domain.model.shared.Money
+import java.time.LocalDateTime
 
 /**
  * Domain Service for calculating player statistics
@@ -12,11 +14,18 @@ import pl.kmazurek.domain.model.shared.Money
  */
 class StatsCalculator {
     /**
-     * Calculate comprehensive statistics for a player
+     * Calculate comprehensive statistics for a player.
+     *
+     * The optional [sessionStartTimes] map lets callers order time-sensitive
+     * computations (currently the streak) by the date the session was actually
+     * played, rather than the date it was entered into the system. When a
+     * session id is missing from the map the result's [SessionResult.createdAt]
+     * is used as a fallback so legacy callers/tests stay deterministic.
      */
     fun calculatePlayerStats(
         playerId: PlayerId,
         results: List<SessionResult>,
+        sessionStartTimes: Map<GameSessionId, LocalDateTime> = emptyMap(),
     ): PlayerStats {
         if (results.isEmpty()) {
             return PlayerStats.empty(playerId)
@@ -56,7 +65,12 @@ class StatsCalculator {
                 Money.ZERO
             }
 
-        val currentStreak = calculateStreak(results.sortedBy { it.createdAt })
+        val streakOrdering =
+            compareBy<SessionResult>(
+                { sessionStartTimes[it.sessionId] ?: it.createdAt },
+                { it.createdAt },
+            )
+        val currentStreak = calculateStreak(results.sortedWith(streakOrdering))
 
         val firstPlaceCount = results.count { it.placement == 1 }
         val secondPlaceCount = results.count { it.placement == 2 }

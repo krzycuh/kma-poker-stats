@@ -129,13 +129,21 @@ class LeaderboardService(
 
         return allPlayers.map { player ->
             val allResults = resultRepository.findByPlayerId(player.id)
-            // Filter out spectator results and results from deleted sessions
+            // Resolve sessions once so we can both filter deleted ones and feed
+            // session start times into the streak calculation.
+            val sessionsById =
+                allResults
+                    .map { it.sessionId }
+                    .distinct()
+                    .mapNotNull { sessionRepository.findById(it) }
+                    .associateBy { it.id }
             val activeResults =
                 allResults.filter { result ->
                     !result.isSpectator &&
-                        (sessionRepository.findById(result.sessionId)?.isDeleted == false)
+                        sessionsById[result.sessionId]?.isDeleted == false
                 }
-            val stats = statsCalculator.calculatePlayerStats(player.id, activeResults)
+            val sessionStartTimes = sessionsById.mapValues { (_, session) -> session.startTime }
+            val stats = statsCalculator.calculatePlayerStats(player.id, activeResults, sessionStartTimes)
             PlayerWithStats(player, stats)
         }
     }
@@ -162,15 +170,29 @@ class LeaderboardService(
             playerRepository.findByIds(resultsByPlayer.keys)
                 .filter { it.isActive }
 
+        // Resolve every shared session once for the deletion filter and
+        // start-time lookup used by the streak calculation.
+        val sharedSessionsById =
+            access.sessionIds
+                .mapNotNull { sessionRepository.findById(it) }
+                .associateBy { it.id }
+        val sharedSessionStartTimes =
+            sharedSessionsById.mapValues { (_, session) -> session.startTime }
+
         return connectedPlayers.mapNotNull { player ->
             val allPlayerResults = resultsByPlayer[player.id] ?: return@mapNotNull null
             // Filter out spectator results and results from deleted sessions
             val activeResults =
                 allPlayerResults.filter { result ->
                     !result.isSpectator &&
-                        (sessionRepository.findById(result.sessionId)?.isDeleted == false)
+                        sharedSessionsById[result.sessionId]?.isDeleted == false
                 }
-            val stats = statsCalculator.calculatePlayerStats(player.id, activeResults)
+            val stats =
+                statsCalculator.calculatePlayerStats(
+                    player.id,
+                    activeResults,
+                    sharedSessionStartTimes,
+                )
             PlayerWithStats(player, stats)
         }
     }

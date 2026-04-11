@@ -37,14 +37,21 @@ class DashboardService(
 
         // Get player's results and filter out deleted sessions and spectator results
         val allResults = resultRepository.findByPlayerId(player.id)
+        val sessionsById =
+            allResults
+                .map { it.sessionId }
+                .distinct()
+                .mapNotNull { sessionRepository.findById(it) }
+                .associateBy { it.id }
         val activeResults =
             allResults.filter { result ->
                 !result.isSpectator &&
-                    (sessionRepository.findById(result.sessionId)?.isDeleted == false)
+                    sessionsById[result.sessionId]?.isDeleted == false
             }
 
-        // Calculate stats
-        val stats = statsCalculator.calculatePlayerStats(player.id, activeResults)
+        // Calculate stats — pass session start times so streak honors play date.
+        val sessionStartTimes = sessionsById.mapValues { (_, s) -> s.startTime }
+        val stats = statsCalculator.calculatePlayerStats(player.id, activeResults, sessionStartTimes)
         val playerStatsDto = PlayerStatsDto.fromDomain(stats)
 
         // Get recent sessions
@@ -69,12 +76,19 @@ class DashboardService(
         val personalStats =
             player?.let {
                 val allResults = resultRepository.findByPlayerId(it.id)
+                val sessionsById =
+                    allResults
+                        .map { result -> result.sessionId }
+                        .distinct()
+                        .mapNotNull { sessionId -> sessionRepository.findById(sessionId) }
+                        .associateBy { session -> session.id }
                 val activeResults =
                     allResults.filter { result ->
                         !result.isSpectator &&
-                            (sessionRepository.findById(result.sessionId)?.isDeleted == false)
+                            sessionsById[result.sessionId]?.isDeleted == false
                     }
-                val stats = statsCalculator.calculatePlayerStats(it.id, activeResults)
+                val sessionStartTimes = sessionsById.mapValues { (_, s) -> s.startTime }
+                val stats = statsCalculator.calculatePlayerStats(it.id, activeResults, sessionStartTimes)
                 PlayerStatsDto.fromDomain(stats)
             }
 
@@ -164,7 +178,8 @@ class DashboardService(
         val allPlayers = playerRepository.findAll()
         if (allPlayers.size <= 1) return null
 
-        // Calculate profit for all players (filter deleted sessions and spectators)
+        // Calculate profit for all players (filter deleted sessions and spectators).
+        // No session-time map needed here — only net profit is read.
         val playerProfits =
             allPlayers.map { player ->
                 val allResults = resultRepository.findByPlayerId(player.id)

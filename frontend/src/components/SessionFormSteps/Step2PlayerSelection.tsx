@@ -158,14 +158,14 @@ export function Step2PlayerSelection({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3 max-h-96 overflow-y-auto">
           {filteredPlayers.map((player) => {
             const isSelected = formData.selectedPlayerIds.includes(player.id)
             const isSpectator = spectatorPlayerIds.includes(player.id)
             return (
               <div
                 key={player.id}
-                className={`rounded-lg border-2 transition-all ${
+                className={`rounded-lg border sm:border-2 transition-all ${
                   isSelected
                     ? isSpectator
                       ? 'border-gray-400 bg-gray-50'
@@ -173,14 +173,14 @@ export function Step2PlayerSelection({
                     : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
               >
-                <button
-                  type="button"
-                  onClick={() => togglePlayer(player.id)}
-                  className="w-full p-4 text-left"
-                >
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-2 py-1.5 sm:px-4 sm:py-3">
+                  <button
+                    type="button"
+                    onClick={() => togglePlayer(player.id)}
+                    className="flex items-center gap-2 flex-1 min-w-0 text-left"
+                  >
                     <div
-                      className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                      className={`w-4 h-4 sm:w-5 sm:h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
                         isSelected
                           ? 'bg-blue-600 border-blue-600'
                           : 'border-gray-300'
@@ -188,7 +188,7 @@ export function Step2PlayerSelection({
                     >
                       {isSelected && (
                         <svg
-                          className="w-3 h-3 text-white"
+                          className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -202,34 +202,26 @@ export function Step2PlayerSelection({
                         </svg>
                       )}
                     </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">
-                        {player.name}
-                      </div>
+                    <div className="font-medium text-sm sm:text-base text-gray-900 truncate">
+                      {player.name}
                     </div>
-                    {isSelected && isSpectator && (
-                      <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">
-                        Spectator
-                      </span>
-                    )}
-                  </div>
-                </button>
-                {isSelected && (
-                  <div className="px-4 pb-3 pt-0">
+                  </button>
+                  {isSelected && (
                     <label
-                      className="flex items-center gap-2 cursor-pointer text-sm text-gray-600"
+                      className="flex items-center gap-1 cursor-pointer text-xs sm:text-sm text-gray-600 flex-shrink-0"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <input
                         type="checkbox"
                         checked={isSpectator}
                         onChange={() => toggleSpectator(player.id)}
-                        className="w-4 h-4 text-gray-500 rounded focus:ring-gray-400"
+                        className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 rounded focus:ring-gray-400"
                       />
-                      Spectator (absent)
+                      <span className="hidden sm:inline">Spectator (absent)</span>
+                      <span className="sm:hidden">Spectator</span>
                     </label>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )
           })}

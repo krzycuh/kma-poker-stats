@@ -95,14 +95,15 @@ class StatsService(
         val nonDeletedResults = nonSpectatorResults.filter { it.sessionId in activeSessions }
         val filteredResults = filterResultsByDateRange(nonDeletedResults, startDate, endDate)
 
-        val stats = statsCalculator.calculatePlayerStats(playerId, filteredResults)
-        val overview = PlayerStatsDto.fromDomain(stats)
-
         val sessions =
             filteredResults.map { result ->
                 sessionRepository.findById(result.sessionId)
                     ?: throw IllegalStateException("Session not found: ${result.sessionId}")
             }
+        val sessionStartTimes = sessions.associate { it.id to it.startTime }
+
+        val stats = statsCalculator.calculatePlayerStats(playerId, filteredResults, sessionStartTimes)
+        val overview = PlayerStatsDto.fromDomain(stats)
 
         val profitOverTime = calculateProfitOverTime(filteredResults, sessions)
         val locationPerformance = calculateLocationPerformance(filteredResults, sessions)

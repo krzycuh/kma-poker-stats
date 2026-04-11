@@ -252,6 +252,30 @@ class StatsCalculatorTest {
         stats.currentStreak shouldBe -2 // 2 losses in a row
     }
 
+    @Test
+    fun `should order streak by session start time when provided`() {
+        // Given – an old loss is entered into the system AFTER a recent win.
+        // Without the start-time map the streak would be the loss (because it
+        // was created last); with the map it should reflect the actual play
+        // order: loss first, then a fresh winning streak of 1.
+        val playerId = PlayerId.generate()
+        val olderLoss = createResult(playerId, buyIn = 100, cashOut = 50)
+        val recentWin = createResult(playerId, buyIn = 100, cashOut = 200)
+        val results = listOf(recentWin, olderLoss)
+
+        val sessionStartTimes =
+            mapOf(
+                olderLoss.sessionId to java.time.LocalDateTime.now().minusDays(10),
+                recentWin.sessionId to java.time.LocalDateTime.now().minusDays(1),
+            )
+
+        // When
+        val stats = calculator.calculatePlayerStats(playerId, results, sessionStartTimes)
+
+        // Then
+        stats.currentStreak shouldBe 1
+    }
+
     // Helper methods
 
     private fun createResult(

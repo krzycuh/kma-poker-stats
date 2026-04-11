@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { playerApi } from '../../api/players'
 import type { SessionFormData } from '../../types/sessionForm'
@@ -19,6 +19,9 @@ export function Step3ResultsEntry({
 }: Step3Props) {
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  // Raw string inputs per player so backspace/decimal editing feels natural.
+  const [buyInInputs, setBuyInInputs] = useState<Record<string, string>>({})
+  const [cashOutInputs, setCashOutInputs] = useState<Record<string, string>>({})
 
   const { data: allPlayers = [] } = useQuery({
     queryKey: ['players'],
@@ -46,13 +49,68 @@ export function Step3ResultsEntry({
     updateFormData({ results: newResults })
   }
 
-  const formatCurrency = (cents: number): string => {
+  // Format only when the value actually has fractional groszy; otherwise show
+  // the integer so users editing whole-PLN amounts don't fight a trailing ".00".
+  const formatCurrencyForInput = (cents: number): string => {
+    if (cents === 0) return ''
+    if (cents % 100 === 0) return String(Math.trunc(cents / 100))
     return (cents / 100).toFixed(2)
   }
 
-  const parseCurrency = (value: string): number => {
-    const num = parseFloat(value)
-    return isNaN(num) ? 0 : Math.round(num * 100)
+  // Accept both "." and "," as decimal separators. Returns null if the input
+  // can't be parsed (e.g. empty), so callers can decide how to treat it.
+  const parseCurrencyInput = (value: string): number | null => {
+    const trimmed = value.trim().replace(',', '.')
+    if (trimmed === '') return null
+    const num = Number(trimmed)
+    if (Number.isNaN(num)) return null
+    return Math.round(num * 100)
+  }
+
+  // Initialise the raw string inputs for the current player whenever we
+  // navigate to a different one, so the displayed text matches the stored cents.
+  useEffect(() => {
+    const result = formData.results[currentPlayerIndex]
+    if (!result) return
+    setBuyInInputs((prev) =>
+      prev[result.playerId] !== undefined
+        ? prev
+        : { ...prev, [result.playerId]: formatCurrencyForInput(result.buyInCents) },
+    )
+    setCashOutInputs((prev) =>
+      prev[result.playerId] !== undefined
+        ? prev
+        : { ...prev, [result.playerId]: formatCurrencyForInput(result.cashOutCents) },
+    )
+  }, [currentPlayerIndex, formData.results])
+
+  const handleBuyInChange = (playerId: string, value: string) => {
+    // Allow digits, one optional separator and up to 2 fractional digits.
+    if (!/^\d*([.,]\d{0,2})?$/.test(value)) return
+    setBuyInInputs((prev) => ({ ...prev, [playerId]: value }))
+    const parsed = parseCurrencyInput(value)
+    updateResult(playerId, { buyInCents: parsed ?? 0 })
+  }
+
+  const handleCashOutChange = (playerId: string, value: string) => {
+    if (!/^\d*([.,]\d{0,2})?$/.test(value)) return
+    setCashOutInputs((prev) => ({ ...prev, [playerId]: value }))
+    const parsed = parseCurrencyInput(value)
+    updateResult(playerId, { cashOutCents: parsed ?? 0 })
+  }
+
+  const handleAmountBlur = (
+    playerId: string,
+    field: 'buyIn' | 'cashOut',
+    rawValue: string,
+  ) => {
+    const parsed = parseCurrencyInput(rawValue)
+    const normalized = parsed === null ? '' : formatCurrencyForInput(parsed)
+    if (field === 'buyIn') {
+      setBuyInInputs((prev) => ({ ...prev, [playerId]: normalized }))
+    } else {
+      setCashOutInputs((prev) => ({ ...prev, [playerId]: normalized }))
+    }
   }
 
   const calculateProfit = (
@@ -240,21 +298,28 @@ export function Step3ResultsEntry({
                 Buy-In (PLN) *
               </label>
               <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={formatCurrency(currentResult.buyInCents)}
+                type="text"
+                inputMode="decimal"
+                value={
+                  buyInInputs[currentResult.playerId] ??
+                  formatCurrencyForInput(currentResult.buyInCents)
+                }
                 onChange={(e) =>
-                  updateResult(currentResult.playerId, {
-                    buyInCents: parseCurrency(e.target.value),
-                  })
+                  handleBuyInChange(currentResult.playerId, e.target.value)
+                }
+                onBlur={(e) =>
+                  handleAmountBlur(
+                    currentResult.playerId,
+                    'buyIn',
+                    e.target.value,
+                  )
                 }
                 className={`w-full px-4 py-3 text-2xl border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   errors[`buyIn-${currentPlayerIndex}`]
                     ? 'border-red-500'
                     : 'border-gray-300'
                 }`}
-                placeholder="100.00"
+                placeholder="100"
               />
               {errors[`buyIn-${currentPlayerIndex}`] && (
                 <p className="text-red-500 text-sm mt-1">
@@ -268,21 +333,28 @@ export function Step3ResultsEntry({
                 Cash-Out (PLN) *
               </label>
               <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={formatCurrency(currentResult.cashOutCents)}
+                type="text"
+                inputMode="decimal"
+                value={
+                  cashOutInputs[currentResult.playerId] ??
+                  formatCurrencyForInput(currentResult.cashOutCents)
+                }
                 onChange={(e) =>
-                  updateResult(currentResult.playerId, {
-                    cashOutCents: parseCurrency(e.target.value),
-                  })
+                  handleCashOutChange(currentResult.playerId, e.target.value)
+                }
+                onBlur={(e) =>
+                  handleAmountBlur(
+                    currentResult.playerId,
+                    'cashOut',
+                    e.target.value,
+                  )
                 }
                 className={`w-full px-4 py-3 text-2xl border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   errors[`cashOut-${currentPlayerIndex}`]
                     ? 'border-red-500'
                     : 'border-gray-300'
                 }`}
-                placeholder="150.00"
+                placeholder="150"
               />
               {errors[`cashOut-${currentPlayerIndex}`] && (
                 <p className="text-red-500 text-sm mt-1">
