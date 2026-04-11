@@ -20,11 +20,11 @@ import type { SessionFormData } from '../types/sessionForm'
 const DRAFT_KEY = 'session-draft'
 
 const steps = [
-  { id: 1, title: 'Session Details', description: 'When & where' },
-  { id: 2, title: 'Select Players', description: 'Who played' },
-  { id: 3, title: 'Enter Results', description: 'Buy-ins & cash-outs' },
+  { id: 1, title: 'Details', description: 'When & where' },
+  { id: 2, title: 'Players', description: 'Who played' },
+  { id: 3, title: 'Results', description: 'Buy-ins & cash-outs' },
   { id: 4, title: 'Expenses', description: 'Shared costs' },
-  { id: 5, title: 'Review & Submit', description: 'Confirm details' },
+  { id: 5, title: 'Review', description: 'Confirm details' },
 ]
 
 export default function LogSession() {
