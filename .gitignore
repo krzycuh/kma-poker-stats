@@ -20,6 +20,7 @@ logs/
 .env.*.local
 .env.localhost
 .env.production
+backups/
 
 # Build artifacts
 dist/
