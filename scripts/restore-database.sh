@@ -5,21 +5,30 @@
 
 set -e  # Exit on error
 set -u  # Exit on undefined variable
+set -o pipefail  # Fail if any command in a pipeline fails
 
 # ============================================
 # Configuration
 # ============================================
 
+# Resolve paths relative to this script, so the script works from any directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Load environment variables
-if [ -f .env.production ]; then
-    source .env.production
+ENV_FILE="${ENV_FILE:-$PROJECT_ROOT/.env.production}"
+if [ -f "$ENV_FILE" ]; then
+    source "$ENV_FILE"
 else
-    echo "Error: .env.production file not found"
+    echo "Error: environment file not found: $ENV_FILE" >&2
+    echo "Copy .env.production.template to .env.production in $PROJECT_ROOT," >&2
+    echo "or point ENV_FILE at your environment file." >&2
     exit 1
 fi
 
 # Backup configuration
-BACKUP_DIR="${BACKUP_PATH:-/mnt/pokerstats-data/backups}/postgres"
+BACKUP_ROOT="${BACKUP_PATH:-/mnt/pokerstats-data/backups}"
+BACKUP_DIR="${BACKUP_ROOT}/postgres"
 
 # Database configuration
 DB_CONTAINER="pokerstats-postgres-prod"
@@ -41,6 +50,12 @@ error() {
 list_backups() {
     log "Available backups:"
     echo ""
+    
+    if [ ! -d "$BACKUP_DIR" ]; then
+        error "Backup directory does not exist: $BACKUP_DIR"
+        error "Set BACKUP_PATH in $ENV_FILE to the directory holding your backups."
+        exit 1
+    fi
     
     local backups=($(find "$BACKUP_DIR" -name "pokerstats_*.sql.gz" -type f | sort -r))
     
@@ -117,7 +132,7 @@ restore_backup() {
     
     # Stop the backend to prevent connections
     log "Stopping backend service..."
-    docker-compose -f docker-compose.prod.yml stop backend
+    docker-compose -f "$PROJECT_ROOT/docker-compose.prod.yml" stop backend
     
     # Restore database
     log "Restoring from backup..."
@@ -132,7 +147,7 @@ restore_backup() {
     
     # Restart backend
     log "Starting backend service..."
-    docker-compose -f docker-compose.prod.yml start backend
+    docker-compose -f "$PROJECT_ROOT/docker-compose.prod.yml" start backend
     
     log "Waiting for backend to be healthy..."
     sleep 10
