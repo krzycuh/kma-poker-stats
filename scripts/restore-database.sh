@@ -5,16 +5,25 @@
 
 set -e  # Exit on error
 set -u  # Exit on undefined variable
+set -o pipefail  # Fail if any command in a pipeline fails (e.g. gunzip | psql)
 
 # ============================================
 # Configuration
 # ============================================
 
+# Work from the project root, so the script also runs from another directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
+
 # Load environment variables
-if [ -f .env.production ]; then
-    source .env.production
+ENV_FILE="${ENV_FILE:-$PROJECT_ROOT/.env}"
+if [ -f "$ENV_FILE" ]; then
+    source "$ENV_FILE"
 else
-    echo "Error: .env.production file not found"
+    echo "Error: environment file not found: $ENV_FILE" >&2
+    echo "Copy .env.production.template to .env in $PROJECT_ROOT," >&2
+    echo "or point ENV_FILE at your environment file." >&2
     exit 1
 fi
 
@@ -36,6 +45,25 @@ log() {
 
 error() {
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] ERROR: $1" >&2
+}
+
+# Run docker compose (plugin) or the legacy docker-compose binary for the prod stack
+compose() {
+    if docker compose version &> /dev/null; then
+        docker compose -f docker-compose.prod.yml --env-file "$ENV_FILE" "$@"
+    else
+        docker-compose -f docker-compose.prod.yml --env-file "$ENV_FILE" "$@"
+    fi
+}
+
+# Print the plain SQL of a backup. Backups made before the --compress fix were
+# gzipped twice (pg_dump --compress + gzip), so unwrap the second layer if present.
+dump_sql() {
+    if gunzip -c "$1" | gzip -t 2>/dev/null; then
+        gunzip -c "$1" | gunzip -c
+    else
+        gunzip -c "$1"
+    fi
 }
 
 list_backups() {
@@ -117,22 +145,20 @@ restore_backup() {
     
     # Stop the backend to prevent connections
     log "Stopping backend service..."
-    docker-compose -f docker-compose.prod.yml stop backend
+    compose stop backend
     
     # Restore database
     log "Restoring from backup..."
-    gunzip -c "$BACKUP_FILE" | docker exec -i "$DB_CONTAINER" psql -U "$DB_USER" -d postgres
-    
-    if [ $? -eq 0 ]; then
+    if dump_sql "$BACKUP_FILE" | docker exec -i "$DB_CONTAINER" psql -v ON_ERROR_STOP=1 -U "$DB_USER" -d postgres; then
         log "Database restore completed successfully"
     else
-        error "Database restore failed"
+        error "Database restore failed (backend left stopped; the pre-restore backup is in $BACKUP_DIR)"
         exit 1
     fi
     
     # Restart backend
     log "Starting backend service..."
-    docker-compose -f docker-compose.prod.yml start backend
+    compose start backend
     
     log "Waiting for backend to be healthy..."
     sleep 10

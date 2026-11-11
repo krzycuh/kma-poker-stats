@@ -15,10 +15,10 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 DB_CONTAINER="pokerstats-postgres-prod"
 
 # Load environment variables
-if [ -f "$PROJECT_ROOT/.env.production" ]; then
-    source "$PROJECT_ROOT/.env.production"
+if [ -f "$PROJECT_ROOT/.env" ]; then
+    source "$PROJECT_ROOT/.env"
 else
-    echo "Warning: .env.production not found, using defaults"
+    echo "Warning: .env not found, using defaults"
 fi
 
 DB_NAME="${POSTGRES_DB:-pokerstats}"

@@ -523,7 +523,7 @@ docker logs pokerstats-postgres-prod --tail=50
    docker-compose -f docker-compose.prod.yml restart postgres
 
 2. Check connection settings
-   - Verify DATABASE_URL in .env.production
+   - Verify DATABASE_URL in .env
    - Check password is correct
 
 3. Restore from backup (if corrupted)
